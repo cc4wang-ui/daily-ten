@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Daily Ten</title>
+<style>
+  :root{
+    --bg:#12140F; --panel:#1C1F17; --panel2:#242820; --line:#33382B;
+    --ink:#E8E4D8; --ink-dim:#9A9884; --amber:#E8A33D; --red:#D64545;
+    --green:#7A9B57; --yellow:#D9C34A;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;
+    overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+  #app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) 0 calc(64px + env(safe-area-inset-bottom))}
+  .screen{display:none;flex:1;padding:20px 18px}
+  .screen.active{display:block}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--ink-dim);text-transform:uppercase}
+  h1{font-size:15px;font-weight:800;letter-spacing:.12em;margin:2px 0 16px}
+  /* ---- HOME ---- */
+  .dogtag{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:22px 18px;text-align:center;margin-bottom:14px}
+  .streak-num{font-family:var(--mono);font-size:88px;font-weight:800;line-height:1;color:var(--amber);
+    font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(232,163,61,.18)}
+  .streak-lab{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--ink-dim);margin-top:6px}
+  .statrow{display:flex;gap:10px;margin-bottom:14px}
+  .stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+  .stat b{display:block;font-family:var(--mono);font-size:20px;color:var(--ink)}
+  .stat span{font-size:10px;color:var(--ink-dim);letter-spacing:.1em}
+  .banner{border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:14px;display:none}
+  .banner.warn{display:block;background:rgba(217,195,74,.12);border:1px solid var(--yellow);color:var(--yellow)}
+  .banner.danger{display:block;background:rgba(214,69,69,.14);border:1px solid var(--red);color:#F0A0A0}
+  button{font-family:inherit;border:none;cursor:pointer}
+  .btn-main{width:100%;padding:18px;border-radius:10px;background:var(--amber);color:#12140F;
+    font-size:17px;font-weight:800;letter-spacing:.05em;margin-bottom:10px}
+  .btn-sub{width:100%;padding:13px;border-radius:10px;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);font-size:14px;margin-bottom:10px}
+  .btn-danger-fill{background:var(--red);color:#fff}
+  .mission{font-size:12px;color:var(--ink-dim);line-height:1.6;margin-bottom:14px}
+  .levelup{display:none;width:100%;padding:14px;border-radius:10px;background:rgba(122,155,87,.15);
+    border:1px solid var(--green);color:var(--green);font-weight:700;font-size:14px;margin-bottom:10px}
+  /* ---- TRAIN overlay ---- */
+  #train{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:24px;z-index:50}
+  #train.active{display:flex}
+  #t-phase{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:10px}
+  #t-name{font-size:34px;font-weight:800;line-height:1.2;margin-bottom:4px}
+  #t-sub{font-size:15px;color:var(--amber);margin-bottom:22px;font-family:var(--mono)}
+  #t-count{font-family:var(--mono);font-size:110px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  #t-next{font-size:13px;color:var(--ink-dim);margin-top:22px;min-height:18px}
+  #t-prog{width:70%;height:4px;background:var(--panel2);border-radius:2px;margin-top:18px;overflow:hidden}
+  #t-prog i{display:block;height:100%;background:var(--amber);width:0%}
+  .t-ctrl{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;gap:12px;width:calc(100% - 48px);max-width:472px}
+  .t-ctrl button{flex:1;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
+  #t-pause{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+  #t-abort{background:transparent;color:var(--red);border:1px solid var(--red)}
+  /* ---- DONE overlay ---- */
+  #done{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:32px;z-index:60}
+  #done.active{display:flex}
+  #d-identity{font-size:22px;font-weight:800;line-height:1.5;margin:18px 0 8px}
+  #d-xp{font-family:var(--mono);color:var(--amber);font-size:16px;margin-bottom:28px}
+  /* ---- BOSS ---- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+  .card h3{font-size:14px;margin-bottom:8px;letter-spacing:.05em}
+  .card p{font-size:13px;color:var(--ink-dim);line-height:1.6}
+  input[type=number]{width:100%;padding:12px;border-radius:8px;background:var(--panel2);
+    border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:18px;text-align:center}
+  .inputrow{display:flex;gap:8px;align-items:center;margin:10px 0}
+  .inputrow span{font-size:13px;color:var(--ink-dim);white-space:nowrap}
+  /* ---- HISTORY ---- */
+  .heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin:10px 0 16px}
+  .heat i{aspect-ratio:1;border-radius:2px;background:var(--panel2)}
+  .heat i.full{background:var(--amber)}.heat i.cycle{background:#C98A2B}
+  .heat i.boss{background:var(--red)}.heat i.rest{background:var(--green)}
+  .heat i.minimal,.heat i.rain{background:#6B6A50}
+  .prline{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .prline b{font-family:var(--mono);color:var(--amber)}
+  .passline{font-size:11px;color:var(--red);font-family:var(--mono);letter-spacing:.05em;margin:2px 0 12px}
+  /* ---- SETUP ---- */
+  a{color:var(--amber);text-decoration:none;font-size:13px}
+  .vidline{padding:9px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  textarea{width:100%;height:90px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;margin:8px 0}
+  .toggle{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+  /* ---- TABS ---- */
+  #tabs{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);
+    display:flex;max-width:520px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom);z-index:40}
+  #tabs button{flex:1;padding:13px 0 11px;background:none;color:var(--ink-dim);font-size:11px;letter-spacing:.15em;font-family:var(--mono)}
+  #tabs button.on{color:var(--amber)}
+  .small{font-size:11px;color:var(--ink-dim);line-height:1.6}
+</style>
+<!-- ===== PWA / iOS 增量（Phase 3b）===== -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#12140F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Ten">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="s-home">
+    <div class="eyebrow">DAILY TEN · AFT PROGRAM</div>
+    <h1 id="h-date">—</h1>
+    <div id="h-banner" class="banner"></div>
+    <div class="dogtag">
+      <div class="streak-num" id="h-streak">0</div>
+      <div class="streak-lab">CONSECUTIVE DAYS</div>
+    </div>
+    <div class="statrow">
+      <div class="stat"><b id="h-level">L2</b><span>LEVEL</span></div>
+      <div class="stat"><b id="h-xp">0</b><span>XP</span></div>
+      <div class="stat"><b id="h-best">0</b><span>BEST</span></div>
+    </div>
+    <div class="mission" id="h-mission">—</div>
+    <button class="levelup" id="h-levelup">▲ 升級條件達成 — 點此升至下一級</button>
+    <button class="btn-main" id="h-start">—</button>
+    <button class="btn-sub" id="h-minimal">保底版 · 2 分鐘（動作 1·2·10）</button>
+    <button class="btn-sub" id="h-rain">雨天／出差替代 · 10 分鐘室內有氧</button>
+  </section>
+
+  <!-- BOSS input -->
+  <section class="screen" id="s-boss">
+    <div class="eyebrow">BOSS DAY · PR ENTRY</div>
+    <h1 id="b-title">—</h1>
+    <div class="card" id="b-card"></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="screen" id="s-hist">
+    <div class="eyebrow">RECORDS</div>
+    <h1>訓練紀錄</h1>
+    <div class="small">過去 8 週（右下 = 今天）</div>
+    <div class="heat" id="hist-heat"></div>
+    <div class="card">
+      <h3>HRP 伏地挺身（2 分鐘）</h3>
+      <div class="passline">AFT PASS ≥ 15 REPS ─ ─ ─ ─ ─</div>
+      <div id="pr-hrp"></div>
+    </div>
+    <div class="card">
+      <h3>Plank</h3>
+      <div class="passline">TARGET ≥ 2:30（及格線約 1:30）─ ─ ─</div>
+      <div id="pr-plank"></div>
+    </div>
+    <div class="card">
+      <h3>2 Mile Run</h3>
+      <div class="passline">AFT PASS ≤ 19:57 ─ ─ ─ ─ ─</div>
+      <div id="pr-run"></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="screen" id="s-setup">
+    <div class="eyebrow">SETUP</div>
+    <h1>設定與教學</h1>
+    <div class="card">
+      <h3>動作影片（僅首週學習用）</h3>
+      <div id="vids"></div>
+      <p style="margin-top:8px">連結開啟 YouTube 搜尋結果，選官方／高評價示範即可。</p>
+    </div>
+    <div class="card">
+      <h3>設定</h3>
+      <div class="toggle"><span>語音導引（中文 TTS）</span><input type="checkbox" id="cfg-voice" checked></div>
+      <div class="toggle"><span>提示音</span><input type="checkbox" id="cfg-beep" checked></div>
+    </div>
+    <div class="card">
+      <h3>資料備份</h3>
+      <button class="btn-sub" id="exp-btn" style="margin-top:4px">匯出 JSON</button>
+      <textarea id="exp-area" placeholder="匯出結果顯示於此；貼上 JSON 後按匯入可還原"></textarea>
+      <button class="btn-sub" id="imp-btn">匯入（覆蓋現有資料）</button>
+      <p class="small" id="io-msg"></p>
+    </div>
+    <p class="small">週節奏：一二四五 15min ／ 三 30min Cycle ／ 六 休息（恢復序列＋散步＋早睡）／ 日 Boss Day。全部早上進行，錨定在刷牙後。</p>
+  </section>
+</div>
+
+<!-- TRAIN -->
+<div id="train">
+  <div id="t-phase">—</div>
+  <div id="t-name">—</div>
+  <div id="t-sub">—</div>
+  <div id="t-count">—</div>
+  <div id="t-next"></div>
+  <div id="t-prog"><i id="t-bar"></i></div>
+  <div class="t-ctrl">
+    <button id="t-pause">暫停</button>
+    <button id="t-abort">結束</button>
+  </div>
+</div>
+
+<!-- DONE -->
+<div id="done">
+  <div class="eyebrow">MISSION COMPLETE</div>
+  <div id="d-identity">—</div>
+  <div id="d-xp">—</div>
+  <button class="btn-main" id="d-ok" style="max-width:320px">回報完成</button>
+</div>
+
+<nav id="tabs">
+  <button data-s="s-home" class="on">HOME</button>
+  <button data-s="s-hist">RECORDS</button>
+  <button data-s="s-setup">SETUP</button>
+</nav>
+
+<script>
+'use strict';
+/* ================= STORAGE ================= */
+const KEY='daily-ten-state';
+const DEFAULT_STATE={version:1,level:2,xp:0,
+  streak:{current:0,best:0,lastDate:null},
+  sessions:[],prs:{hrp:[],plank:[],run2mi:[]},
+  settings:{voice:true,beep:true}};
+let state=null;
+async function loadState(){
+  try{ if(window.storage){ const r=await window.storage.get(KEY); if(r&&r.value){state=JSON.parse(r.value);return;} } }catch(e){}
+  try{ const s=localStorage.getItem(KEY); if(s){state=JSON.parse(s);return;} }catch(e){}
+  state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+async function saveState(){
+  const s=JSON.stringify(state);
+  let ok=false;
+  try{ if(window.storage){ await window.storage.set(KEY,s); ok=true; } }catch(e){}
+  try{ localStorage.setItem(KEY,s); ok=true; }catch(e){}
+  if(!ok) console.error('儲存失敗：資料僅存在記憶體中');
+}
+/* ================= DATE HELPERS ================= */
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dateOffset(base,days){const d=new Date(base+'T00:00:00');d.setDate(d.getDate()+days);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dayGap(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);}
+function isoWeek(d){const t=new Date(d.valueOf());t.setDate(t.getDate()+3-((t.getDay()+6)%7));
+  const w1=new Date(t.getFullYear(),0,4);return 1+Math.round(((t-w1)/86400000-3+((w1.getDay()+6)%7))/7);}
+/* ================= AUDIO ================= */
+let AC=null;
+function initAudio(){ try{ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}
+  if(AC.state==='suspended')AC.resume(); }catch(e){} }
+function beep(freq,dur){ if(!state.settings.beep||!AC)return;
+  try{const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=freq;
+  g.gain.setValueAtTime(0.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);
+  o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}catch(e){} }
+function speak(txt){ if(!state.settings.voice)return;
+  try{ if(!('speechSynthesis' in window))return;
+  const u=new SpeechSynthesisUtterance(txt);u.lang='zh-TW';u.rate=1.05;
+  speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){} }
+/* ================= WAKE LOCK ================= */
+let wakeLock=null;
+async function lockScreen(){ try{ if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');} }catch(e){} }
+function unlockScreen(){ try{ if(wakeLock){wakeLock.release();wakeLock=null;} }catch(e){} }
+/* ================= EXERCISE DATA ================= */
+/* dose(level): stretches scale +15s/+2reps per level from L2 base, capped */
+function dose(lv){
+  const st=n=>Math.min(n+(lv-2)*15,90);      // seconds for stretches
+  const rp=n=>Math.min(n+(lv-2)*2,15);       // reps for stretches
+  return {
+    catcow:rp(10), nineok:st(45), squatHold:Math.min(40+(lv-2)*20,120),
+    wall:rp(10), needle:Math.min(6+(lv-2),10),
+    bridge:[12,15,20,20,20][lv-1], bridgeSingle:lv>=4,
+    pushSets:lv>=3?3:2, pushReps:[8,10,12,15,15][lv-1], pushKnee:lv===1,
+    squatSets:lv>=3?3:2, squatReps:[12,15,20,20,20][lv-1],
+    calf:[15,20,25,25,25][lv-1], calfSingle:lv>=4,
+    plankSec:[30,45,60,90,150][lv-1], plankSets:lv>=2?2:1
+  };
+}
+function fullSeq(lv){
+  const d=dose(lv), s=[];
+  const T=(n,sub,sec)=>s.push({name:n,sub:sub,mode:'time',secs:sec});
+  const R=(n,sub,reps,tempo)=>s.push({name:n,sub:sub,mode:'reps',reps:reps,tempo:tempo||3});
+  R('貓牛式','Cat-Cow ×'+d.catcow,d.catcow,3);
+  T('90/90 髖旋轉 · 左','90/90 Hip Switch L',d.nineok);
+  T('90/90 髖旋轉 · 右','90/90 Hip Switch R',d.nineok);
+  T('深蹲蹲坐','Deep Squat Hold',d.squatHold);
+  R('靠牆滑臂','Wall Slides ×'+d.wall,d.wall,4);
+  R('穿針式 · 左','Thread the Needle L ×'+d.needle,d.needle,4);
+  R('穿針式 · 右','Thread the Needle R ×'+d.needle,d.needle,4);
+  R('臀橋'+(d.bridgeSingle?' · 單腳輪替':''),'Glute Bridge ×'+d.bridge,d.bridge,3);
+  for(let i=1;i<=d.pushSets;i++){ R('伏地挺身 第'+i+'組'+(d.pushKnee?' · 跪姿':''),'Push-up ×'+d.pushReps,d.pushReps,3);
+    if(i<d.pushSets)T('組間休息','Rest',30); }
+  for(let i=1;i<=d.squatSets;i++){ R('深蹲 第'+i+'組','Squat ×'+d.squatReps,d.squatReps,3);
+    if(i<d.squatSets)T('組間休息','Rest',30); }
+  R('提踵'+(d.calfSingle?' · 單腳輪替':''),'Calf Raise ×'+d.calf,d.calf,2);
+  for(let i=1;i<=d.plankSets;i++){ T('平板支撐 第'+i+'組','Plank '+d.plankSec+'s',d.plankSec);
+    if(i<d.plankSets)T('組間休息','Rest',20); }
+  return s;
+}
+function cycleSeq(lv){
+  const d=dose(lv), s=fullSeq(lv);
+  s.push({name:'伏地挺身 加練 1','sub':'Push-up ×'+d.pushReps,mode:'reps',reps:d.pushReps,tempo:3});
+  s.push({name:'組間休息',sub:'Rest',mode:'time',secs:30});
+  s.push({name:'伏地挺身 加練 2',sub:'Push-up ×'+d.pushReps,mode:'reps',reps:d.pushReps,tempo:3});
+  s.push({name:'組間休息',sub:'Rest',mode:'time',secs:30});
+  s.push({name:'派克伏地挺身',sub:'Pike Push-up ×8',mode:'reps',reps:8,tempo:4});
+  s.push({name:'側平板 · 左',sub:'Side Plank L',mode:'time',secs:30});
+  s.push({name:'側平板 · 右',sub:'Side Plank R',mode:'time',secs:30});
+  return s;
+}
+function restSeq(lv){
+  const d=dose(lv), m=x=>Math.round(x*1.5), s=[];
+  s.push({name:'貓牛式',sub:'Cat-Cow ×'+m(d.catcow),mode:'reps',reps:m(d.catcow),tempo:3});
+  s.push({name:'90/90 髖旋轉 · 左',sub:'Recovery',mode:'time',secs:m(d.nineok)});
+  s.push({name:'90/90 髖旋轉 · 右',sub:'Recovery',mode:'time',secs:m(d.nineok)});
+  s.push({name:'深蹲蹲坐',sub:'Deep Squat Hold',mode:'time',secs:m(d.squatHold)});
+  s.push({name:'靠牆滑臂',sub:'Wall Slides ×12',mode:'reps',reps:12,tempo:4});
+  s.push({name:'穿針式 · 左',sub:'×8',mode:'reps',reps:8,tempo:4});
+  s.push({name:'穿針式 · 右',sub:'×8',mode:'reps',reps:8,tempo:4});
+  return s;
+}
+function minimalSeq(lv){
+  const d=dose(lv);
+  return [
+    {name:'貓牛式',sub:'Cat-Cow ×'+d.catcow,mode:'reps',reps:d.catcow,tempo:3},
+    {name:'90/90 髖旋轉 · 左',sub:'30s',mode:'time',secs:30},
+    {name:'90/90 髖旋轉 · 右',sub:'30s',mode:'time',secs:30},
+    {name:'平板支撐',sub:'Plank',mode:'time',secs:Math.min(dose(lv).plankSec,45)}
+  ];
+}
+function rainSeq(){
+  const s=[]; // 10 min: 6 rounds of (burpee 40s / rest 20s / jumping jack 40s / rest 20s) ≈ 8min + margin
+  for(let i=1;i<=5;i++){
+    s.push({name:'波比跳 R'+i,sub:'Burpees',mode:'time',secs:40});
+    s.push({name:'休息',sub:'Rest',mode:'time',secs:20});
+    s.push({name:'開合跳 R'+i,sub:'Jumping Jacks',mode:'time',secs:40});
+    s.push({name:'休息',sub:'Rest',mode:'time',secs:20});
+  }
+  return s;
+}
+const XP={full:10,cycle:15,boss:20,rest:5,rain:5,minimal:3};
+const IDENTITY=['你是每天訓練的人。','紀律就是自由。','出席，就是勝利的八成。','弱是選項，你沒選它。','今天的你，比昨天強一點。'];
+const VIDEOS=[
+  ['貓牛式 Cat-Cow','cat cow exercise tutorial'],
+  ['90/90 髖旋轉','90 90 hip switch mobility'],
+  ['深蹲蹲坐 Deep Squat Hold','deep squat hold mobility'],
+  ['靠牆滑臂 Wall Slides','wall slides shoulder mobility'],
+  ['穿針式 Thread the Needle','thread the needle stretch'],
+  ['臀橋 Glute Bridge','glute bridge form'],
+  ['伏地挺身（HRP 標準）','hand release push up form ACFT'],
+  ['深蹲 Squat','bodyweight squat form'],
+  ['提踵 Calf Raise','calf raise form'],
+  ['平板支撐（AFT 標準）','ACFT plank standard form']
+];
+/* ================= SESSION / STREAK LOGIC ================= */
+function sessionOn(date){return state.sessions.find(x=>x.date===date);}
+function recordSession(type){
+  const t=todayStr();
+  if(!sessionOn(t)){
+    state.sessions.push({date:t,type:type,xp:XP[type]});
+    state.xp+=XP[type];
+    const last=state.streak.lastDate;
+    if(last===dateOffset(t,-1)) state.streak.current+=1;
+    else if(last!==t) state.streak.current=1;
+    state.streak.lastDate=t;
+    if(state.streak.current>state.streak.best)state.streak.best=state.streak.current;
+  } else { // 同日第二次（例如保底後補完整版）：升級 type、補 XP 差額
+    const s=sessionOn(t);
+    if(XP[type]>s.xp){state.xp+=XP[type]-s.xp;s.xp=XP[type];s.type=type;}
+  }
+  saveState();
+}
+/* Boss rotation: ISO week % 3 → 0 HRP / 1 Plank / 2 Run */
+function bossItem(){return ['hrp','plank','run2mi'][isoWeek(new Date())%3];}
+/* Level-up: last 7 days all sessions + any PR in last 21 days meets threshold */
+const LV_TARGET={2:{hrp:8,plank:60,run2mi:1500},3:{hrp:12,plank:90,run2mi:1320},4:{hrp:15,plank:150,run2mi:1197}};
+function levelUpEligible(){
+  if(state.level>=5)return false;
+  const t=todayStr();
+  for(let i=0;i<7;i++){ if(!sessionOn(dateOffset(t,-i)))return false; }
+  const tg=LV_TARGET[state.level]; if(!tg)return false;
+  const cut=dateOffset(t,-21);
+  const hit=(arr,key,pass)=>arr.some(p=>p.date>=cut&&pass(p));
+  return hit(state.prs.hrp,'hrp',p=>p.reps>=tg.hrp)
+      || hit(state.prs.plank,'plank',p=>p.sec>=tg.plank)
+      || hit(state.prs.run2mi,'run',p=>p.sec<=tg.run2mi);
+}
+/* ================= TIMER ENGINE ================= */
+const $=id=>document.getElementById(id);
+let runner=null;
+function addTransitions(seq){
+  const out=[{name:'預備',sub:'手機放地上 · 就位',mode:'time',secs:10,prep:seq[0]?seq[0].name:''}];
+  for(let i=0;i<seq.length;i++){
+    const st=seq[i],isRest=st.name.indexOf('休息')>=0;
+    const prevIsGap=out.length&&(out[out.length-1].name.indexOf('休息')>=0||out[out.length-1].prep!==undefined);
+    if(!isRest&&!prevIsGap&&i>0)out.push({name:'準備',sub:st.name,mode:'time',secs:8,prep:st.name});
+    out.push(st);
+  }
+  return out;
+}
+function startWorkout(seq,type,after){
+  seq=addTransitions(seq);
+  initAudio(); lockScreen();
+  $('train').classList.add('active');
+  let idx=-1,paused=false,timer=null;
+  const total=seq.length;
+  function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
+  function nextStep(){
+    idx++;
+    if(idx>=total){finish();return;}
+    const st=seq[idx];
+    $('t-phase').textContent=(idx+1)+' / '+total;
+    $('t-bar').style.width=Math.round(idx/total*100)+'%';
+    $('t-name').textContent=st.name;
+    $('t-sub').textContent=st.sub||'';
+    $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
+    const isRest=st.name.indexOf('休息')>=0;
+    if(st.prep!==undefined)speak('準備，'+st.prep);
+    else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
+    if(st.mode==='time'){
+      let left=st.secs; $('t-count').textContent=fmt(left);
+      beep(660,.12);
+      timer=setInterval(()=>{ if(paused)return;
+        left--; $('t-count').textContent=fmt(left);
+        if(left<=5&&left>0)beep(880,.08);
+        if(left<=0){clearInterval(timer);beep(440,.5);setTimeout(nextStep,600);}
+      },1000);
+    }else{ // reps with tempo
+      let done=0; $('t-count').textContent=done+'/'+st.reps;
+      beep(660,.12);
+      timer=setInterval(()=>{ if(paused)return;
+        done++; $('t-count').textContent=done+'/'+st.reps; beep(760,.07);
+        if(done>=st.reps){clearInterval(timer);beep(440,.5);setTimeout(nextStep,600);}
+      },st.tempo*1000);
+    }
+  }
+  function finish(){
+    cleanup();
+    if(after){after();return;}
+    recordSession(type);
+    $('d-identity').textContent=IDENTITY[Math.floor(Math.random()*IDENTITY.length)];
+    $('d-xp').textContent='+'+XP[type]+' XP　·　STREAK '+state.streak.current;
+    speak('完成。'+'目前連續'+state.streak.current+'天。');
+    $('done').classList.add('active');
+  }
+  function cleanup(){
+    if(timer)clearInterval(timer);
+    try{speechSynthesis.cancel();}catch(e){}
+    unlockScreen();
+    $('train').classList.remove('active');
+    runner=null;
+  }
+  $('t-pause').onclick=()=>{paused=!paused;$('t-pause').textContent=paused?'繼續':'暫停';
+    if(!paused)speak('繼續');};
+  $('t-abort').onclick=()=>{cleanup();renderHome();};
+  runner={cleanup};
+  nextStep();
+}
+/* ================= BOSS FLOW ================= */
+function startBoss(){
+  const item=bossItem();
+  startWorkout(fullSeq(state.level),'boss',()=>{ // 十動作完成 → 測驗
+    if(item==='hrp')bossHRP();
+    else if(item==='plank')bossPlank();
+    else bossRun();
+  });
+}
+function bossHRP(){
+  // 2:00 window，App 計時，Cross 自數次數，結束後輸入
+  const seq=[{name:'HRP 伏地挺身測驗',sub:'2 分鐘 · 盡可能多下 · 自己計數',mode:'time',secs:120}];
+  // 40% rule 語音在 1:40 觸發
+  $('train').classList.add('active');
+  initAudio();lockScreen();
+  speak('HRP測驗。兩分鐘，盡可能多下。預備，開始。');
+  let left=120;const el=$('t-count');
+  $('t-phase').textContent='BOSS · HRP';$('t-name').textContent='HRP 伏地挺身測驗';
+  $('t-sub').textContent='2:00 · 自己計數';$('t-next').textContent='';$('t-bar').style.width='0%';
+  el.textContent='2:00';
+  const tm=setInterval(()=>{ left--;
+    el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+    $('t-bar').style.width=Math.round((120-left)/120*100)+'%';
+    if(left===20)speak('你還有百分之六十。再兩下。');
+    if(left<=5&&left>0)beep(880,.08);
+    if(left<=0){clearInterval(tm);beep(440,.6);unlockScreen();
+      $('train').classList.remove('active');bossInput('hrp');}
+  },1000);
+  $('t-abort').onclick=()=>{clearInterval(tm);unlockScreen();$('train').classList.remove('active');renderHome();};
+  $('t-pause').onclick=null;
+}
+function bossPlank(){
+  // 碼表直到撐不住按停 — 免持例外（不可避免）
+  $('train').classList.add('active');initAudio();lockScreen();
+  speak('Plank測驗。撐到極限，落地時按結束。預備，開始。');
+  let sec=0;const el=$('t-count');
+  $('t-phase').textContent='BOSS · PLANK';$('t-name').textContent='平板支撐測驗';
+  $('t-sub').textContent='撐到極限 · 落地按「結束」';$('t-next').textContent='';
+  el.textContent='0:00';
+  const tm=setInterval(()=>{ sec++;
+    el.textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+    if(sec===90)speak('一分半。及格線就在前面。');
+    if(sec===150)speak('兩分半。目標達成，繼續推。');
+  },1000);
+  $('t-abort').textContent='結束';
+  $('t-abort').onclick=()=>{clearInterval(tm);unlockScreen();$('train').classList.remove('active');
+    $('t-abort').textContent='結束';bossInput('plank',sec);};
+  $('t-pause').onclick=null;
+}
+function bossRun(){ bossInput('run2mi'); }
+function bossInput(item,presetSec){
+  showScreen('s-boss');
+  const titles={hrp:'HRP 成績輸入',plank:'Plank 成績確認',run2mi:'2 Mile Run 成績輸入'};
+  $('b-title').textContent=titles[item];
+  const c=$('b-card');
+  if(item==='hrp'){
+    c.innerHTML='<h3>2 分鐘內完成幾下？</h3><div class="inputrow"><input type="number" id="bi-1" min="0" max="200" inputmode="numeric"><span>下</span></div><button class="btn-main" id="bi-save">儲存 PR</button>';
+    $('bi-save').onclick=()=>{const v=parseInt($('bi-1').value,10);
+      if(isNaN(v)||v<0){alert('請輸入次數');return;}
+      state.prs.hrp.push({date:todayStr(),reps:v});finishBoss();};
+  }else if(item==='plank'){
+    c.innerHTML='<h3>本次成績</h3><p style="font-family:var(--mono);font-size:28px;color:var(--amber)">'+Math.floor(presetSec/60)+':'+String(presetSec%60).padStart(2,'0')+'</p><button class="btn-main" id="bi-save" style="margin-top:12px">儲存 PR</button>';
+    $('bi-save').onclick=()=>{state.prs.plank.push({date:todayStr(),sec:presetSec});finishBoss();};
+  }else{
+    c.innerHTML='<h3>戶外跑 2 英里（3.2 km），回來輸入時間</h3><div class="inputrow"><input type="number" id="bi-m" min="0" max="59" placeholder="分" inputmode="numeric"><span>分</span><input type="number" id="bi-s" min="0" max="59" placeholder="秒" inputmode="numeric"><span>秒</span></div><p>雨天可改跑步機或延後至下午，當日輸入即可。</p><button class="btn-main" id="bi-save">儲存 PR</button>';
+    $('bi-save').onclick=()=>{const m=parseInt($('bi-m').value,10),s=parseInt($('bi-s').value,10);
+      if(isNaN(m)||isNaN(s)){alert('請輸入完整時間');return;}
+      state.prs.run2mi.push({date:todayStr(),sec:m*60+s});finishBoss();};
+  }
+  function finishBoss(){
+    recordSession('boss');
+    saveState();
+    $('d-identity').textContent='測驗完成。數據不說謊。';
+    $('d-xp').textContent='+'+XP.boss+' XP　·　STREAK '+state.streak.current;
+    $('done').classList.add('active');
+  }
+}
+/* ================= RENDER ================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+}
+const DOW=['日','一','二','三','四','五','六'];
+function todayPlan(){
+  const d=new Date().getDay(); // 0=Sun
+  if(d===0)return{type:'boss',label:'BOSS DAY · 十動作＋測驗（30 min）',mission:'今日測驗：'+({hrp:'HRP 伏地挺身 2 分鐘',plank:'Plank 極限',run2mi:'2 英里跑'})[bossItem()]+'。先完成十動作暖身，測驗自動接續。'};
+  if(d===3)return{type:'cycle',label:'開始 · Cycle 30 分鐘',mission:'週三加練日：十動作＋上肢核心擴充。'};
+  if(d===6)return{type:'rest',label:'恢復序列 · 10 分鐘',mission:'休息日：只做伸展 1–5（×1.5 時長）。白天散步 20–30 分鐘，晚上熱水澡、7 小時睡眠 — 明天 Boss Day 滿血。'};
+  return{type:'full',label:'開始 · 每日十動作 15 分鐘',mission:'固定十動作。按下開始後手機放地上，聽指令即可。'};
+}
+function renderHome(){
+  const t=todayStr(),plan=todayPlan();
+  const d=new Date();
+  $('h-date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 · 週'+DOW[d.getDay()];
+  $('h-streak').textContent=state.streak.current;
+  $('h-level').textContent='L'+state.level;
+  $('h-xp').textContent=state.xp;
+  $('h-best').textContent=state.streak.best;
+  $('h-mission').textContent=plan.mission;
+  const doneToday=!!sessionOn(t);
+  $('h-start').textContent=doneToday?'✓ 今日已完成 — 再跑一次也行':plan.label;
+  $('h-start').onclick=()=>{
+    if(plan.type==='boss')startBoss();
+    else if(plan.type==='cycle')startWorkout(cycleSeq(state.level),'cycle');
+    else if(plan.type==='rest')startWorkout(restSeq(state.level),'rest');
+    else startWorkout(fullSeq(state.level),'full');
+  };
+  // Never Miss Twice
+  const b=$('h-banner');b.className='banner';b.textContent='';
+  const last=state.streak.lastDate;
+  if(last&&!doneToday){
+    const gap=dayGap(last,t);
+    if(gap===2){b.className='banner warn';b.textContent='⚠ 昨天斷了。今天是關鍵日 — Never Miss Twice。最少按下保底版。';}
+    else if(gap>2){b.className='banner danger';b.textContent='✕ 已中斷 '+(gap-1)+' 天。現在按保底版，2 分鐘重新開始。你是每天訓練的人。';}
+  }
+  const lu=$('h-levelup');
+  if(levelUpEligible()){lu.style.display='block';
+    lu.onclick=()=>{state.level=Math.min(5,state.level+1);saveState();renderHome();
+      alert('升級至 L'+state.level+'。劑量已自動調整。');};}
+  else lu.style.display='none';
+}
+function renderHist(){
+  const heat=$('hist-heat');heat.innerHTML='';
+  const t=todayStr();
+  for(let i=55;i>=0;i--){
+    const d=dateOffset(t,-i),s=sessionOn(d);
+    const el=document.createElement('i');
+    if(s)el.className=s.type;
+    el.title=d+(s?' '+s.type:'');
+    heat.appendChild(el);
+  }
+  const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  const fill=(id,arr,f)=>{const el=$(id);
+    el.innerHTML=arr.length?arr.slice(-5).reverse().map(p=>'<div class="prline"><span>'+p.date+'</span><b>'+f(p)+'</b></div>').join(''):'<p class="small">尚無紀錄 — 週日 Boss Day 見。</p>';};
+  fill('pr-hrp',state.prs.hrp,p=>p.reps+' 下');
+  fill('pr-plank',state.prs.plank,p=>fmtT(p.sec));
+  fill('pr-run',state.prs.run2mi,p=>fmtT(p.sec));
+}
+function renderSetup(){
+  $('vids').innerHTML=VIDEOS.map(v=>'<div class="vidline"><span>'+v[0]+'</span><a href="https://www.youtube.com/results?search_query='+encodeURIComponent(v[1])+'" target="_blank" rel="noopener">觀看 ↗</a></div>').join('');
+  $('cfg-voice').checked=state.settings.voice;
+  $('cfg-beep').checked=state.settings.beep;
+  $('cfg-voice').onchange=e=>{state.settings.voice=e.target.checked;saveState();};
+  $('cfg-beep').onchange=e=>{state.settings.beep=e.target.checked;saveState();};
+  $('exp-btn').onclick=()=>{$('exp-area').value=JSON.stringify(state);$('io-msg').textContent='已匯出 — 全選複製保存。';};
+  $('imp-btn').onclick=()=>{
+    try{const s=JSON.parse($('exp-area').value);
+      if(!s.version||!s.streak)throw new Error('格式不符');
+      state=s;saveState();renderHome();renderHist();renderSetup();
+      $('io-msg').textContent='匯入成功。';}
+    catch(e){$('io-msg').textContent='匯入失敗：'+e.message;}
+  };
+}
+/* ================= WIRE ================= */
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.onclick=()=>{ if(runner)return; showScreen(b.dataset.s);
+    if(b.dataset.s==='s-hist')renderHist();
+    if(b.dataset.s==='s-setup')renderSetup();
+    if(b.dataset.s==='s-home')renderHome(); };
+});
+$('h-minimal').onclick=()=>startWorkout(minimalSeq(state.level),'minimal');
+$('h-rain').onclick=()=>startWorkout(rainSeq(),'rain');
+$('d-ok').onclick=()=>{$('done').classList.remove('active');renderHome();showScreen('s-home');};
+/* ================= INIT ================= */
+(async function(){
+  await loadState();
+  renderHome();renderSetup();
+})();
+/* ===== PWA: 註冊 Service Worker（離線可用）===== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW 註冊失敗',e));
+  });
+}
+</script>
+</body>
+</html>
