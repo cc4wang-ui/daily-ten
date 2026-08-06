@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Daily Ten — 每日十動作訓練 PWA 的畫面示意">
+<meta name="theme-color" content="#12140F">
+<title>Daily Ten — App Mockup</title>
+<style>*{margin:0;padding:0}</style>
+</head>
+<body>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --paper:#EDEADF; --raise:#F6F4EC; --edge:#CFCCBB; --edge-soft:#DFDCCE;
+  --text:#191C14; --text2:#5D6050; --text3:#84876F;
+  --amber:#E8A33D; --amber-ink:#8A5A12; --amber-wash:rgba(232,163,61,.14);
+  --red:#A93B3B; --green:#4F6D33;
+  --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC','Hiragino Sans',sans-serif;
+  --maxw:1200px;
+  /* device sits ON the page in light, and is LIT against it in dark */
+  --bezel:#26291F; --bezel-edge:#383D2E; --bezel-shadow:0 22px 40px -22px rgba(0,0,0,.55);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#080A06; --raise:#141710; --edge:#2A2F23; --edge-soft:#1E2218;
+    --text:#E8E4D8; --text2:#93917C; --text3:#6E6C5B;
+    --amber-ink:#E8A33D; --amber-wash:rgba(232,163,61,.10);
+    --red:#D66A6A; --green:#8FAE6B;
+    --bezel:#343929; --bezel-edge:#4C523E; --bezel-shadow:0 0 0 1px rgba(232,228,216,.05), 0 26px 46px -20px #000;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#080A06; --raise:#141710; --edge:#2A2F23; --edge-soft:#1E2218;
+  --text:#E8E4D8; --text2:#93917C; --text3:#6E6C5B;
+  --amber-ink:#E8A33D; --amber-wash:rgba(232,163,61,.10);
+  --red:#D66A6A; --green:#8FAE6B;
+  --bezel:#343929; --bezel-edge:#4C523E; --bezel-shadow:0 0 0 1px rgba(232,228,216,.05), 0 26px 46px -20px #000;
+}
+:root[data-theme="light"]{
+  --paper:#EDEADF; --raise:#F6F4EC; --edge:#CFCCBB; --edge-soft:#DFDCCE;
+  --text:#191C14; --text2:#5D6050; --text3:#84876F;
+  --amber-ink:#8A5A12; --amber-wash:rgba(232,163,61,.14);
+  --red:#A93B3B; --green:#4F6D33;
+  --bezel:#26291F; --bezel-edge:#383D2E; --bezel-shadow:0 22px 40px -22px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--text);
+  font-family:var(--sans);line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+/* ============ TYPE ============ */
+.stencil{font-family:var(--mono);font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--text3)}
+h2{font-family:var(--mono);font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+   font-size:15px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:16px;font-weight:700;margin:0 0 6px;letter-spacing:.01em}
+p{margin:0 0 12px;color:var(--text2);font-size:14.5px;max-width:62ch}
+p.tight{margin-bottom:0}
+strong{color:var(--text);font-weight:650}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ============ HERO ============ */
+header{border-bottom:1px solid var(--edge);padding:56px 0 0;position:relative;overflow:hidden}
+.hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:end;padding-bottom:34px}
+.hero-title{font-family:var(--mono);font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  font-size:clamp(38px,7.4vw,74px);line-height:.94;margin:10px 0 16px;color:var(--text)}
+.hero-title em{font-style:normal;color:var(--amber-ink)}
+.lede{font-size:17px;line-height:1.62;color:var(--text2);max-width:44ch;margin:0}
+.lede b{color:var(--text);font-weight:650}
+.spec{border-left:2px solid var(--amber);padding-left:16px;display:grid;gap:9px}
+.spec div{display:flex;gap:14px;font-size:12.5px;font-family:var(--mono);align-items:baseline}
+.spec dt{color:var(--text3);letter-spacing:.14em;text-transform:uppercase;font-size:10.5px;min-width:74px;flex:none}
+.spec dd{margin:0;color:var(--text)}
+
+/* streak ledger ribbon */
+.ledger{display:flex;gap:3px;padding:0 0 26px;flex-wrap:nowrap;overflow:hidden}
+.ledger i{flex:1 1 0;height:26px;border-radius:2px;background:var(--edge-soft);
+  transform-origin:bottom;transform:scaleY(.3);opacity:0;
+  animation:rise .5s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes rise{to{transform:scaleY(1);opacity:1}}
+.ledger i.f{background:var(--amber)}
+.ledger i.c{background:#C98A2B}
+.ledger i.b{background:var(--red)}
+.ledger i.r{background:var(--green)}
+.ledger i.m{background:#8A886C}
+.ledger-cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--text3);padding-bottom:8px}
+@media (prefers-reduced-motion:reduce){.ledger i{animation:none;transform:none;opacity:1}}
+
+/* ============ SECTIONS ============ */
+section{padding:60px 0;border-bottom:1px solid var(--edge)}
+.sechead{display:flex;align-items:baseline;gap:16px;margin-bottom:8px}
+.sechead .rule{flex:1;height:1px;background:var(--edge);align-self:center}
+.sechead .idx{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--amber-ink)}
+.intro{margin-bottom:36px}
+
+/* ============ PHONE ============ */
+.rack{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.unit{flex:0 0 auto;width:344px;max-width:100%}
+.unit-cap{padding:16px 4px 0}
+.unit-cap .tag{color:var(--amber-ink)}
+.unit-cap h3{margin-top:5px}
+.unit-cap p{font-size:13.5px;margin:0;line-height:1.6}
+
+.phone{width:344px;max-width:100%;background:var(--bezel);border-radius:40px;padding:11px;
+  box-shadow:var(--bezel-shadow);border:1px solid var(--bezel-edge)}
+.screen{position:relative;width:100%;height:678px;background:#12140F;border-radius:30px;
+  overflow:hidden;color:#E8E4D8;font-family:var(--sans);font-size:14px;line-height:1.5}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:22px;
+  background:#12140F;border-radius:12px;z-index:9}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:11px 20px 0;
+  font-family:var(--mono);font-size:11px;color:#E8E4D8;letter-spacing:.02em;position:relative;z-index:10}
+.statusbar .r{display:flex;gap:5px;align-items:center;opacity:.85}
+.bars{display:flex;gap:1.5px;align-items:flex-end;height:9px}
+.bars b{width:2.5px;background:#E8E4D8;border-radius:1px}
+.batt{width:20px;height:10px;border:1px solid #E8E4D8;border-radius:2.5px;padding:1.5px;opacity:.9}
+.batt i{display:block;height:100%;width:72%;background:#E8E4D8;border-radius:1px}
+
+/* in-app */
+.app{padding:14px 18px 0;height:calc(100% - 30px);overflow:hidden}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.25em;color:#9A9884;text-transform:uppercase}
+.aph1{font-size:15px;font-weight:800;letter-spacing:.12em;margin:3px 0 15px;color:#E8E4D8}
+.dogtag{border:1px solid #33382B;background:#1C1F17;border-radius:10px;padding:20px 18px;text-align:center;margin-bottom:12px}
+.streak-num{font-family:var(--mono);font-size:82px;font-weight:800;line-height:1;color:#E8A33D;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 26px rgba(232,163,61,.2)}
+.streak-lab{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:#9A9884;margin-top:7px}
+.statrow{display:flex;gap:9px;margin-bottom:12px}
+.stat{flex:1;background:#1C1F17;border:1px solid #33382B;border-radius:8px;padding:9px 4px;text-align:center}
+.stat b{display:block;font-family:var(--mono);font-size:19px;color:#E8E4D8;font-variant-numeric:tabular-nums}
+.stat span{font-size:9.5px;color:#9A9884;letter-spacing:.1em}
+.abanner{border-radius:8px;padding:11px 13px;font-size:12.5px;line-height:1.5;margin-bottom:12px}
+.abanner.danger{background:rgba(214,69,69,.14);border:1px solid #D64545;color:#F0A0A0}
+.abanner.warn{background:rgba(217,195,74,.12);border:1px solid #D9C34A;color:#D9C34A}
+.mission{font-size:12px;color:#9A9884;line-height:1.6;margin-bottom:13px}
+.btn-main{display:block;width:100%;padding:17px;border-radius:10px;background:#E8A33D;color:#12140F;
+  font-size:16px;font-weight:800;letter-spacing:.04em;margin-bottom:9px;border:none;text-align:center;font-family:var(--sans)}
+.btn-sub{display:block;width:100%;padding:12px;border-radius:10px;background:#242820;color:#E8E4D8;
+  border:1px solid #33382B;font-size:13px;margin-bottom:9px;text-align:center}
+.levelup{display:block;width:100%;padding:13px;border-radius:10px;background:rgba(122,155,87,.15);
+  border:1px solid #7A9B57;color:#7A9B57;font-weight:700;font-size:13px;margin-bottom:9px;text-align:center}
+.acard{background:#1C1F17;border:1px solid #33382B;border-radius:10px;padding:15px;margin-bottom:11px}
+.acard h4{font-size:13.5px;margin:0 0 8px;letter-spacing:.04em;color:#E8E4D8;font-weight:700}
+.acard p{font-size:12.5px;color:#9A9884;line-height:1.6;margin:0}
+.passline{font-size:10.5px;color:#D64545;font-family:var(--mono);letter-spacing:.05em;margin:1px 0 10px}
+.prline{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;border-bottom:1px solid #33382B;color:#E8E4D8}
+.prline:last-child{border-bottom:none}
+.prline b{font-family:var(--mono);color:#E8A33D;font-variant-numeric:tabular-nums}
+.small{font-size:10.5px;color:#9A9884;line-height:1.6}
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;margin:9px 0 14px}
+.heat i{aspect-ratio:1;border-radius:2px;background:#242820;display:block}
+.heat i.full{background:#E8A33D}.heat i.cycle{background:#C98A2B}
+.heat i.boss{background:#D64545}.heat i.rest{background:#7A9B57}
+.heat i.minimal{background:#6B6A50}
+.vidline{padding:8px 0;border-bottom:1px solid #33382B;display:flex;justify-content:space-between;
+  align-items:center;font-size:12.5px;color:#E8E4D8}
+.vidline:last-child{border-bottom:none}
+.vidline a{color:#E8A33D;text-decoration:none;font-size:12px}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:11px 0;
+  border-bottom:1px solid #33382B;font-size:13.5px;color:#E8E4D8}
+.toggle:last-child{border-bottom:none}
+.sw{width:42px;height:25px;border-radius:13px;background:#E8A33D;position:relative;flex:none}
+.sw i{position:absolute;top:2.5px;right:2.5px;width:20px;height:20px;border-radius:50%;background:#12140F;display:block}
+.sw.off{background:#33382B}.sw.off i{right:auto;left:2.5px;background:#9A9884}
+.inputrow{display:flex;gap:8px;align-items:center;margin:10px 0}
+.inputrow span{font-size:12.5px;color:#9A9884;white-space:nowrap}
+/* placed after .inputrow span so the field wins on equal specificity */
+.inputrow span.numfield{flex:1;padding:11px;border-radius:8px;background:#242820;border:1px solid #33382B;
+  color:#E8A33D;font-family:var(--mono);font-size:19px;text-align:center;font-variant-numeric:tabular-nums}
+.ta{width:100%;height:74px;background:#242820;border:1px solid #33382B;color:#9A9884;
+  border-radius:8px;padding:9px;font-family:var(--mono);font-size:10px;margin:8px 0;overflow:hidden}
+
+/* full-screen overlays inside phone */
+.overlay{position:absolute;inset:30px 0 0;background:#12140F;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:24px}
+.t-phase{font-family:var(--mono);font-size:11.5px;letter-spacing:.3em;color:#9A9884;margin-bottom:10px}
+.t-name{font-size:32px;font-weight:800;line-height:1.2;margin-bottom:5px;color:#E8E4D8}
+.t-sub{font-size:14px;color:#E8A33D;margin-bottom:20px;font-family:var(--mono)}
+.t-count{font-family:var(--mono);font-size:104px;font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;color:#E8E4D8}
+.t-count.amber{color:#E8A33D}
+.t-next{font-size:12.5px;color:#9A9884;margin-top:20px}
+.t-prog{width:70%;height:4px;background:#242820;border-radius:2px;margin-top:16px;overflow:hidden}
+.t-prog i{display:block;height:100%;background:#E8A33D}
+.t-ctrl{position:absolute;bottom:26px;left:24px;right:24px;display:flex;gap:12px}
+.t-ctrl span{flex:1;padding:13px;border-radius:10px;font-size:13.5px;font-weight:700;text-align:center}
+.t-ctrl .pause{background:#242820;color:#E8E4D8;border:1px solid #33382B}
+.t-ctrl .abort{background:transparent;color:#D64545;border:1px solid #D64545}
+.d-identity{font-size:21px;font-weight:800;line-height:1.55;margin:16px 0 8px;color:#E8E4D8}
+.d-xp{font-family:var(--mono);color:#E8A33D;font-size:15px;margin-bottom:26px}
+
+.tabbar{position:absolute;bottom:0;left:0;right:0;background:#1C1F17;border-top:1px solid #33382B;
+  display:flex;padding-bottom:8px}
+.tabbar span{flex:1;padding:12px 0 10px;text-align:center;color:#9A9884;font-size:10.5px;
+  letter-spacing:.15em;font-family:var(--mono)}
+.tabbar span.on{color:#E8A33D}
+
+/* ============ DATA TABLES ============ */
+.tablewrap{overflow-x:auto;border:1px solid var(--edge);border-radius:6px;background:var(--raise)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--edge-soft)}
+thead th{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text3);font-weight:700;background:transparent;border-bottom:1px solid var(--edge)}
+tbody tr:last-child td{border-bottom:none}
+td.n,th.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+tbody tr.hi td{background:var(--amber-wash)}
+td b{color:var(--amber-ink);font-family:var(--mono);font-weight:700}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px;margin-top:8px}
+.note{border-left:2px solid var(--edge);padding-left:16px}
+.note .tag{color:var(--amber-ink);display:block;margin-bottom:5px}
+
+/* week strip */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:4px 0 26px;min-width:520px}
+.weekwrap{overflow-x:auto}
+.day{border:1px solid var(--edge);border-radius:6px;padding:12px 10px;background:var(--raise)}
+.day .d{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--text3);margin-bottom:8px}
+.day .t{font-size:13px;font-weight:650;color:var(--text);line-height:1.35}
+.day .m{font-family:var(--mono);font-size:11px;color:var(--text2);margin-top:6px}
+.day.acc{border-color:var(--amber);background:var(--amber-wash)}
+.day.acc .t{color:var(--amber-ink)}
+.day.rest{border-style:dashed}
+
+footer{padding:44px 0 60px}
+.foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:baseline}
+.foot .tag{line-height:1.9}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;gap:26px;align-items:start}
+  .wrap{padding:0 18px}
+  header{padding-top:36px}
+  section{padding:44px 0}
+  .rack{gap:26px}
+}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <div class="tag">Mockup · v0.1 · Personal Training PWA</div>
+        <h1 class="hero-title">Daily<br><em>Ten</em></h1>
+        <p class="lede">每天固定十個動作，語音導引，手機放地上就能跑完。
+        終點線是 <b>AFT 居家三項及格 60 分</b>：伏地挺身 15 下、Plank 2:30、兩英里跑 19:57。</p>
+      </div>
+      <dl class="spec">
+        <div><dt>Form</dt><dd>可安裝 PWA · iOS 主畫面全螢幕</dd></div>
+        <div><dt>Stack</dt><dd>單一 HTML · 無框架 · 無 build</dd></div>
+        <div><dt>Offline</dt><dd>Service Worker cache-first</dd></div>
+        <div><dt>Data</dt><dd>localStorage · JSON 匯出匯入</dd></div>
+        <div><dt>Session</dt><dd>15 min 平日 / 30 min 週三 · 週日測驗</dd></div>
+      </dl>
+    </div>
+    <div class="ledger-cap"><span>過去 8 週出勤</span><span>今天 →</span></div>
+    <div class="ledger" id="ledger"></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sechead"><span class="idx">01</span><h2>一天的流程</h2><span class="rule"></span></div>
+    <div class="intro">
+      <p>App 只有一顆主按鈕，而且按下去之後你不需要再碰手機。星期幾決定今天跑哪一套 —— 使用者不做選擇，只做出席。</p>
+    </div>
+    <div class="rack">
+
+      <!-- 1. HOME -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>7:12</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Daily Ten · AFT Program</div>
+            <div class="aph1">8月6日 · 週四</div>
+            <div class="dogtag">
+              <div class="streak-num">23</div>
+              <div class="streak-lab">CONSECUTIVE DAYS</div>
+            </div>
+            <div class="statrow">
+              <div class="stat"><b>L3</b><span>LEVEL</span></div>
+              <div class="stat"><b>412</b><span>XP</span></div>
+              <div class="stat"><b>23</b><span>BEST</span></div>
+            </div>
+            <div class="mission">固定十動作。按下開始後手機放地上，聽指令即可。</div>
+            <div class="btn-main">開始 · 每日十動作 15 分鐘</div>
+            <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
+            <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
+          </div>
+          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 01 — Home</span>
+          <h3>連續天數是唯一的英雄數字</h3>
+          <p>Streak 佔掉整個第一屏的視覺重量，Level / XP / Best 退成次要。今天要做什麼由星期幾自動決定，不需要選單。</p>
+        </div>
+      </div>
+
+      <!-- 2. TRAIN -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>7:19</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="overlay">
+            <div class="t-phase">24 / 31</div>
+            <div class="t-name">平板支撐 第1組</div>
+            <div class="t-sub">Plank 90s</div>
+            <div class="t-count amber">0:47</div>
+            <div class="t-next">下一個：組間休息</div>
+            <div class="t-prog"><i style="width:74%"></i></div>
+            <div class="t-ctrl"><span class="pause">暫停</span><span class="abort">結束</span></div>
+          </div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 02 — Training</span>
+          <h3>免持：中文語音報動作、報秒數</h3>
+          <p>每個動作前有 8 秒「準備」轉場並唸出下一個動作名；最後 5 秒逼逼聲。全程 wake lock 不鎖屏，手機躺在地上不用碰。</p>
+        </div>
+      </div>
+
+      <!-- 3. DONE -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>7:27</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="overlay">
+            <div class="eyebrow">Mission Complete</div>
+            <div class="d-identity">出席，就是勝利的八成。</div>
+            <div class="d-xp">+10 XP　·　STREAK 24</div>
+            <div class="btn-main" style="max-width:250px">回報完成</div>
+          </div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 03 — Complete</span>
+          <h3>獎勵是身分認同，不是徽章</h3>
+          <p>完成畫面隨機播一句身分句（「你是每天訓練的人。」「弱是選項，你沒選它。」），配上 XP 與更新後的 streak。沒有動畫彩帶、沒有分享按鈕。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sechead"><span class="idx">02</span><h2>撐住習慣的兩個機制</h2><span class="rule"></span></div>
+    <div class="intro">
+      <p>大多數訓練 app 死在第 9 天。這裡只押兩個機制：<strong>斷線時降低門檻</strong>，以及<strong>每週一次真實測量</strong>。</p>
+    </div>
+    <div class="rack">
+
+      <!-- 4. NEVER MISS TWICE -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>8:41</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Daily Ten · AFT Program</div>
+            <div class="aph1">8月6日 · 週四</div>
+            <div class="abanner danger">✕ 已中斷 3 天。現在按保底版，2 分鐘重新開始。你是每天訓練的人。</div>
+            <div class="dogtag">
+              <div class="streak-num">0</div>
+              <div class="streak-lab">CONSECUTIVE DAYS</div>
+            </div>
+            <div class="statrow">
+              <div class="stat"><b>L3</b><span>LEVEL</span></div>
+              <div class="stat"><b>412</b><span>XP</span></div>
+              <div class="stat"><b>23</b><span>BEST</span></div>
+            </div>
+            <div class="mission">固定十動作。按下開始後手機放地上，聽指令即可。</div>
+            <div class="btn-main">開始 · 每日十動作 15 分鐘</div>
+            <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
+            <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
+          </div>
+          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">State — Never Miss Twice</span>
+          <h3>斷了不罵人，只把門檻降到 2 分鐘</h3>
+          <p>斷 1 天出黃色警告、斷 2 天以上出紅色。文案永遠指向「保底版」而不是完整版 —— 目標是把 0 變回 1，不是補償。</p>
+        </div>
+      </div>
+
+      <!-- 5. BOSS -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>8:02</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Boss Day · PR Entry</div>
+            <div class="aph1">HRP 成績輸入</div>
+            <div class="acard">
+              <h4>2 分鐘內完成幾下？</h4>
+              <div class="inputrow"><span class="numfield">14</span><span>下</span></div>
+              <div class="btn-main" style="margin-bottom:0">儲存 PR</div>
+            </div>
+            <div class="acard">
+              <h4>上次成績</h4>
+              <div class="prline"><span>2026-07-30</span><b>12 下</b></div>
+              <div class="prline"><span>2026-07-09</span><b>11 下</b></div>
+              <div class="passline" style="margin:10px 0 0">AFT PASS ≥ 15 REPS ─ ─ 還差 1 下</div>
+            </div>
+            <p class="small">週日 Boss Day 三項輪替：本週 HRP，下週 Plank，再下週 2 英里跑。測驗前一樣先跑完十動作暖身，App 自動接續。</p>
+          </div>
+          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span>SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">State — Sunday Boss Day</span>
+          <h3>每三週各項測一次，數據不說謊</h3>
+          <p>HRP 用 2:00 倒數並在剩 20 秒喊話；Plank 用碼表撐到落地；跑步在外面跑完回來輸入。成績直接對照 AFT 及格線。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sechead"><span class="idx">03</span><h2>紀錄與設定</h2><span class="rule"></span></div>
+    <div class="intro">
+      <p>兩個支援頁面，都刻意保持薄。紀錄頁只回答一個問題：<strong>我離及格線還有多遠</strong>。</p>
+    </div>
+    <div class="rack">
+
+      <!-- 6. RECORDS -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>21:04</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Records</div>
+            <div class="aph1">訓練紀錄</div>
+            <div class="small">過去 8 週（右下 = 今天）</div>
+            <div class="heat" id="phoneheat"></div>
+            <div class="acard">
+              <h4>HRP 伏地挺身（2 分鐘）</h4>
+              <div class="passline">AFT PASS ≥ 15 REPS ─ ─ ─ ─ ─</div>
+              <div class="prline"><span>2026-08-02</span><b>14 下</b></div>
+              <div class="prline"><span>2026-07-12</span><b>12 下</b></div>
+              <div class="prline"><span>2026-06-21</span><b>9 下</b></div>
+            </div>
+            <div class="acard">
+              <h4>Plank</h4>
+              <div class="passline">TARGET ≥ 2:30（及格線約 1:30）─ ─ ─</div>
+              <div class="prline"><span>2026-07-26</span><b>2:11</b></div>
+              <div class="prline"><span>2026-07-05</span><b>1:48</b></div>
+            </div>
+          </div>
+          <div class="tabbar"><span>HOME</span><span class="on">RECORDS</span><span>SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 04 — Records</span>
+          <h3>56 格熱力圖 + 三項 PR</h3>
+          <p>顏色編碼訓練型態：琥珀＝十動作、深橘＝週三加練、紅＝Boss Day、綠＝恢復日、灰＝保底版。每張 PR 卡上方永遠掛著及格線。</p>
+        </div>
+      </div>
+
+      <!-- 7. SETUP -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>21:06</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Setup</div>
+            <div class="aph1">設定與教學</div>
+            <div class="acard">
+              <h4>動作影片（僅首週學習用）</h4>
+              <div class="vidline"><span>貓牛式 Cat-Cow</span><a>觀看 ↗</a></div>
+              <div class="vidline"><span>90/90 髖旋轉</span><a>觀看 ↗</a></div>
+              <div class="vidline"><span>伏地挺身（HRP 標準）</span><a>觀看 ↗</a></div>
+              <div class="vidline"><span>平板支撐（AFT 標準）</span><a>觀看 ↗</a></div>
+            </div>
+            <div class="acard">
+              <h4>設定</h4>
+              <div class="toggle"><span>語音導引（中文 TTS）</span><span class="sw"><i></i></span></div>
+              <div class="toggle"><span>提示音</span><span class="sw"><i></i></span></div>
+            </div>
+            <div class="acard">
+              <h4>資料備份</h4>
+              <div class="btn-sub" style="margin:4px 0 0">匯出 JSON</div>
+              <div class="ta">{"version":1,"level":3,"xp":412,<br>"streak":{"current":23,"best":23,<br>"lastDate":"2026-08-05"},…</div>
+              <div class="btn-sub" style="margin:0">匯入（覆蓋現有資料）</div>
+            </div>
+          </div>
+          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span class="on">SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 05 — Setup</span>
+          <h3>兩個開關，一組備份</h3>
+          <p>沒有帳號、沒有雲端、沒有訂閱。資料在裝置上，備份就是把一段 JSON 複製走。影片連結只在第一週學動作時用。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sechead"><span class="idx">04</span><h2>系統怎麼運作</h2><span class="rule"></span></div>
+    <div class="intro"><p>三張表就是整個產品邏輯 —— 沒有推薦演算法，沒有教練訂閱。</p></div>
+
+    <h3 style="margin-bottom:10px">一週節奏</h3>
+    <p>全部安排在早上，錨定在刷牙之後。</p>
+    <div class="weekwrap"><div class="week">
+      <div class="day"><div class="d">一</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
+      <div class="day"><div class="d">二</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
+      <div class="day acc"><div class="d">三</div><div class="t">Cycle 加練</div><div class="m">30 min · +15</div></div>
+      <div class="day"><div class="d">四</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
+      <div class="day"><div class="d">五</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
+      <div class="day rest"><div class="d">六</div><div class="t">恢復序列</div><div class="m">10 min · +5</div></div>
+      <div class="day acc"><div class="d">日</div><div class="t">Boss Day</div><div class="m">30 min · +20</div></div>
+    </div></div>
+
+    <div class="grid2">
+      <div>
+        <h3 style="margin-bottom:10px">五級劑量表</h3>
+        <p class="tight" style="margin-bottom:14px">同樣十個動作，劑量隨等級長大。升級條件：<strong>連續 7 天全勤</strong>，且近 21 天內任一項 PR 達標。</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Level</th><th class="n">伏地挺身</th><th class="n">深蹲</th><th class="n">Plank</th><th class="n">組數</th></tr></thead>
+          <tbody>
+            <tr><td>L1 起步</td><td class="n">跪姿 8</td><td class="n">12</td><td class="n">0:30</td><td class="n">2</td></tr>
+            <tr><td>L2 預設</td><td class="n">10</td><td class="n">15</td><td class="n">0:45 ×2</td><td class="n">2</td></tr>
+            <tr class="hi"><td>L3 目前</td><td class="n">12</td><td class="n">20</td><td class="n">1:00 ×2</td><td class="n">3</td></tr>
+            <tr><td>L4 單邊</td><td class="n">15</td><td class="n">20</td><td class="n">1:30 ×2</td><td class="n">3</td></tr>
+            <tr><td>L5 及格</td><td class="n">15</td><td class="n">20</td><td class="n">2:30 ×2</td><td class="n">3</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">終點線與現況</h3>
+        <p class="tight" style="margin-bottom:14px">AFT 居家三項及格 60 分。App 裡每張成績卡都直接把這條線畫在上面。</p>
+        <div class="tablewrap"><table style="min-width:420px">
+          <thead><tr><th>項目</th><th class="n">及格線</th><th class="n">目前 PR</th><th class="n">差距</th></tr></thead>
+          <tbody>
+            <tr><td>HRP 伏地挺身 2 分鐘</td><td class="n">15 下</td><td class="n">14 下</td><td class="n"><b>−1</b></td></tr>
+            <tr><td>Plank</td><td class="n">2:30</td><td class="n">2:11</td><td class="n"><b>−19s</b></td></tr>
+            <tr><td>2 英里跑</td><td class="n">19:57</td><td class="n">21:38</td><td class="n"><b>−1:41</b></td></tr>
+          </tbody>
+        </table></div>
+        <div class="note" style="margin-top:22px">
+          <span class="tag">XP 權重</span>
+          <p class="tight" style="font-size:13.5px">Boss Day 20 · Cycle 15 · 十動作 10 · 恢復日／雨天 5 · 保底版 3。
+          保底版仍然給分 —— 因為 streak 的目的是出席，不是強度。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <div class="tag">Daily Ten</div>
+        <p class="tight" style="font-size:13.5px;margin-top:6px">
+          單一 <span class="num">index.html</span> · 約 630 行 · 零依賴 · 離線可用<br>
+          Safari 開啟 → 加入主畫面 → 全螢幕 standalone
+        </p>
+      </div>
+      <div class="tag" style="text-align:right">
+        Mockup for presentation<br>
+        本頁為畫面示意，資料為示範用假資料
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // 8-week attendance ribbon — mirrors the app's own heatmap encoding.
+  // index 55 = today, walking backwards; week pattern 一二四五=full, 三=cycle, 六=rest, 日=boss
+  var TYPES = ['b','f','f','c','f','f','r']; // Sun..Sat
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function build(el, cls, cells, stagger){
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < cells.length; i++){
+      var n = document.createElement('i');
+      if (cells[i]) n.className = cells[i];
+      if (stagger && !reduce) n.style.animationDelay = (i * 9) + 'ms';
+      else if (stagger) n.style.animation = 'none';
+      frag.appendChild(n);
+    }
+    el.appendChild(frag);
+  }
+  // Build a plausible 56-day history: a 6-day gap around day 20, otherwise consistent.
+  var cells = [], gapStart = 26, gapLen = 4;
+  for (var i = 0; i < 56; i++){
+    var dow = (i + 4) % 7;              // arbitrary anchor so today lands on a weekday
+    if (i >= gapStart && i < gapStart + gapLen){ cells.push(''); continue; }
+    if (i === gapStart + gapLen){ cells.push('m'); continue; }   // 復出那天用保底版
+    if (i < 6){ cells.push(i % 3 === 0 ? '' : 'm'); continue; }  // 最早期還沒穩定
+    cells.push(TYPES[dow]);
+  }
+  build(document.getElementById('ledger'), null, cells, true);
+
+  var heat = document.getElementById('phoneheat');
+  var map = {f:'full', c:'cycle', b:'boss', r:'rest', m:'minimal', '':''};
+  build(heat, null, cells.map(function(c){ return map[c]; }), false);
+})();
+</script>
+</body>
+</html>
