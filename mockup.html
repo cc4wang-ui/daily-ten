@@ -89,8 +89,14 @@ header{border-bottom:1px solid var(--edge);padding:56px 0 0;position:relative;ov
 .ledger i.b{background:var(--red)}
 .ledger i.r{background:var(--green)}
 .ledger i.m{background:#8A886C}
-.ledger-cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;
-  letter-spacing:.2em;text-transform:uppercase;color:var(--text3);padding-bottom:8px}
+.ledger-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--text3);padding-bottom:8px}
+.ledger-cap i.key{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;
+  vertical-align:baseline;background:var(--edge-soft)}
+.ledger-cap i.key.f{background:var(--amber)}.ledger-cap i.key.c{background:#C98A2B}
+.ledger-cap i.key.r{background:var(--green)}.ledger-cap i.key.b{background:var(--red)}
+.ledger-cap i.key.m{background:#8A886C}
 @media (prefers-reduced-motion:reduce){.ledger i{animation:none;transform:none;opacity:1}}
 
 /* ============ SECTIONS ============ */
@@ -185,6 +191,14 @@ section{padding:60px 0;border-bottom:1px solid var(--edge)}
 .tile.up b{color:#7A9B57}
 .vgood{border-radius:8px;padding:10px 11px;font-size:12px;line-height:1.55;
   background:rgba(122,155,87,.14);border:1px solid #7A9B57;color:#7A9B57}
+.vidle{border-radius:8px;padding:10px 11px;font-size:12px;line-height:1.55;
+  background:#242820;border:1px solid #33382B;color:#9A9884}
+.frow{display:flex;gap:8px;align-items:center;margin:7px 0;font-size:12px;color:#9A9884}
+.frow span{width:88px;flex:none}
+.frow i{flex:1;height:34px;border-radius:8px;background:#242820;border:1px solid #33382B;display:block}
+.frow em{width:24px;flex:none;font-style:normal;font-size:11px}
+/* must out-specify .inputrow span.numfield above */
+.inputrow span.numfield.dim{color:#5E6152}
 .mline{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0;
   border-bottom:1px solid #33382B;color:#E8E4D8}
 .mline:last-child{border-bottom:none}
@@ -260,8 +274,8 @@ footer{padding:44px 0 60px}
         <div class="tag">Mockup · v0.1 · Personal Training PWA</div>
         <h1 class="hero-title">Daily<br><em>Ten</em></h1>
         <p class="lede">每天固定十個動作打底，接一段依星期輪替的加強區塊，語音導引，手機放地上就能跑完。
-        終點線是 <b>AFT 居家三項及格 60 分</b>：伏地挺身 15 下、Plank 2:30、兩英里跑 19:57。
-        器材只有<b>一張瑜珈墊、一面牆、一條毛巾</b>。</p>
+        終點線是 <b>AFT 居家三項每項 60 分</b>：伏地挺身 15 下、Plank 1:25、兩英里跑 19:57。
+        器材只有<b>一張瑜珈墊、一條彈力帶、一面牆</b>。</p>
       </div>
       <dl class="spec">
         <div><dt>Form</dt><dd>可安裝 PWA · iOS 主畫面全螢幕</dd></div>
@@ -269,10 +283,10 @@ footer{padding:44px 0 60px}
         <div><dt>Offline</dt><dd>Service Worker cache-first</dd></div>
         <div><dt>Data</dt><dd>localStorage · JSON 匯出匯入</dd></div>
         <div><dt>Session</dt><dd>20–31 min 依等級 · 週六恢復 · 週日測驗</dd></div>
-        <div><dt>Gear</dt><dd>瑜珈墊 · 一面牆 · 一條毛巾</dd></div>
+        <div><dt>Gear</dt><dd>瑜珈墊 · 彈力帶 · 一面牆</dd></div>
       </dl>
     </div>
-    <div class="ledger-cap"><span>過去 8 週出勤</span><span>今天 →</span></div>
+    <div class="ledger-cap"><span>課表色碼 · 一週循環 × 8</span><span id="legend"></span></div>
     <div class="ledger" id="ledger"></div>
   </div>
 </header>
@@ -296,26 +310,26 @@ footer{padding:44px 0 60px}
             <div class="eyebrow">Daily Ten · AFT Program</div>
             <div class="aph1">8月6日 · 週四</div>
             <div class="dogtag">
-              <div class="streak-num">23</div>
+              <div class="streak-num">0</div>
               <div class="streak-lab">CONSECUTIVE DAYS</div>
             </div>
             <div class="statrow">
-              <div class="stat"><b>L3</b><span>LEVEL</span></div>
-              <div class="stat"><b>412</b><span>XP</span></div>
-              <div class="stat"><b>23</b><span>BEST</span></div>
+              <div class="stat"><b>L2</b><span>LEVEL</span></div>
+              <div class="stat"><b>0</b><span>XP</span></div>
+              <div class="stat"><b>0</b><span>BEST</span></div>
             </div>
             <div class="mission">伸展組 B：胸肩與上背　·　加強區塊：肩推鏈。按下開始後手機放地上，聽指令即可。</div>
-            <div class="btn-main">開始 · 十動作＋肩推鏈（26 min）</div>
-            <div class="btn-sub">加一輪 肩推鏈 · 36 分鐘</div>
+            <div class="btn-main">開始 · 十動作＋肩推鏈（22 min）</div>
+            <div class="btn-sub">加一輪 肩推鏈 · 30 分鐘</div>
             <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
             <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
           </div>
           <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
-          <span class="tag">Screen 01 — Home</span>
+          <span class="tag">Screen 01 — Home · 首次啟動</span>
           <h3>連續天數是唯一的英雄數字</h3>
-          <p>Streak 佔掉整個第一屏的視覺重量，Level / XP / Best 退成次要。今天做什麼由星期幾自動決定 —— 三顆按鈕分別是下限（保底版）、預設、上限（加一輪），時長全部由劑量算出，不是寫死的。</p>
+          <p>Streak 佔掉整個第一屏的視覺重量，Level / XP / Best 退成次要。今天做什麼由星期幾自動決定 —— 三顆按鈕分別是下限（保底版）、預設、上限（加一輪），時長全部由當前等級的劑量算出，不是寫死的。</p>
         </div>
       </div>
 
@@ -353,7 +367,7 @@ footer{padding:44px 0 60px}
           <div class="overlay">
             <div class="eyebrow">Mission Complete</div>
             <div class="d-identity">出席，就是勝利的八成。</div>
-            <div class="d-xp">+10 XP　·　STREAK 24</div>
+            <div class="d-xp">+10 XP　·　STREAK 1</div>
             <div class="btn-main" style="max-width:250px">回報完成</div>
           </div>
         </div></div>
@@ -392,13 +406,13 @@ footer{padding:44px 0 60px}
               <div class="streak-lab">CONSECUTIVE DAYS</div>
             </div>
             <div class="statrow">
-              <div class="stat"><b>L3</b><span>LEVEL</span></div>
-              <div class="stat"><b>412</b><span>XP</span></div>
-              <div class="stat"><b>23</b><span>BEST</span></div>
+              <div class="stat"><b>L2</b><span>LEVEL</span></div>
+              <div class="stat"><b>—</b><span>XP</span></div>
+              <div class="stat"><b>—</b><span>BEST</span></div>
             </div>
             <div class="mission">伸展組 B：胸肩與上背　·　加強區塊：肩推鏈。按下開始後手機放地上，聽指令即可。</div>
-            <div class="btn-main">開始 · 十動作＋肩推鏈（26 min）</div>
-            <div class="btn-sub">加一輪 肩推鏈 · 36 分鐘</div>
+            <div class="btn-main">開始 · 十動作＋肩推鏈（22 min）</div>
+            <div class="btn-sub">加一輪 肩推鏈 · 30 分鐘</div>
             <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
             <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
           </div>
@@ -423,14 +437,13 @@ footer{padding:44px 0 60px}
             <div class="aph1">HRP 成績輸入</div>
             <div class="acard">
               <h4>2 分鐘內完成幾下？</h4>
-              <div class="inputrow"><span class="numfield">14</span><span>下</span></div>
+              <div class="inputrow"><span class="numfield dim">0</span><span>下</span></div>
               <div class="btn-main" style="margin-bottom:0">儲存 PR</div>
             </div>
             <div class="acard">
               <h4>上次成績</h4>
-              <div class="prline"><span>2026-07-30</span><b>12 下</b></div>
-              <div class="prline"><span>2026-07-09</span><b>11 下</b></div>
-              <div class="passline" style="margin:10px 0 0">AFT PASS ≥ 15 REPS ─ ─ 還差 1 下</div>
+              <p style="font-size:12px">尚無紀錄 — 這是第一次測驗。</p>
+              <div class="passline" style="margin:10px 0 0">AFT PASS ≥ 15 REPS ─ ─ ─ ─ ─</div>
             </div>
             <p class="small">週日 Boss Day 三項輪替：本週 HRP，下週 Plank，再下週 2 英里跑。測驗前一樣先跑完十動作暖身，App 自動接續。</p>
           </div>
@@ -471,23 +484,26 @@ footer{padding:44px 0 60px}
             <div class="acard">
               <h4>HRP 伏地挺身（2 分鐘）</h4>
               <div class="passline">AFT PASS ≥ 15 REPS ─ ─ ─ ─ ─</div>
-              <div class="prline"><span>2026-08-02</span><b>14 下</b></div>
-              <div class="prline"><span>2026-07-12</span><b>12 下</b></div>
-              <div class="prline"><span>2026-06-21</span><b>9 下</b></div>
+              <p style="font-size:12px">尚無紀錄 — 週日 Boss Day 見。</p>
             </div>
             <div class="acard">
               <h4>Plank</h4>
               <div class="passline">TARGET ≥ 2:30（及格線約 1:30）─ ─ ─</div>
-              <div class="prline"><span>2026-07-26</span><b>2:11</b></div>
-              <div class="prline"><span>2026-07-05</span><b>1:48</b></div>
+              <p style="font-size:12px">尚無紀錄 — 週日 Boss Day 見。</p>
+            </div>
+            <div class="acard">
+              <h4>2 Mile Run</h4>
+              <div class="passline">AFT PASS ≤ 19:57 ─ ─ ─ ─ ─</div>
+              <p style="font-size:12px">尚無紀錄 — 週日 Boss Day 見。</p>
             </div>
           </div>
           <div class="tabbar"><span>HOME</span><span class="on">RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
-          <span class="tag">Screen 04 — Records</span>
+          <span class="tag">Screen 04 — Records · 首次啟動</span>
           <h3>56 格熱力圖 + 三項 PR</h3>
-          <p>顏色編碼訓練型態：琥珀＝十動作、深橘＝週三加練、紅＝Boss Day、綠＝恢復日、灰＝保底版。每張 PR 卡上方永遠掛著及格線。</p>
+          <p>顏色編碼訓練型態（同上方色碼帶）：琥珀＝十動作、深橘＝加練日、紅＝Boss Day、綠＝恢復日、灰＝保底版。
+          每張 PR 卡上方永遠掛著 60 分門檻，有紀錄後會直接算出還差多少。</p>
         </div>
       </div>
 
@@ -502,31 +518,35 @@ footer{padding:44px 0 60px}
             <div class="eyebrow">Body Metrics</div>
             <div class="aph1">身體指標</div>
             <div class="acard">
+              <h4>每日輸入 · 晨起空腹、上廁所後</h4>
+              <div class="frow"><span>體重</span><i></i><em>kg</em></div>
+              <div class="frow"><span>腰圍（肚臍）</span><i></i><em>cm</em></div>
+              <div class="frow"><span>靜息心率</span><i></i><em>bpm</em></div>
+              <div class="frow"><span>昨晚睡眠</span><i></i><em>hr</em></div>
+              <div class="btn-sub" style="margin:6px 0 0">記錄今日</div>
+            </div>
+            <div class="acard">
               <h4>趨勢判讀</h4>
-              <div class="vgood">體重週增 0.35%，腰圍持平 — 精瘦增肌中，維持現在的吃法。</div>
+              <div class="vidle">還沒有足夠資料 — 連續記錄 7 天後開始判讀。</div>
               <div class="tiles">
-                <div class="tile"><em>體重 7 日均</em><b>72.7<span>kg</span></b></div>
-                <div class="tile up"><em>週變化</em><b>+0.35<span>%</span></b></div>
-                <div class="tile"><em>腰圍</em><b>80.0<span>cm</span></b></div>
-                <div class="tile"><em>靜息心率</em><b>56<span>bpm</span></b></div>
+                <div class="tile"><em>體重 7 日均</em><b>—</b></div>
+                <div class="tile"><em>週變化</em><b>—</b></div>
+                <div class="tile"><em>腰圍</em><b>—</b></div>
+                <div class="tile"><em>靜息心率</em><b>—</b></div>
               </div>
               <p style="font-size:11px;margin-top:2px">單日體重會因水分波動 ±1.5 kg，看的是 7 日均與週變化率。</p>
             </div>
             <div class="acard">
               <h4>營養目標 · 精瘦增肌</h4>
-              <div class="mline"><span>每日熱量（起點估算）</span><b>2643–2933 kcal</b></div>
-              <div class="mline"><span>蛋白質 1.6–2.2 g/kg</span><b>116–160 g</b></div>
-              <div class="mline"><span>碳水 3–5 g/kg</span><b>218–363 g</b></div>
-              <div class="mline"><span>脂肪 0.8–1.0 g/kg</span><b>58–73 g</b></div>
-              <div class="mline"><span>每餐蛋白 × 4 餐</span><b>22–29 g</b></div>
+              <p style="font-size:12px">先輸入一次體重，才能算出你的營養目標。</p>
             </div>
           </div>
           <div class="tabbar"><span>HOME</span><span>RECORDS</span><span class="on">BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
-          <span class="tag">Screen 05 — Body</span>
+          <span class="tag">Screen 05 — Body · 首次啟動</span>
           <h3>指標配決策規則，不只是圖表</h3>
-          <p>體重／腰圍／靜息心率／睡眠每天記，圍度雙週、肌力檢測每月。營養目標用 g/kg 從最新體重算出，比猜 TDEE 誠實。每條指標都綁一條「動了要做什麼」。</p>
+          <p>體重／腰圍／靜息心率／睡眠每天記，圍度雙週、肌力檢測每月。營養目標用 g/kg 從最新體重算出，比猜 TDEE 誠實 —— 所以在輸入體重之前它什麼都不顯示。每條指標都綁一條「動了要做什麼」。</p>
         </div>
       </div>
 
@@ -551,11 +571,13 @@ footer{padding:44px 0 60px}
               <h4>設定</h4>
               <div class="toggle"><span>語音導引（中文 TTS）</span><span class="sw"><i></i></span></div>
               <div class="toggle"><span>提示音</span><span class="sw"><i></i></span></div>
+              <div class="toggle"><span>有彈力帶</span><span class="sw"><i></i></span></div>
+              <p class="small" style="margin-top:8px">關掉會自動退回徒手版（毛巾划船、俯臥等長）—— 出差沒帶時用。</p>
             </div>
             <div class="acard">
               <h4>資料備份</h4>
               <div class="btn-sub" style="margin:4px 0 0">匯出 JSON</div>
-              <div class="ta">{"version":1,"level":3,"xp":412,<br>"streak":{"current":23,"best":23,<br>"lastDate":"2026-08-05"},…</div>
+              <div class="ta">{"version":2,"level":2,"xp":0,<br>"streak":{"current":0,"best":0,<br>"lastDate":null},…</div>
               <div class="btn-sub" style="margin:0">匯入（覆蓋現有資料）</div>
             </div>
           </div>
@@ -579,20 +601,20 @@ footer{padding:44px 0 60px}
 
     <h3 style="margin-bottom:10px">一週節奏</h3>
     <p>全部安排在早上，錨定在刷牙之後。每天都是「十動作＋一個加強區塊」，區塊與伸展組都由星期決定 —— 使用者不做選擇。
-    時長是用當前等級的劑量算出來的，會隨升級變長（下表為 L3）。</p>
+    時長由當前等級的劑量算出，會隨升級變長（下表為 L3、有彈力帶）。</p>
     <div class="weekwrap"><div class="week">
-      <div class="day acc"><div class="d">一 · A</div><div class="t">十動作＋肩推鏈</div><div class="m">26 min · +10</div></div>
-      <div class="day"><div class="d">二 · B</div><div class="t">十動作＋下肢後鏈</div><div class="m">27 min · +10</div></div>
-      <div class="day"><div class="d">三 · C</div><div class="t">十動作＋拉系列＋加練</div><div class="m">29 min · +15</div></div>
-      <div class="day acc"><div class="d">四 · B</div><div class="t">十動作＋肩推鏈</div><div class="m">26 min · +10</div></div>
-      <div class="day"><div class="d">五 · A</div><div class="t">十動作＋下肢後鏈</div><div class="m">28 min · +10</div></div>
+      <div class="day acc"><div class="d">一 · A</div><div class="t">十動作＋肩推鏈</div><div class="m">29 min · +10</div></div>
+      <div class="day"><div class="d">二 · B</div><div class="t">十動作＋下肢後鏈</div><div class="m">28 min · +10</div></div>
+      <div class="day acc"><div class="d">三 · C</div><div class="t">十動作＋拉系列＋加練</div><div class="m">31 min · +15</div></div>
+      <div class="day acc"><div class="d">四 · B</div><div class="t">十動作＋肩推鏈</div><div class="m">28 min · +10</div></div>
+      <div class="day"><div class="d">五 · A</div><div class="t">十動作＋下肢後鏈</div><div class="m">29 min · +10</div></div>
       <div class="day rest"><div class="d">六 · C</div><div class="t">恢復日 · 三組伸展全走</div><div class="m">16 min · +5</div></div>
       <div class="day"><div class="d">日 · A</div><div class="t">Boss Day · 十動作＋測驗</div><div class="m">20 min · +20</div></div>
     </div></div>
     <p style="margin-top:-8px">A／B／C 是伸展組：<strong>A 髖與後鏈</strong>（90/90、深蹲蹲坐、鴿式）、
     <strong>B 胸肩與上背</strong>（穿針式、靠牆滑臂、嬰兒式側伸展）、
     <strong>C 全身流動</strong>（世界最強伸展、下犬↔上犬、脊椎扭轉）。
-    五個伸展槽位固定、內容輪替 —— 有變化，但不需要決定。橘框是肩訓日，一週三天碰到肩（一、四直接練，三的拉系列練後三角與上背）。</p>
+    五個伸展槽位固定、內容輪替 —— 有變化，但不需要決定。橘框是碰到肩的三天：一、四練垂直推與中三角，三的拉系列練後三角、上背與肩外旋。</p>
 
     <div class="grid2">
       <div>
@@ -601,25 +623,27 @@ footer{padding:44px 0 60px}
         <div class="tablewrap"><table style="min-width:600px">
           <thead><tr><th>Level</th><th class="n">伏地挺身</th><th class="n">Plank</th><th>肩推階梯</th><th class="n">倒立撐</th><th class="n">時長</th></tr></thead>
           <tbody>
-            <tr><td>L1 起步</td><td class="n">跪姿 8</td><td class="n">0:30</td><td>派克 ×6</td><td class="n">15s</td><td class="n">16 min</td></tr>
-            <tr><td>L2 預設</td><td class="n">10</td><td class="n">0:45 ×2</td><td>派克 ×8</td><td class="n">20s</td><td class="n">20 min</td></tr>
-            <tr class="hi"><td>L3</td><td class="n">12</td><td class="n">1:00 ×2</td><td>腳抬高派克 ×10</td><td class="n">30s</td><td class="n">26 min</td></tr>
-            <tr><td>L4 單邊</td><td class="n">15</td><td class="n">1:30 ×2</td><td>腳抬高派克 ×12<br>＋假直立</td><td class="n">40s</td><td class="n">28 min</td></tr>
-            <tr><td>L5 及格</td><td class="n">15</td><td class="n">2:30 ×2</td><td>靠牆倒立肩推 ×15</td><td class="n">45s</td><td class="n">31 min</td></tr>
+            <tr><td>L1 起步</td><td class="n">跪姿 8</td><td class="n">0:30</td><td>派克 ×6</td><td class="n">15s</td><td class="n">19 min</td></tr>
+            <tr><td>L2 預設</td><td class="n">10</td><td class="n">0:45 ×2</td><td>派克 ×8</td><td class="n">20s</td><td class="n">23 min</td></tr>
+            <tr class="hi"><td>L3</td><td class="n">12</td><td class="n">1:00 ×2</td><td>腳抬高派克 ×10</td><td class="n">30s</td><td class="n">29 min</td></tr>
+            <tr><td>L4 單邊</td><td class="n">15</td><td class="n">1:30 ×2</td><td>腳抬高派克 ×12<br>＋假直立</td><td class="n">40s</td><td class="n">30 min</td></tr>
+            <tr><td>L5 及格</td><td class="n">15</td><td class="n">2:30 ×2</td><td>靠牆倒立肩推 ×15</td><td class="n">45s</td><td class="n">34 min</td></tr>
           </tbody>
         </table></div>
-        <p class="tight" style="margin-top:12px;font-size:13.5px">徒手訓練的漸進超負荷不是加次數，是<strong>換槓桿</strong>。
-        次數上限鎖在 15 —— 到了就換更難的變化式。肩的階梯：派克 → 腳抬高派克 → 假直立 → 靠牆倒立肩推。</p>
+        <p class="tight" style="margin-top:12px;font-size:13.5px">徒手的漸進超負荷不是加次數，是<strong>換槓桿</strong>；彈力帶的是<strong>加張力</strong>。
+        兩者次數上限都鎖在 15 —— 到了就換更難的變化式或縮短握距，不是做更多下。
+        肩的階梯：派克 → 腳抬高派克 → 假直立 → 靠牆倒立肩推。</p>
       </div>
       <div>
-        <h3 style="margin-bottom:10px">終點線與現況</h3>
-        <p class="tight" style="margin-bottom:14px">AFT 居家三項及格 60 分。App 裡每張成績卡都直接把這條線畫在上面。</p>
+        <h3 style="margin-bottom:10px">終點線</h3>
+        <p class="tight" style="margin-bottom:14px">AFT 居家三項及格 60 分（男性 17–21 歲標準）。App 裡每張成績卡都直接把這條線畫在上面，
+        並算出還差多少。</p>
         <div class="tablewrap"><table style="min-width:420px">
-          <thead><tr><th>項目</th><th class="n">及格線</th><th class="n">目前 PR</th><th class="n">差距</th></tr></thead>
+          <thead><tr><th>項目</th><th class="n">60 分門檻</th><th class="n">目前 PR</th></tr></thead>
           <tbody>
-            <tr><td>HRP 伏地挺身 2 分鐘</td><td class="n">15 下</td><td class="n">14 下</td><td class="n"><b>−1</b></td></tr>
-            <tr><td>Plank</td><td class="n">2:30</td><td class="n">2:11</td><td class="n"><b>−19s</b></td></tr>
-            <tr><td>2 英里跑</td><td class="n">19:57</td><td class="n">21:38</td><td class="n"><b>−1:41</b></td></tr>
+            <tr><td>HRP 伏地挺身 2 分鐘</td><td class="n">15 下</td><td class="n">—</td></tr>
+            <tr><td>Plank</td><td class="n">1:25（目標 2:30）</td><td class="n">—</td></tr>
+            <tr><td>2 英里跑</td><td class="n">19:57</td><td class="n">—</td></tr>
           </tbody>
         </table></div>
         <div class="note" style="margin-top:22px">
@@ -659,18 +683,20 @@ footer{padding:44px 0 60px}
       </div>
       <div>
         <h3 style="margin-bottom:10px">營養範疇 · 精瘦增肌</h3>
-        <p class="tight" style="margin-bottom:14px">全部以 g/kg 表示，App 從最新體重直接算成克數 —— 比猜 TDEE 誠實。下表以 72.5 kg 為例。</p>
-        <div class="tablewrap"><table style="min-width:420px">
-          <thead><tr><th>項目</th><th>區間</th><th class="n">72.5 kg</th></tr></thead>
+        <p class="tight" style="margin-bottom:14px">全部以 g/kg 表示，App 從你輸入的體重直接算成克數 —— 比猜 TDEE 誠實。
+        沒輸入體重前，這一頁不顯示任何數字。</p>
+        <div class="tablewrap"><table style="min-width:400px">
+          <thead><tr><th>項目</th><th>區間</th></tr></thead>
           <tbody>
-            <tr class="hi"><td>蛋白質</td><td>1.6–2.2 g/kg</td><td class="n">116–160 g</td></tr>
-            <tr><td>碳水</td><td>3–5 g/kg</td><td class="n">218–363 g</td></tr>
-            <tr><td>脂肪</td><td>0.8–1.0 g/kg</td><td class="n">58–73 g</td></tr>
-            <tr><td>每餐蛋白 ×4</td><td>0.3–0.4 g/kg</td><td class="n">22–29 g</td></tr>
-            <tr><td>熱量（起點）</td><td>維持 +250</td><td class="n">2643–2933</td></tr>
-            <tr><td>增重速率</td><td>0.25–0.5%／週</td><td class="n">0.18–0.36 kg</td></tr>
-            <tr><td>肌酸單水</td><td>—</td><td class="n">3–5 g／天</td></tr>
-            <tr><td>睡眠</td><td>—</td><td class="n">7–9 hr</td></tr>
+            <tr class="hi"><td>蛋白質</td><td>1.6–2.2 g/kg　<span style="color:var(--text3)">硬底線</span></td></tr>
+            <tr><td>碳水</td><td>3–5 g/kg</td></tr>
+            <tr><td>脂肪</td><td>0.8–1.0 g/kg</td></tr>
+            <tr><td>每餐蛋白 ×4 餐</td><td>0.3–0.4 g/kg</td></tr>
+            <tr><td>熱量</td><td>維持 +250 kcal</td></tr>
+            <tr><td>飲水</td><td>35 ml/kg</td></tr>
+            <tr><td>增重速率</td><td>0.25–0.5% 體重／週</td></tr>
+            <tr><td>肌酸單水</td><td>3–5 g／天</td></tr>
+            <tr><td>睡眠</td><td>7–9 小時</td></tr>
           </tbody>
         </table></div>
         <div class="note" style="margin-top:22px">
@@ -697,12 +723,15 @@ footer{padding:44px 0 60px}
         </table></div>
       </div>
       <div>
-        <h3 style="margin-bottom:10px">無器材的真實缺口</h3>
-        <p>推、腿、核心用瑜珈墊＋一面牆可以練到很遠。<strong>拉不行</strong> ——
-        背部與後三角沒有外部阻力，只能靠俯臥等長（俯臥 YTW、超人式）和毛巾繞門把的划船，強度上限明顯低於其他部位。</p>
-        <p class="tight">週四整天給拉系列已經是無器材能做到的最好版本。真要補掉這個缺口，
-        <strong>一條阻力帶或一支門框單槓（台幣 300–800）</strong>是投報率最高的一筆支出 ——
-        這件事寫在 App 的設定頁裡，不藏起來。</p>
+        <h3 style="margin-bottom:10px">彈力帶補上了哪兩塊</h3>
+        <p>徒手＋一面牆能把推、腿、核心練得很遠，但有兩塊練不到：<strong>拉</strong>（背與後三角沒有外部阻力，只能靠俯臥等長）
+        與<strong>加載的垂直推</strong>（派克伏地挺身的負荷由體重決定，無法微調）。彈力帶剛好補這兩塊。</p>
+        <p>所以週三從「毛巾划船＋俯臥等長」升級成真正的拉日：划船、直臂下拉、面拉、開肩、肩外旋、二頭。
+        週一四的肩推鏈多了<strong>肩上推</strong>與<strong>側平舉</strong> —— 後者是徒手完全碰不到的中三角。
+        週二五的下肢多了<strong>羅馬尼亞硬舉</strong>，髖鉸鏈終於有阻力。</p>
+        <p class="tight"><strong>怎麼加負荷</strong>：彈力帶沒有重量刻度，順序是 ① 手握位置往固定端靠近（最快最可控）
+        ② 兩條疊著拉 ③ 換更粗的磅數。同一個原則 —— 次數上限鎖在 15，到了就加張力，不是加次數。</p>
+        <p class="tight" style="color:var(--text3);font-size:13px">設定頁有「有彈力帶」開關，關掉會自動退回徒手版 —— 出差沒帶時用。</p>
       </div>
     </div>
   </div>
@@ -714,13 +743,13 @@ footer{padding:44px 0 60px}
       <div>
         <div class="tag">Daily Ten</div>
         <p class="tight" style="font-size:13.5px;margin-top:6px">
-          單一 <span class="num">index.html</span> · 約 630 行 · 零依賴 · 離線可用<br>
+          單一 <span class="num">index.html</span> · 約 1095 行 · 零依賴 · 離線可用<br>
           Safari 開啟 → 加入主畫面 → 全螢幕 standalone
         </p>
       </div>
       <div class="tag" style="text-align:right">
         Mockup for presentation<br>
-        本頁為畫面示意，資料為示範用假資料
+        本頁為畫面示意 · 顯示 App 首次啟動的空白狀態
       </div>
     </div>
   </div>
@@ -728,35 +757,29 @@ footer{padding:44px 0 60px}
 
 <script>
 (function(){
-  // 8-week attendance ribbon — mirrors the app's own heatmap encoding.
-  // index 55 = today, walking backwards; week pattern 一二四五=full, 三=cycle, 六=rest, 日=boss
-  var TYPES = ['b','f','f','c','f','f','r']; // Sun..Sat
+  // Ribbon = the PROGRAM's weekly cycle repeated 8×, not anyone's attendance record.
+  // Mirrors the app's own heatmap encoding: 一二四五 十動作 / 三 加練 / 六 恢復 / 日 Boss.
+  var TYPES = ['f','f','c','f','f','r','b'];   // Mon..Sun
+  var LABELS = [['f','十動作'],['c','加練日'],['r','恢復日'],['b','Boss Day'],['m','保底版']];
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function build(el, cls, cells, stagger){
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < cells.length; i++){
-      var n = document.createElement('i');
-      if (cells[i]) n.className = cells[i];
-      if (stagger && !reduce) n.style.animationDelay = (i * 9) + 'ms';
-      else if (stagger) n.style.animation = 'none';
-      frag.appendChild(n);
-    }
-    el.appendChild(frag);
-  }
-  // Build a plausible 56-day history: a 6-day gap around day 20, otherwise consistent.
-  var cells = [], gapStart = 26, gapLen = 4;
-  for (var i = 0; i < 56; i++){
-    var dow = (i + 4) % 7;              // arbitrary anchor so today lands on a weekday
-    if (i >= gapStart && i < gapStart + gapLen){ cells.push(''); continue; }
-    if (i === gapStart + gapLen){ cells.push('m'); continue; }   // 復出那天用保底版
-    if (i < 6){ cells.push(i % 3 === 0 ? '' : 'm'); continue; }  // 最早期還沒穩定
-    cells.push(TYPES[dow]);
-  }
-  build(document.getElementById('ledger'), null, cells, true);
 
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < 56; i++){
+    var n = document.createElement('i');
+    n.className = TYPES[i % 7];
+    if (reduce) n.style.animation = 'none';
+    else n.style.animationDelay = (i * 9) + 'ms';
+    frag.appendChild(n);
+  }
+  document.getElementById('ledger').appendChild(frag);
+
+  document.getElementById('legend').innerHTML = LABELS.map(function(l){
+    return '<i class="key ' + l[0] + '"></i>' + l[1];
+  }).join('　');
+
+  // The RECORDS phone shows a first-run screen: every cell empty.
   var heat = document.getElementById('phoneheat');
-  var map = {f:'full', c:'cycle', b:'boss', r:'rest', m:'minimal', '':''};
-  build(heat, null, cells.map(function(c){ return map[c]; }), false);
+  for (var j = 0; j < 56; j++) heat.appendChild(document.createElement('i'));
 })();
 </script>
 </body>
