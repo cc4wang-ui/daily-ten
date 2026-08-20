@@ -259,6 +259,8 @@
       <h3>設定</h3>
       <div class="toggle"><span>語音導引（中文 TTS）</span><input type="checkbox" id="cfg-voice" checked></div>
       <div class="toggle"><span>提示音</span><input type="checkbox" id="cfg-beep" checked></div>
+      <div class="toggle"><span>有彈力帶</span><input type="checkbox" id="cfg-band" checked></div>
+      <p class="small" style="margin-top:8px">關掉會自動退回徒手版（毛巾划船、俯臥等長）—— 出差沒帶時用。</p>
     </div>
     <div class="card">
       <h3>資料備份</h3>
@@ -275,10 +277,13 @@
       全部早上進行，錨定在刷牙後。器材只需要瑜珈墊、一面牆、一條毛巾。</p>
     </div>
     <div class="card">
-      <h3>唯一值得買的東西</h3>
-      <p>徒手訓練最大的缺口是<b style="color:var(--ink)">拉</b> —— 沒有器材時背部與後三角只能靠俯臥等長，強度上限很低。
-      一條阻力帶或一支門框單槓（台幣 300–800）能補掉這個缺口，是投報率最高的一筆。
-      在那之前，週四的拉系列已經是無器材能做到的最好版本。</p>
+      <h3>彈力帶怎麼加負荷</h3>
+      <p>彈力帶沒有重量刻度，加負荷靠三件事，順序照這樣走：<br>
+      <b style="color:var(--ink)">1 縮短</b>　手握位置往固定端靠近，張力立刻變大 —— 最快、最可控。<br>
+      <b style="color:var(--ink)">2 疊帶</b>　兩條一起拉。<br>
+      <b style="color:var(--ink)">3 換磅數</b>　次數輕鬆做到 15 下以上才換下一條。</p>
+      <p class="small" style="margin-top:8px">同一個原則：次數上限鎖在 15，到了就加張力，不是加次數。
+      彈力帶補掉的是「拉」與「加載的垂直推」—— 也就是徒手唯一練不到的兩塊。</p>
     </div>
   </section>
 </div>
@@ -324,7 +329,7 @@ const DEFAULT_STATE={version:2,level:2,xp:0,
   prs:{hrp:[],plank:[],run2mi:[],pushup:[],pike:[],sideplank:[]},
   body:{weight:[],waist:[],arm:[],shoulder:[],thigh:[],rhr:[],sleep:[]},
   profile:{heightCm:null,age:null},
-  settings:{voice:true,beep:true}};
+  settings:{voice:true,beep:true,band:true}};
 let state=null;
 /* v1 → v2：補上 body / profile 與新增的 PR 桶，舊資料完整保留 */
 function migrate(s){
@@ -335,9 +340,12 @@ function migrate(s){
   s.profile=s.profile||{}; if(!('heightCm' in s.profile))s.profile.heightCm=null;
   if(!('age' in s.profile))s.profile.age=null;
   s.settings=s.settings||{voice:true,beep:true};
+  if(!('band' in s.settings))s.settings.band=true;
   s.version=2;
   return s;
 }
+/* 有彈力帶時走加載版課表；出差沒帶就關掉，自動退回徒手版 */
+function hasBand(){return state.settings.band!==false;}
 async function loadState(){
   try{ if(window.storage){ const r=await window.storage.get(KEY); if(r&&r.value){state=migrate(JSON.parse(r.value));if(state)return;} } }catch(e){}
   try{ const s=localStorage.getItem(KEY); if(s){state=migrate(JSON.parse(s));if(state)return;} }catch(e){}
@@ -439,7 +447,8 @@ const BLOCKS={shoulder:'肩推鏈',lower:'下肢後鏈',pull:'拉系列與上背
 /* 肩：後三角＋肩胛先做（多數人的弱點在後側），再進垂直推的漸進階梯 */
 function shoulderSeq(lv){
   const pike=[0,6,8,10,12,15][lv], hold=[0,15,20,30,40,45][lv],
-        sets=lv<=3?3:2,  // 動作越難，每組負荷越高 → 組數往下調
+        /* 有彈力帶時肩上推已補了推的量，派克降到 2 組；動作越難每組負荷越高，組數也往下調 */
+        sets=hasBand()?2:(lv<=3?3:2),
         name=lv<=2?'派克伏地挺身':(lv<=4?'腳抬高派克伏地挺身':'靠牆倒立肩推'),
         en=lv<=2?'Pike Push-up':(lv<=4?'Elevated Pike Push-up · 腳踩牆或沙發':'Wall Handstand Push-up'),
         s=[];
@@ -448,11 +457,20 @@ function shoulderSeq(lv){
   s.push(R('俯臥 W 舉','Prone W Raise ×12 · 夾緊肩胛',12,3));
   s.push(REST(30));
   for(let i=1;i<=sets;i++){ s.push(R(name+' 第'+i+'組',en+' ×'+pike,pike,4)); s.push(REST(40)); }
+  if(hasBand()){
+    /* 徒手練不到的兩塊：加載的垂直推、以及被孤立的中三角 */
+    const ohp=[0,12,15,15,15,15][lv];
+    s.push(R('彈力帶肩上推','Band Overhead Press ×'+ohp+' · 踩住帶子',ohp,3));
+    s.push(REST(35));
+    /* L4 起主課表本身已經很重，配件動作讓位給時間預算 */
+    if(lv<=3){ s.push(R('彈力帶側平舉','Band Lateral Raise ×15 · 舉到肩高',15,3)); s.push(REST(25)); }
+  }
   s.push(T('靠牆倒立撐','Wall Handstand Hold '+hold+'s · 面牆',hold));
   s.push(REST(30));
   s.push(R('反向雪天使','Reverse Snow Angel ×15 · 俯臥',15,2));
+  if(hasBand()&&lv<=3)s.push(R('彈力帶三頭下壓','Band Triceps Extension ×15',15,3));
   s.push(R('平板肩點','Plank Shoulder Tap ×20',20,2));
-  if(lv>=3)s.push(T('熊爬定位','Bear Crawl Hold 30s',30));
+  if(lv===3)s.push(T('熊爬定位','Bear Crawl Hold 30s',30));
   if(lv>=4)s.push(R('假直立伏地挺身','Pseudo Planche Push-up ×'+Math.max(5,pike-4)+' · 身體前傾',Math.max(5,pike-4),4));
   return s;
 }
@@ -469,6 +487,11 @@ function lowerSeq(lv){
   s.push(R('單腳臀橋 · 左','Single-Leg Glute Bridge L ×'+sp,sp,3));
   s.push(R('單腳臀橋 · 右','Single-Leg Glute Bridge R ×'+sp,sp,3));
   s.push(REST(30));
+  if(hasBand()){
+    /* 徒手最難加載的後鏈 —— 髖鉸鏈有了阻力才練得到 */
+    s.push(R('彈力帶羅馬尼亞硬舉','Band RDL ×15 · 髖鉸鏈、背打直',15,3));
+    s.push(REST(35));
+  }
   s.push(T('靠牆深蹲靜態','Wall Sit '+wall+'s',wall));
   s.push(R('跪姿離心腿後彎舉','Kneeling Eccentric Hamstring ×'+nord+' · 5 秒下放',nord,5));
   s.push(REST(20));
@@ -478,8 +501,30 @@ function lowerSeq(lv){
   s.push(T('死蟲式','Dead Bug 40s',40));
   return s;
 }
-/* 拉：無器材最大的缺口。毛巾繞門把當拉的替代，其餘靠俯臥等長 */
+/* 拉：有彈力帶就是真正的水平＋垂直拉；沒帶則退回俯臥等長版 */
 function pullSeq(lv){
+  if(!hasBand())return pullSeqBodyweight(lv);
+  const rows=[0,12,15,15,15,15][lv], sets=lv<=2?2:(lv<=3?3:2), s=[];
+  for(let i=1;i<=sets;i++){
+    s.push(R('彈力帶划船 第'+i+'組','Band Row ×'+rows+' · 帶子繞腳底或門縫、夾緊肩胛',rows,3));
+    s.push(REST(40));
+  }
+  s.push(R('彈力帶直臂下拉','Band Lat Pulldown ×'+rows+' · 高處固定、手肘打直下壓',rows,3));
+  s.push(REST(30));
+  s.push(R('彈力帶面拉','Band Face Pull ×15 · 拉到額頭高度、外旋到底',15,3));
+  s.push(R('彈力帶開肩','Band Pull-apart ×20 · 手肘打直',20,2));
+  s.push(REST(25));
+  s.push(R('彈力帶肩外旋 · 左','Band External Rotation L ×15',15,3));
+  s.push(R('彈力帶肩外旋 · 右','Band External Rotation R ×15',15,3));
+  s.push(REST(25));
+  s.push(R('彈力帶二頭彎舉','Band Biceps Curl ×'+rows,rows,3));
+  s.push(REST(20));
+  s.push(T('側平板 · 左','Side Plank L 30s',30));
+  s.push(T('側平板 · 右','Side Plank R 30s',30));
+  return s;
+}
+/* 出差／沒帶彈力帶的替代版 —— 強度上限較低，但比不做好 */
+function pullSeqBodyweight(lv){
   const rows=[0,10,12,15,15,15][lv], sup=[0,20,25,30,40,45][lv], s=[];
   const sets=lv<=3?3:2;
   for(let i=1;i<=sets;i++){
@@ -503,9 +548,12 @@ function blockSeq(kind,lv){
   if(kind==='pull')return pullSeq(lv);
   return [];
 }
-/* 週三多加兩項推的量 —— 一週唯一的加練日 */
+/* 週三是一週唯一的加練日。加的量跟著當天的區塊走 ——
+   有彈力帶時週三是拉日，就加拉；否則補推的量。不要在拉日堆推。 */
 function cycleExtra(lv){
   const d=dose(lv);
+  if(hasBand())return [R('彈力帶划船 加練','Band Row ×'+[0,12,15,15,15,15][lv],[0,12,15,15,15,15][lv],3),
+    REST(30),R('彈力帶面拉 加練','Band Face Pull ×15',15,3)];
   return [R('伏地挺身 加練','Push-up ×'+d.pushReps,d.pushReps,3),REST(30),
           R('派克伏地挺身 加練','Pike Push-up ×8',8,4)];
 }
@@ -570,7 +618,18 @@ const VIDEOS=[
   ['靠牆深蹲靜態 Wall Sit','wall sit form'],
   ['跪姿離心腿後彎舉','kneeling eccentric hamstring curl no equipment'],
   ['死蟲式 Dead Bug','dead bug core exercise'],
-  ['— 拉系列與上背 —',''],
+  ['— 彈力帶動作 —',''],
+  ['彈力帶划船','resistance band row form'],
+  ['彈力帶直臂下拉','resistance band straight arm lat pulldown'],
+  ['彈力帶面拉','resistance band face pull form'],
+  ['彈力帶開肩','resistance band pull apart form'],
+  ['彈力帶肩外旋','resistance band external rotation shoulder'],
+  ['彈力帶肩上推','resistance band overhead press form'],
+  ['彈力帶側平舉','resistance band lateral raise form'],
+  ['彈力帶三頭下壓','resistance band triceps extension'],
+  ['彈力帶二頭彎舉','resistance band biceps curl form'],
+  ['彈力帶羅馬尼亞硬舉','resistance band romanian deadlift form'],
+  ['— 徒手替代（出差沒帶時）—',''],
   ['毛巾划船（門把）','towel row door handle no equipment'],
   ['超人式划船','superman row prone back exercise'],
   ['毛巾直臂下拉','towel lat pulldown self resistance'],
@@ -994,8 +1053,11 @@ function renderSetup(){
   }).join('');
   $('cfg-voice').checked=state.settings.voice;
   $('cfg-beep').checked=state.settings.beep;
+  $('cfg-band').checked=hasBand();
   $('cfg-voice').onchange=e=>{state.settings.voice=e.target.checked;saveState();};
   $('cfg-beep').onchange=e=>{state.settings.beep=e.target.checked;saveState();};
+  /* 器材變了，課表內容與時長都要跟著重算 */
+  $('cfg-band').onchange=e=>{state.settings.band=e.target.checked;saveState();renderSetup();renderHome();};
   $('exp-btn').onclick=()=>{$('exp-area').value=JSON.stringify(state);$('io-msg').textContent='已匯出 — 全選複製保存。';};
   $('imp-btn').onclick=()=>{
     try{const s=JSON.parse($('exp-area').value);

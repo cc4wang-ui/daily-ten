@@ -1,7 +1,7 @@
 /* Daily Ten — Service Worker (cache-first, offline-capable)
    改版時只需把 CACHE 版本號 +1，舊 cache 會在 activate 時自動清掉。 */
 'use strict';
-const CACHE = 'daily-ten-v2';
+const CACHE = 'daily-ten-v3';
 const ASSETS = [
   './',
   './index.html',
