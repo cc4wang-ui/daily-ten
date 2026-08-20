@@ -175,6 +175,20 @@ section{padding:60px 0;border-bottom:1px solid var(--edge)}
 .ta{width:100%;height:74px;background:#242820;border:1px solid #33382B;color:#9A9884;
   border-radius:8px;padding:9px;font-family:var(--mono);font-size:10px;margin:8px 0;overflow:hidden}
 
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 0 4px}
+.tile{background:#242820;border:1px solid #33382B;border-radius:8px;padding:8px 9px}
+.tile em{display:block;font-style:normal;font-size:9px;letter-spacing:.12em;color:#9A9884;
+  text-transform:uppercase;font-family:var(--mono)}
+.tile b{display:block;font-family:var(--mono);font-size:18px;color:#E8E4D8;margin-top:2px;
+  font-variant-numeric:tabular-nums;font-weight:700}
+.tile b span{font-size:10px;color:#9A9884;margin-left:3px}
+.tile.up b{color:#7A9B57}
+.vgood{border-radius:8px;padding:10px 11px;font-size:12px;line-height:1.55;
+  background:rgba(122,155,87,.14);border:1px solid #7A9B57;color:#7A9B57}
+.mline{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0;
+  border-bottom:1px solid #33382B;color:#E8E4D8}
+.mline:last-child{border-bottom:none}
+.mline b{font-family:var(--mono);color:#E8A33D;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* full-screen overlays inside phone */
 .overlay{position:absolute;inset:30px 0 0;background:#12140F;display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;padding:24px}
@@ -245,15 +259,17 @@ footer{padding:44px 0 60px}
       <div>
         <div class="tag">Mockup · v0.1 · Personal Training PWA</div>
         <h1 class="hero-title">Daily<br><em>Ten</em></h1>
-        <p class="lede">每天固定十個動作，語音導引，手機放地上就能跑完。
-        終點線是 <b>AFT 居家三項及格 60 分</b>：伏地挺身 15 下、Plank 2:30、兩英里跑 19:57。</p>
+        <p class="lede">每天固定十個動作打底，接一段依星期輪替的加強區塊，語音導引，手機放地上就能跑完。
+        終點線是 <b>AFT 居家三項及格 60 分</b>：伏地挺身 15 下、Plank 2:30、兩英里跑 19:57。
+        器材只有<b>一張瑜珈墊、一面牆、一條毛巾</b>。</p>
       </div>
       <dl class="spec">
         <div><dt>Form</dt><dd>可安裝 PWA · iOS 主畫面全螢幕</dd></div>
         <div><dt>Stack</dt><dd>單一 HTML · 無框架 · 無 build</dd></div>
         <div><dt>Offline</dt><dd>Service Worker cache-first</dd></div>
         <div><dt>Data</dt><dd>localStorage · JSON 匯出匯入</dd></div>
-        <div><dt>Session</dt><dd>15 min 平日 / 30 min 週三 · 週日測驗</dd></div>
+        <div><dt>Session</dt><dd>20–31 min 依等級 · 週六恢復 · 週日測驗</dd></div>
+        <div><dt>Gear</dt><dd>瑜珈墊 · 一面牆 · 一條毛巾</dd></div>
       </dl>
     </div>
     <div class="ledger-cap"><span>過去 8 週出勤</span><span>今天 →</span></div>
@@ -288,17 +304,18 @@ footer{padding:44px 0 60px}
               <div class="stat"><b>412</b><span>XP</span></div>
               <div class="stat"><b>23</b><span>BEST</span></div>
             </div>
-            <div class="mission">固定十動作。按下開始後手機放地上，聽指令即可。</div>
-            <div class="btn-main">開始 · 每日十動作 15 分鐘</div>
+            <div class="mission">伸展組 B：胸肩與上背　·　加強區塊：肩推鏈。按下開始後手機放地上，聽指令即可。</div>
+            <div class="btn-main">開始 · 十動作＋肩推鏈（26 min）</div>
+            <div class="btn-sub">加一輪 肩推鏈 · 36 分鐘</div>
             <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
             <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
           </div>
-          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>SETUP</span></div>
+          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
           <span class="tag">Screen 01 — Home</span>
           <h3>連續天數是唯一的英雄數字</h3>
-          <p>Streak 佔掉整個第一屏的視覺重量，Level / XP / Best 退成次要。今天要做什麼由星期幾自動決定，不需要選單。</p>
+          <p>Streak 佔掉整個第一屏的視覺重量，Level / XP / Best 退成次要。今天做什麼由星期幾自動決定 —— 三顆按鈕分別是下限（保底版）、預設、上限（加一輪），時長全部由劑量算出，不是寫死的。</p>
         </div>
       </div>
 
@@ -310,19 +327,19 @@ footer{padding:44px 0 60px}
             <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
             <span class="batt"><i></i></span></span></div>
           <div class="overlay">
-            <div class="t-phase">24 / 31</div>
-            <div class="t-name">平板支撐 第1組</div>
-            <div class="t-sub">Plank 90s</div>
-            <div class="t-count amber">0:47</div>
+            <div class="t-phase">34 / 50</div>
+            <div class="t-name">靠牆倒立撐</div>
+            <div class="t-sub">Wall Handstand Hold 30s · 面牆</div>
+            <div class="t-count amber">0:18</div>
             <div class="t-next">下一個：組間休息</div>
-            <div class="t-prog"><i style="width:74%"></i></div>
+            <div class="t-prog"><i style="width:68%"></i></div>
             <div class="t-ctrl"><span class="pause">暫停</span><span class="abort">結束</span></div>
           </div>
         </div></div>
         <div class="unit-cap">
           <span class="tag">Screen 02 — Training</span>
           <h3>免持：中文語音報動作、報秒數</h3>
-          <p>每個動作前有 8 秒「準備」轉場並唸出下一個動作名；最後 5 秒逼逼聲。全程 wake lock 不鎖屏，手機躺在地上不用碰。</p>
+          <p>每個動作前有 8 秒「準備」轉場並唸出下一個動作名；最後 5 秒逼逼聲。全程 wake lock 不鎖屏，手機躺在地上不用碰。圖中是肩推鏈的倒立撐 —— 牆就是器材。</p>
         </div>
       </div>
 
@@ -379,12 +396,13 @@ footer{padding:44px 0 60px}
               <div class="stat"><b>412</b><span>XP</span></div>
               <div class="stat"><b>23</b><span>BEST</span></div>
             </div>
-            <div class="mission">固定十動作。按下開始後手機放地上，聽指令即可。</div>
-            <div class="btn-main">開始 · 每日十動作 15 分鐘</div>
+            <div class="mission">伸展組 B：胸肩與上背　·　加強區塊：肩推鏈。按下開始後手機放地上，聽指令即可。</div>
+            <div class="btn-main">開始 · 十動作＋肩推鏈（26 min）</div>
+            <div class="btn-sub">加一輪 肩推鏈 · 36 分鐘</div>
             <div class="btn-sub">保底版 · 2 分鐘（動作 1·2·10）</div>
             <div class="btn-sub">雨天／出差替代 · 10 分鐘室內有氧</div>
           </div>
-          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>SETUP</span></div>
+          <div class="tabbar"><span class="on">HOME</span><span>RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
           <span class="tag">State — Never Miss Twice</span>
@@ -416,7 +434,7 @@ footer{padding:44px 0 60px}
             </div>
             <p class="small">週日 Boss Day 三項輪替：本週 HRP，下週 Plank，再下週 2 英里跑。測驗前一樣先跑完十動作暖身，App 自動接續。</p>
           </div>
-          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span>SETUP</span></div>
+          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
           <span class="tag">State — Sunday Boss Day</span>
@@ -431,9 +449,10 @@ footer{padding:44px 0 60px}
 
 <section>
   <div class="wrap">
-    <div class="sechead"><span class="idx">03</span><h2>紀錄與設定</h2><span class="rule"></span></div>
+    <div class="sechead"><span class="idx">03</span><h2>紀錄、身體指標與設定</h2><span class="rule"></span></div>
     <div class="intro">
-      <p>兩個支援頁面，都刻意保持薄。紀錄頁只回答一個問題：<strong>我離及格線還有多遠</strong>。</p>
+      <p>三個支援頁面。紀錄頁只回答一個問題：<strong>我離及格線還有多遠</strong>。
+      指標頁回答另一個：<strong>我在增肌還是增脂，該不該改吃法</strong>。</p>
     </div>
     <div class="rack">
 
@@ -463,12 +482,51 @@ footer{padding:44px 0 60px}
               <div class="prline"><span>2026-07-05</span><b>1:48</b></div>
             </div>
           </div>
-          <div class="tabbar"><span>HOME</span><span class="on">RECORDS</span><span>SETUP</span></div>
+          <div class="tabbar"><span>HOME</span><span class="on">RECORDS</span><span>BODY</span><span>SETUP</span></div>
         </div></div>
         <div class="unit-cap">
           <span class="tag">Screen 04 — Records</span>
           <h3>56 格熱力圖 + 三項 PR</h3>
           <p>顏色編碼訓練型態：琥珀＝十動作、深橘＝週三加練、紅＝Boss Day、綠＝恢復日、灰＝保底版。每張 PR 卡上方永遠掛著及格線。</p>
+        </div>
+      </div>
+
+      <!-- 6b. BODY -->
+      <div class="unit">
+        <div class="phone"><div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar"><span>7:04</span>
+            <span class="r"><span class="bars"><b style="height:3px"></b><b style="height:5px"></b><b style="height:7px"></b><b style="height:9px"></b></span>
+            <span class="batt"><i></i></span></span></div>
+          <div class="app">
+            <div class="eyebrow">Body Metrics</div>
+            <div class="aph1">身體指標</div>
+            <div class="acard">
+              <h4>趨勢判讀</h4>
+              <div class="vgood">體重週增 0.35%，腰圍持平 — 精瘦增肌中，維持現在的吃法。</div>
+              <div class="tiles">
+                <div class="tile"><em>體重 7 日均</em><b>72.7<span>kg</span></b></div>
+                <div class="tile up"><em>週變化</em><b>+0.35<span>%</span></b></div>
+                <div class="tile"><em>腰圍</em><b>80.0<span>cm</span></b></div>
+                <div class="tile"><em>靜息心率</em><b>56<span>bpm</span></b></div>
+              </div>
+              <p style="font-size:11px;margin-top:2px">單日體重會因水分波動 ±1.5 kg，看的是 7 日均與週變化率。</p>
+            </div>
+            <div class="acard">
+              <h4>營養目標 · 精瘦增肌</h4>
+              <div class="mline"><span>每日熱量（起點估算）</span><b>2643–2933 kcal</b></div>
+              <div class="mline"><span>蛋白質 1.6–2.2 g/kg</span><b>116–160 g</b></div>
+              <div class="mline"><span>碳水 3–5 g/kg</span><b>218–363 g</b></div>
+              <div class="mline"><span>脂肪 0.8–1.0 g/kg</span><b>58–73 g</b></div>
+              <div class="mline"><span>每餐蛋白 × 4 餐</span><b>22–29 g</b></div>
+            </div>
+          </div>
+          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span class="on">BODY</span><span>SETUP</span></div>
+        </div></div>
+        <div class="unit-cap">
+          <span class="tag">Screen 05 — Body</span>
+          <h3>指標配決策規則，不只是圖表</h3>
+          <p>體重／腰圍／靜息心率／睡眠每天記，圍度雙週、肌力檢測每月。營養目標用 g/kg 從最新體重算出，比猜 TDEE 誠實。每條指標都綁一條「動了要做什麼」。</p>
         </div>
       </div>
 
@@ -501,10 +559,10 @@ footer{padding:44px 0 60px}
               <div class="btn-sub" style="margin:0">匯入（覆蓋現有資料）</div>
             </div>
           </div>
-          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span class="on">SETUP</span></div>
+          <div class="tabbar"><span>HOME</span><span>RECORDS</span><span>BODY</span><span class="on">SETUP</span></div>
         </div></div>
         <div class="unit-cap">
-          <span class="tag">Screen 05 — Setup</span>
+          <span class="tag">Screen 06 — Setup</span>
           <h3>兩個開關，一組備份</h3>
           <p>沒有帳號、沒有雲端、沒有訂閱。資料在裝置上，備份就是把一段 JSON 複製走。影片連結只在第一週學動作時用。</p>
         </div>
@@ -520,31 +578,38 @@ footer{padding:44px 0 60px}
     <div class="intro"><p>三張表就是整個產品邏輯 —— 沒有推薦演算法，沒有教練訂閱。</p></div>
 
     <h3 style="margin-bottom:10px">一週節奏</h3>
-    <p>全部安排在早上，錨定在刷牙之後。</p>
+    <p>全部安排在早上，錨定在刷牙之後。每天都是「十動作＋一個加強區塊」，區塊與伸展組都由星期決定 —— 使用者不做選擇。
+    時長是用當前等級的劑量算出來的，會隨升級變長（下表為 L3）。</p>
     <div class="weekwrap"><div class="week">
-      <div class="day"><div class="d">一</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
-      <div class="day"><div class="d">二</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
-      <div class="day acc"><div class="d">三</div><div class="t">Cycle 加練</div><div class="m">30 min · +15</div></div>
-      <div class="day"><div class="d">四</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
-      <div class="day"><div class="d">五</div><div class="t">十動作</div><div class="m">15 min · +10</div></div>
-      <div class="day rest"><div class="d">六</div><div class="t">恢復序列</div><div class="m">10 min · +5</div></div>
-      <div class="day acc"><div class="d">日</div><div class="t">Boss Day</div><div class="m">30 min · +20</div></div>
+      <div class="day acc"><div class="d">一 · A</div><div class="t">十動作＋肩推鏈</div><div class="m">26 min · +10</div></div>
+      <div class="day"><div class="d">二 · B</div><div class="t">十動作＋下肢後鏈</div><div class="m">27 min · +10</div></div>
+      <div class="day"><div class="d">三 · C</div><div class="t">十動作＋拉系列＋加練</div><div class="m">29 min · +15</div></div>
+      <div class="day acc"><div class="d">四 · B</div><div class="t">十動作＋肩推鏈</div><div class="m">26 min · +10</div></div>
+      <div class="day"><div class="d">五 · A</div><div class="t">十動作＋下肢後鏈</div><div class="m">28 min · +10</div></div>
+      <div class="day rest"><div class="d">六 · C</div><div class="t">恢復日 · 三組伸展全走</div><div class="m">16 min · +5</div></div>
+      <div class="day"><div class="d">日 · A</div><div class="t">Boss Day · 十動作＋測驗</div><div class="m">20 min · +20</div></div>
     </div></div>
+    <p style="margin-top:-8px">A／B／C 是伸展組：<strong>A 髖與後鏈</strong>（90/90、深蹲蹲坐、鴿式）、
+    <strong>B 胸肩與上背</strong>（穿針式、靠牆滑臂、嬰兒式側伸展）、
+    <strong>C 全身流動</strong>（世界最強伸展、下犬↔上犬、脊椎扭轉）。
+    五個伸展槽位固定、內容輪替 —— 有變化，但不需要決定。橘框是肩訓日，一週三天碰到肩（一、四直接練，三的拉系列練後三角與上背）。</p>
 
     <div class="grid2">
       <div>
         <h3 style="margin-bottom:10px">五級劑量表</h3>
         <p class="tight" style="margin-bottom:14px">同樣十個動作，劑量隨等級長大。升級條件：<strong>連續 7 天全勤</strong>，且近 21 天內任一項 PR 達標。</p>
-        <div class="tablewrap"><table>
-          <thead><tr><th>Level</th><th class="n">伏地挺身</th><th class="n">深蹲</th><th class="n">Plank</th><th class="n">組數</th></tr></thead>
+        <div class="tablewrap"><table style="min-width:600px">
+          <thead><tr><th>Level</th><th class="n">伏地挺身</th><th class="n">Plank</th><th>肩推階梯</th><th class="n">倒立撐</th><th class="n">時長</th></tr></thead>
           <tbody>
-            <tr><td>L1 起步</td><td class="n">跪姿 8</td><td class="n">12</td><td class="n">0:30</td><td class="n">2</td></tr>
-            <tr><td>L2 預設</td><td class="n">10</td><td class="n">15</td><td class="n">0:45 ×2</td><td class="n">2</td></tr>
-            <tr class="hi"><td>L3 目前</td><td class="n">12</td><td class="n">20</td><td class="n">1:00 ×2</td><td class="n">3</td></tr>
-            <tr><td>L4 單邊</td><td class="n">15</td><td class="n">20</td><td class="n">1:30 ×2</td><td class="n">3</td></tr>
-            <tr><td>L5 及格</td><td class="n">15</td><td class="n">20</td><td class="n">2:30 ×2</td><td class="n">3</td></tr>
+            <tr><td>L1 起步</td><td class="n">跪姿 8</td><td class="n">0:30</td><td>派克 ×6</td><td class="n">15s</td><td class="n">16 min</td></tr>
+            <tr><td>L2 預設</td><td class="n">10</td><td class="n">0:45 ×2</td><td>派克 ×8</td><td class="n">20s</td><td class="n">20 min</td></tr>
+            <tr class="hi"><td>L3</td><td class="n">12</td><td class="n">1:00 ×2</td><td>腳抬高派克 ×10</td><td class="n">30s</td><td class="n">26 min</td></tr>
+            <tr><td>L4 單邊</td><td class="n">15</td><td class="n">1:30 ×2</td><td>腳抬高派克 ×12<br>＋假直立</td><td class="n">40s</td><td class="n">28 min</td></tr>
+            <tr><td>L5 及格</td><td class="n">15</td><td class="n">2:30 ×2</td><td>靠牆倒立肩推 ×15</td><td class="n">45s</td><td class="n">31 min</td></tr>
           </tbody>
         </table></div>
+        <p class="tight" style="margin-top:12px;font-size:13.5px">徒手訓練的漸進超負荷不是加次數，是<strong>換槓桿</strong>。
+        次數上限鎖在 15 —— 到了就換更難的變化式。肩的階梯：派克 → 腳抬高派克 → 假直立 → 靠牆倒立肩推。</p>
       </div>
       <div>
         <h3 style="margin-bottom:10px">終點線與現況</h3>
@@ -562,6 +627,82 @@ footer{padding:44px 0 60px}
           <p class="tight" style="font-size:13.5px">Boss Day 20 · Cycle 15 · 十動作 10 · 恢復日／雨天 5 · 保底版 3。
           保底版仍然給分 —— 因為 streak 的目的是出席，不是強度。</p>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sechead"><span class="idx">05</span><h2>要量什麼，量了要做什麼</h2><span class="rule"></span></div>
+    <div class="intro">
+      <p>指標沒有綁決策規則就只是儀表板劇場。每一條都寫清楚：多久量一次、動了要改什麼。</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <h3 style="margin-bottom:10px">監測清單</h3>
+        <div class="tablewrap"><table style="min-width:460px">
+          <thead><tr><th>指標</th><th>頻率</th><th>它在告訴你什麼</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td>體重 7 日均</td><td>每天</td><td>熱量對不對（單日無意義）</td></tr>
+            <tr class="hi"><td>腰圍（肚臍）</td><td>每天</td><td>增的是肌肉還是脂肪</td></tr>
+            <tr><td>靜息心率</td><td>晨起</td><td>恢復夠不夠</td></tr>
+            <tr><td>睡眠時數</td><td>每天</td><td>增肌最被低估的槓桿</td></tr>
+            <tr><td>上臂／肩圍／大腿</td><td>雙週</td><td>局部有沒有長</td></tr>
+            <tr><td>伏地挺身／派克／側平板</td><td>每月</td><td>漸進超負荷的證據</td></tr>
+            <tr><td>AFT 三項</td><td>每三週</td><td>離終點線多遠</td></tr>
+            <tr><td>照片（正／側／背）</td><td>每月</td><td>比體重誠實</td></tr>
+            <tr><td>血壓</td><td>每週</td><td>背景健康</td></tr>
+            <tr><td>血脂／血糖／鐵／D</td><td>每年</td><td>吃得多之後更該看</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">營養範疇 · 精瘦增肌</h3>
+        <p class="tight" style="margin-bottom:14px">全部以 g/kg 表示，App 從最新體重直接算成克數 —— 比猜 TDEE 誠實。下表以 72.5 kg 為例。</p>
+        <div class="tablewrap"><table style="min-width:420px">
+          <thead><tr><th>項目</th><th>區間</th><th class="n">72.5 kg</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td>蛋白質</td><td>1.6–2.2 g/kg</td><td class="n">116–160 g</td></tr>
+            <tr><td>碳水</td><td>3–5 g/kg</td><td class="n">218–363 g</td></tr>
+            <tr><td>脂肪</td><td>0.8–1.0 g/kg</td><td class="n">58–73 g</td></tr>
+            <tr><td>每餐蛋白 ×4</td><td>0.3–0.4 g/kg</td><td class="n">22–29 g</td></tr>
+            <tr><td>熱量（起點）</td><td>維持 +250</td><td class="n">2643–2933</td></tr>
+            <tr><td>增重速率</td><td>0.25–0.5%／週</td><td class="n">0.18–0.36 kg</td></tr>
+            <tr><td>肌酸單水</td><td>—</td><td class="n">3–5 g／天</td></tr>
+            <tr><td>睡眠</td><td>—</td><td class="n">7–9 hr</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note" style="margin-top:22px">
+          <span class="tag">刻意壓低的增重速率</span>
+          <p class="tight" style="font-size:13.5px">終點線包含兩英里跑 19:57 —— 體重每上去一公斤，跑步就更難一點。
+          所以走的是 <strong>+250 kcal 的精瘦增肌</strong>，不是傳統 bulk。蛋白質是硬底線，其餘可彈性。</p>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:34px">
+      <div>
+        <h3 style="margin-bottom:10px">決策規則</h3>
+        <div class="tablewrap"><table style="min-width:480px">
+          <thead><tr><th>觸發條件</th><th>動作</th></tr></thead>
+          <tbody>
+            <tr><td>7 日均體重 3 週沒動</td><td><b>+150 kcal</b></td></tr>
+            <tr><td>週增 &gt;0.5% 且腰圍同步變粗</td><td><b>−150 kcal</b></td></tr>
+            <tr><td>體重上升但腰圍持平</td><td><b>不要改</b></td></tr>
+            <tr><td>靜息心率 +5 bpm 連 3 天</td><td><b>改保底版或恢復日</b></td></tr>
+            <tr><td>睡眠連 3 天 &lt;6 hr</td><td><b>停掉該週加練日</b></td></tr>
+            <tr><td>某動作連 3 次檢測沒進步</td><td><b>換變化式，不是加次數</b></td></tr>
+            <tr><td>跑步退步且體重上升</td><td><b>回維持熱量</b></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">無器材的真實缺口</h3>
+        <p>推、腿、核心用瑜珈墊＋一面牆可以練到很遠。<strong>拉不行</strong> ——
+        背部與後三角沒有外部阻力，只能靠俯臥等長（俯臥 YTW、超人式）和毛巾繞門把的划船，強度上限明顯低於其他部位。</p>
+        <p class="tight">週四整天給拉系列已經是無器材能做到的最好版本。真要補掉這個缺口，
+        <strong>一條阻力帶或一支門框單槓（台幣 300–800）</strong>是投報率最高的一筆支出 ——
+        這件事寫在 App 的設定頁裡，不藏起來。</p>
       </div>
     </div>
   </div>
