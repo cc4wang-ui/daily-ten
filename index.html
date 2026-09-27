@@ -149,7 +149,7 @@
     <button class="levelup" id="h-levelup">▲ 升級條件達成 — 點此升至下一級</button>
     <button class="btn-main" id="h-start">—</button>
     <button class="btn-sub" id="h-plus">—</button>
-    <button class="btn-sub" id="h-minimal">保底版 · 2 分鐘（動作 1·2·10）</button>
+    <button class="btn-sub" id="h-minimal">保底版 · 約 3 分鐘</button>
     <button class="btn-sub" id="h-rain">雨天／出差替代 · 10 分鐘室內有氧</button>
   </section>
 
@@ -173,7 +173,7 @@
     </div>
     <div class="card">
       <h3>Plank</h3>
-      <div class="passline">TARGET ≥ 2:30（及格線約 1:30）─ ─ ─</div>
+      <div class="passline">TARGET ≥ 2:30（AFT 17–21 歲男性 60 分 1:30）─ ─ ─</div>
       <div id="pr-plank"></div>
     </div>
     <div class="card">
@@ -198,7 +198,7 @@
     </div>
     <div class="card">
       <h3>趨勢判讀</h3>
-      <div class="verdict idle" id="bd-verdict">還沒有足夠資料 — 連續記錄 7 天後開始判讀。</div>
+      <div class="verdict idle" id="bd-verdict">還需要更多資料 — 連續記錄 14 天才能算出週變化率。</div>
       <div class="tiles" id="bd-tiles"></div>
       <p class="small">單日體重會因水分波動 ±1.5 kg，看的是 <b>7 日均</b> 與週變化率，不是今天的數字。</p>
     </div>
@@ -230,7 +230,7 @@
         <div>7 日均體重 <b>3 週沒動</b> → 每日熱量 <b>+150 kcal</b></div>
         <div>7 日均體重 <b>週增 &gt;0.5%</b> 且腰圍同步變粗 → <b>−150 kcal</b></div>
         <div>體重上升但腰圍持平 → <b>方向正確，不要改</b></div>
-        <div>靜息心率高於基線 <b>+5 bpm 連 3 天</b> → 改跑保底版或恢復日</div>
+        <div>近 3 天靜息心率均值高於基線 <b>+5 bpm</b> → 改跑保底版或恢復日</div>
         <div>睡眠 <b>連 3 天 &lt;6 hr</b> → 該週停掉加練日，先補睡</div>
         <div>某動作次數 <b>連 3 次檢測沒進步</b> → 換更難的變化式，不是加次數</div>
         <div>兩英里跑成績退步且體重上升 → 增重太快，回到維持熱量</div>
@@ -274,7 +274,7 @@
       <div id="week-tbl"></div>
       <p class="small" style="margin-top:8px">時長依你目前等級的劑量算出，會隨升級變長。
       伸展組 A 髖與後鏈／B 胸肩與上背／C 全身流動，依星期自動輪替 —— 你不需要選。
-      全部早上進行，錨定在刷牙後。器材只需要瑜珈墊、一面牆、一條毛巾。</p>
+      全部早上進行，錨定在刷牙後。預設課表需瑜珈墊、彈力帶、一面牆；關閉彈力帶時改用毛巾替代。</p>
     </div>
     <div class="card">
       <h3>彈力帶怎麼加負荷</h3>
@@ -441,8 +441,8 @@ function fullSeq(lv,mob){
     if(i<d.plankSets)s.push(REST(20)); }
   return s;
 }
-/* ===== 加強區塊（Block B）— 30 分鐘版的後半段 =====
-   器材只有：瑜珈墊、一面牆、一條毛巾。三種區塊依星期輪替，使用者不選。 */
+/* ===== 加強區塊（Block B）— 主課表的後半段 =====
+   預設使用彈力帶；關閉時改用毛巾與徒手動作。三種區塊依星期輪替。 */
 const BLOCKS={shoulder:'肩推鏈',lower:'下肢後鏈',pull:'拉系列與上背'};
 /* 肩：後三角＋肩胛先做（多數人的弱點在後側），再進垂直推的漸進階梯 */
 function shoulderSeq(lv){
@@ -557,8 +557,7 @@ function cycleExtra(lv){
   return [R('伏地挺身 加練','Push-up ×'+d.pushReps,d.pushReps,3),REST(30),
           R('派克伏地挺身 加練','Pike Push-up ×8',8,4)];
 }
-/* 恢復日：三組伸展全部走一遍，不做肌力。
-   三組本身就是 3 倍的量，不再乘時長 —— 恢復日拉到 20 分鐘以上會變成另一次訓練。 */
+/* 恢復日：三組伸展全部走一遍，不做肌力；不再額外乘時長。 */
 function restSeq(lv){
   return ['A','B','C'].reduce((acc,set,i)=>
     acc.concat(i?[T('換組','Recovery · 下一組伸展',15)]:[],mobSeq(set,lv)),[]);
@@ -573,7 +572,7 @@ function minimalSeq(lv){
   ];
 }
 function rainSeq(){
-  const s=[]; // 10 min: 6 rounds of (burpee 40s / rest 20s / jumping jack 40s / rest 20s) ≈ 8min + margin
+  const s=[]; // 10 min: 5 rounds of (burpee 40s / rest 20s / jumping jack 40s / rest 20s)
   for(let i=1;i<=5;i++){
     s.push({name:'波比跳 R'+i,sub:'Burpees',mode:'time',secs:40});
     s.push({name:'休息',sub:'Rest',mode:'time',secs:20});
@@ -781,7 +780,7 @@ function bossPlank(){
   el.textContent='0:00';
   const tm=setInterval(()=>{ sec++;
     el.textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
-    if(sec===90)speak('一分半。及格線就在前面。');
+    if(sec===90)speak('一分半。朝兩分半訓練目標前進。');
     if(sec===150)speak('兩分半。目標達成，繼續推。');
   },1000);
   $('t-abort').textContent='結束';
@@ -843,8 +842,8 @@ function estMin(seq){
 function todayPlan(){
   const p=WEEK[new Date().getDay()], lv=state.level, plan=Object.assign({},p);
   if(p.type==='boss'){
-    plan.min=estMin(fullSeq(lv,p.mob))+3; // 十動作 ＋ 測驗與輸入
-    plan.label='BOSS DAY · 十動作＋測驗（約 '+plan.min+' min）';
+    plan.min=estMin(fullSeq(lv,p.mob)); // 僅暖身；測驗長度依項目而異，跑步另計
+    plan.label='BOSS DAY · 十動作暖身（約 '+plan.min+' min）＋測驗另計';
     plan.mission='今日測驗：'+({hrp:'HRP 伏地挺身 2 分鐘',plank:'Plank 極限',run2mi:'2 英里跑'})[bossItem()]
       +'。先完成十動作暖身，測驗自動接續。';
   }else if(p.type==='rest'){
@@ -871,6 +870,7 @@ function renderHome(){
   const t=todayStr(),plan=todayPlan();
   const d=new Date();
   $('h-date').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 · 週'+DOW[d.getDay()];
+  $('h-minimal').textContent='保底版 · 約 '+estMin(minimalSeq(state.level))+' 分鐘';
   $('h-streak').textContent=state.streak.current;
   $('h-level').textContent='L'+state.level;
   $('h-xp').textContent=state.xp;
@@ -896,7 +896,7 @@ function renderHome(){
   if(last&&!doneToday){
     const gap=dayGap(last,t);
     if(gap===2){b.className='banner warn';b.textContent='⚠ 昨天斷了。今天是關鍵日 — Never Miss Twice。最少按下保底版。';}
-    else if(gap>2){b.className='banner danger';b.textContent='✕ 已中斷 '+(gap-1)+' 天。現在按保底版，2 分鐘重新開始。你是每天訓練的人。';}
+    else if(gap>2){b.className='banner danger';b.textContent='✕ 已中斷 '+(gap-1)+' 天。現在按保底版，約 '+estMin(minimalSeq(state.level))+' 分鐘重新開始。你是每天訓練的人。';}
   }
   const lu=$('h-levelup');
   if(levelUpEligible()){lu.style.display='block';
@@ -935,6 +935,7 @@ function windowAvg(key,from,to){
 /* 7 日均 + 週變化率 + 腰圍方向 → 一句判讀 */
 function trend(){
   const t=todayStr();
+  const count=(key,from,to)=>state.body[key].filter(x=>x.date>=from&&x.date<=to).length;
   const cur=windowAvg('weight',dateOffset(t,-6),t),
         prev=windowAvg('weight',dateOffset(t,-13),dateOffset(t,-7));
   const waistNow=windowAvg('waist',dateOffset(t,-6),t),
@@ -942,10 +943,12 @@ function trend(){
   const rhrBase=windowAvg('rhr',dateOffset(t,-27),dateOffset(t,-4)),
         rhrNow=windowAvg('rhr',dateOffset(t,-2),t);
   const o={cur:cur,prev:prev,waist:waistNow,rhr:rhrNow,
-    pct:(cur&&prev)?(cur-prev)/prev*100:null,
+    pct:(cur&&prev&&count('weight',dateOffset(t,-6),t)>=7
+      &&count('weight',dateOffset(t,-13),dateOffset(t,-7))>=7)?(cur-prev)/prev*100:null,
     waistUp:(waistNow&&waistPrev)?waistNow-waistPrev>0.3:false,
-    overreached:(rhrBase&&rhrNow)?rhrNow>=rhrBase+5:false};
-  if(o.overreached){o.cls='bad';o.msg='靜息心率高於基線 5 bpm 以上 — 恢復不足。今天改跑保底版或恢復日，先補睡。';return o;}
+    overreached:(rhrBase&&rhrNow&&count('rhr',dateOffset(t,-2),t)>=3
+      &&count('rhr',dateOffset(t,-27),dateOffset(t,-4))>=7)?rhrNow>=rhrBase+5:false};
+  if(o.overreached){o.cls='bad';o.msg='近 3 天靜息心率均值高於基線 5 bpm 以上 — 恢復不足。今天改跑保底版或恢復日，先補睡。';return o;}
   if(o.pct===null){o.cls='idle';o.msg='還需要更多資料 — 連續記錄 14 天才能算出週變化率。';return o;}
   if(o.pct>=0.5&&o.waistUp){o.cls='bad';o.msg='體重週增 '+o.pct.toFixed(2)+'%，腰圍同步變粗 — 增太快了。每日熱量 −150 kcal。';}
   else if(o.pct>=0.15&&!o.waistUp){o.cls='good';o.msg='體重週增 '+o.pct.toFixed(2)+'%，腰圍持平 — 精瘦增肌中，維持現在的吃法。';}
@@ -965,7 +968,7 @@ function renderBody(){
   const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
   const tr=trend(),v=$('bd-verdict');
   v.className='verdict '+(tr?tr.cls:'idle');
-  v.textContent=tr?tr.msg:'還沒有足夠資料 — 連續記錄 7 天後開始判讀。';
+  v.textContent=tr?tr.msg:'還需要更多資料 — 連續記錄 14 天才能算出週變化率。';
   const tile=(lab,val,unit,cls)=>'<div class="tile'+(cls?' '+cls:'')+'"><em>'+lab+'</em><b>'
     +(val===null||val===undefined?'—':val)+(unit?'<span>'+unit+'</span>':'')+'</b></div>';
   $('bd-tiles').innerHTML=
@@ -1045,11 +1048,11 @@ function renderSetup(){
     const name=p.type==='boss'?'Boss Day · 十動作＋測驗'
       :p.type==='rest'?'恢復日 · 三組伸展全走'
       :'十動作＋'+BLOCKS[p.block]+(p.type==='cycle'?'＋加練':'');
-    const min=p.type==='boss'?estMin(fullSeq(lv,p.mob))+3
+    const min=p.type==='boss'?estMin(fullSeq(lv,p.mob))
       :p.type==='rest'?estMin(restSeq(lv)):estMin(planSeq(p,lv));
     return '<div class="prline"'+(i===today?' style="background:rgba(232,163,61,.08)"':'')+'>'
       +'<span>'+DOW[i]+'　'+name+'　<span style="color:var(--ink-dim)">'+p.mob+'</span></span>'
-      +'<b>'+min+' min</b></div>';
+      +'<b>'+min+' min'+(p.type==='boss'?' 暖身＋測驗另計':'')+'</b></div>';
   }).join('');
   $('cfg-voice').checked=state.settings.voice;
   $('cfg-beep').checked=state.settings.beep;

@@ -1,7 +1,7 @@
 {
   "name": "Daily Ten",
   "short_name": "Daily Ten",
-  "description": "每日徒手訓練語音導引計時器 + streak 追蹤",
+  "description": "彈力帶與徒手訓練語音導引計時器 + streak 追蹤",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
