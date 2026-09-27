@@ -1,7 +1,7 @@
 /* Daily Ten — Service Worker (cache-first, offline-capable)
    改版時只需把 CACHE 版本號 +1，舊 cache 會在 activate 時自動清掉。 */
 'use strict';
-const CACHE = 'daily-ten-v3';
+const CACHE = 'daily-ten-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -18,7 +18,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('daily-ten-v') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
