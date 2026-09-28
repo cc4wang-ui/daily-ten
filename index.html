@@ -48,8 +48,13 @@
   #train.active{display:flex}
   #t-phase{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:10px}
   #t-name{font-size:34px;font-weight:800;line-height:1.2;margin-bottom:4px}
-  #t-sub{font-size:15px;color:var(--amber);margin-bottom:22px;font-family:var(--mono)}
-  #t-count{font-family:var(--mono);font-size:110px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  #t-sub{font-size:15px;color:var(--amber);margin-bottom:14px;font-family:var(--mono)}
+  #t-demo-wrap{position:relative;width:min(78vw,300px);margin:0 auto 14px}
+  #t-demo{display:block;width:100%;aspect-ratio:20/13;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  #t-demo-wrap.next #t-demo{opacity:.55}
+  #t-demo-tag{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim)}
+  #t-cue{font-size:12px;color:var(--ink-dim);line-height:1.5;max-width:320px;margin:0 auto 10px;min-height:18px}
+  #t-count{font-family:var(--mono);font-size:88px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
   #t-next{font-size:13px;color:var(--ink-dim);margin-top:22px;min-height:18px}
   #t-prog{width:70%;height:4px;background:var(--panel2);border-radius:2px;margin-top:18px;overflow:hidden}
   #t-prog i{display:block;height:100%;background:var(--amber);width:0%}
@@ -82,6 +87,19 @@
   .passline{font-size:11px;color:var(--red);font-family:var(--mono);letter-spacing:.05em;margin:2px 0 12px}
   /* ---- SETUP ---- */
   a{color:var(--amber);text-decoration:none;font-size:13px}
+  /* ---- 動作示範動畫（demos.js） ---- */
+  .dm-fig{fill:none;stroke:var(--ink);stroke-width:4px;stroke-linecap:round;stroke-linejoin:round}
+  .dm-fig *{vector-effect:non-scaling-stroke}
+  .dm-head{fill:var(--ink);stroke:none}
+  .dm-ground{stroke:var(--line);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+  .dm-prop{fill:none;stroke:#6B6F5C;stroke-width:2px;vector-effect:non-scaling-stroke}
+  .dm-band{stroke:var(--amber);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+  .vidline button{background:var(--panel2);color:var(--amber);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:12px;margin-left:6px}
+  #demo-modal{position:fixed;inset:0;background:rgba(10,11,8,.92);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+  #demo-modal.active{display:flex}
+  #demo-modal .box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  #dm-svg{display:block;width:100%;aspect-ratio:20/13;background:var(--bg);border-radius:8px;margin:10px 0}
+  #dm-cue{font-size:13px;color:var(--ink-dim);line-height:1.6;margin-bottom:12px}
   .vidline{padding:9px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:13px}
   textarea{width:100%;height:90px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
     border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;margin:8px 0}
@@ -251,9 +269,9 @@
     <div class="eyebrow">SETUP</div>
     <h1>設定與教學</h1>
     <div class="card">
-      <h3>動作影片（僅首週學習用）</h3>
+      <h3>動作示範</h3>
+      <p style="margin-bottom:6px">「示範」是 App 內建的線條動畫，離線可看，訓練時也會自動顯示並跟著節拍動。「真人」開啟 YouTube 搜尋結果（需連網），選官方／高評價示範即可。</p>
       <div id="vids"></div>
-      <p style="margin-top:8px">連結開啟 YouTube 搜尋結果，選官方／高評價示範即可。</p>
     </div>
     <div class="card">
       <h3>設定</h3>
@@ -293,6 +311,8 @@
   <div id="t-phase">—</div>
   <div id="t-name">—</div>
   <div id="t-sub">—</div>
+  <div id="t-demo-wrap"><svg id="t-demo" aria-hidden="true"></svg><span id="t-demo-tag"></span></div>
+  <div id="t-cue"></div>
   <div id="t-count">—</div>
   <div id="t-next"></div>
   <div id="t-prog"><i id="t-bar"></i></div>
@@ -310,6 +330,18 @@
   <button class="btn-main" id="d-ok" style="max-width:320px">回報完成</button>
 </div>
 
+<!-- 動作示範 -->
+<div id="demo-modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <div class="eyebrow">DEMO · 動作示範</div>
+    <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
+    <svg id="dm-svg" aria-hidden="true"></svg>
+    <div id="dm-cue"></div>
+    <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
+    <button class="btn-main" id="dm-close" style="margin-bottom:0">關閉</button>
+  </div>
+</div>
+
 <nav id="tabs">
   <button data-s="s-home" class="on">HOME</button>
   <button data-s="s-hist">RECORDS</button>
@@ -317,6 +349,7 @@
   <button data-s="s-setup">SETUP</button>
 </nav>
 
+<script src="demos.js"></script>
 <script>
 'use strict';
 /* ================= STORAGE ================= */
@@ -594,6 +627,7 @@ const VIDEOS=[
   ['伏地挺身（HRP 標準）','hand release push up form ACFT'],
   ['深蹲 Squat','bodyweight squat form'],
   ['提踵 Calf Raise','calf raise form'],
+  ['跪姿伏地挺身（保底替代）','knee push up form'],
   ['平板支撐（AFT 標準）','ACFT plank standard form'],
   ['— 伸展 B / C 組新增 —',''],
   ['嬰兒式側伸展','side child pose stretch'],
@@ -602,7 +636,9 @@ const VIDEOS=[
   ['鴿式 Pigeon Pose','pigeon pose hip stretch'],
   ['躺姿脊椎扭轉','supine spinal twist stretch'],
   ['— 肩推鏈 —',''],
-  ['俯臥 YTW 舉','prone y t w raise shoulder'],
+  ['俯臥 Y 舉','prone y t w raise shoulder'],
+  ['俯臥 T 舉','prone y t w raise shoulder'],
+  ['俯臥 W 舉','prone y t w raise shoulder'],
   ['派克伏地挺身','pike push up form'],
   ['腳抬高派克伏地挺身','elevated pike push up progression'],
   ['靠牆倒立撐','wall handstand hold beginner'],
@@ -617,6 +653,8 @@ const VIDEOS=[
   ['靠牆深蹲靜態 Wall Sit','wall sit form'],
   ['跪姿離心腿後彎舉','kneeling eccentric hamstring curl no equipment'],
   ['死蟲式 Dead Bug','dead bug core exercise'],
+  ['單腳提踵','single leg calf raise form'],
+  ['深蹲跳','squat jump form'],
   ['— 彈力帶動作 —',''],
   ['彈力帶划船','resistance band row form'],
   ['彈力帶直臂下拉','resistance band straight arm lat pulldown'],
@@ -631,10 +669,39 @@ const VIDEOS=[
   ['— 徒手替代（出差沒帶時）—',''],
   ['毛巾划船（門把）','towel row door handle no equipment'],
   ['超人式划船','superman row prone back exercise'],
+  ['超人式停留','superman hold exercise'],
   ['毛巾直臂下拉','towel lat pulldown self resistance'],
   ['反向平板 Reverse Plank','reverse plank form'],
-  ['側平板 Side Plank','side plank form']
+  ['側平板 Side Plank','side plank form'],
+  ['— 雨天室內有氧 —',''],
+  ['波比跳 Burpee','burpee form'],
+  ['開合跳 Jumping Jack','jumping jacks form']
 ];
+/* ================= 動作示範（demos.js） =================
+   訓練畫面：當前動作有示範就播，並把 reps 動作的週期對齊節拍（tempo），動畫一輪 = 一下。
+   休息／預備／換組沒有對應動作時，改播「下一個」動作。 */
+const HAS_DEMO=typeof window.DT_DEMOS!=='undefined';
+let demoCtl=null;
+function stopDemo(){ if(demoCtl){demoCtl.stop();demoCtl=null;} }
+function setTrainDemo(name,period,isNext){
+  stopDemo();
+  const k=HAS_DEMO?DT_DEMOS.keyFor(name):null, wrap=$('t-demo-wrap');
+  if(!k){wrap.style.display='none';$('t-cue').textContent='';return;}
+  wrap.style.display='';wrap.classList.toggle('next',!!isNext);
+  $('t-demo-tag').textContent=isNext?'NEXT':'';
+  demoCtl=DT_DEMOS.mount($('t-demo'),k,{period:period});
+  $('t-cue').textContent=DT_DEMOS.info(k).cue;
+}
+function openDemo(k,q){
+  if(!HAS_DEMO||!DT_DEMOS.info(k))return;
+  const inf=DT_DEMOS.info(k);
+  $('dm-name').textContent=inf.name;$('dm-cue').textContent=inf.cue;
+  $('dm-yt').href='https://www.youtube.com/results?search_query='+encodeURIComponent(q||inf.name);
+  if(openDemo.ctl)openDemo.ctl.stop();
+  openDemo.ctl=DT_DEMOS.mount($('dm-svg'),k);
+  $('demo-modal').classList.add('active');
+}
+function closeDemo(){ if(openDemo.ctl){openDemo.ctl.stop();openDemo.ctl=null;} $('demo-modal').classList.remove('active'); }
 /* ================= SESSION / STREAK LOGIC ================= */
 function sessionOn(date){return state.sessions.find(x=>x.date===date);}
 function recordSession(type){
@@ -697,6 +764,8 @@ function startWorkout(seq,type,after){
     $('t-name').textContent=st.name;
     $('t-sub').textContent=st.sub||'';
     $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
+    if(HAS_DEMO&&DT_DEMOS.keyFor(st.name))setTrainDemo(st.name,st.mode==='reps'?st.tempo:null,false);
+    else setTrainDemo(st.prep!==undefined?st.prep:(seq[idx+1]?seq[idx+1].name:''),null,true);
     const isRest=st.name.indexOf('休息')>=0;
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
@@ -728,12 +797,14 @@ function startWorkout(seq,type,after){
   }
   function cleanup(){
     if(timer)clearInterval(timer);
+    stopDemo();
     try{speechSynthesis.cancel();}catch(e){}
     unlockScreen();
     $('train').classList.remove('active');
     runner=null;
   }
   $('t-pause').onclick=()=>{paused=!paused;$('t-pause').textContent=paused?'繼續':'暫停';
+    if(demoCtl)demoCtl.setPaused(paused);
     if(!paused)speak('繼續');};
   $('t-abort').onclick=()=>{cleanup();renderHome();};
   runner={cleanup};
@@ -758,6 +829,7 @@ function bossHRP(){
   let left=120;const el=$('t-count');
   $('t-phase').textContent='BOSS · HRP';$('t-name').textContent='HRP 伏地挺身測驗';
   $('t-sub').textContent='2:00 · 自己計數';$('t-next').textContent='';$('t-bar').style.width='0%';
+  setTrainDemo('HRP',null,false);
   el.textContent='2:00';
   const tm=setInterval(()=>{ left--;
     el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
@@ -765,9 +837,9 @@ function bossHRP(){
     if(left===20)speak('你還有百分之六十。再兩下。');
     if(left<=5&&left>0)beep(880,.08);
     if(left<=0){clearInterval(tm);beep(440,.6);unlockScreen();
-      $('train').classList.remove('active');bossInput('hrp');}
+      stopDemo();$('train').classList.remove('active');bossInput('hrp');}
   },1000);
-  $('t-abort').onclick=()=>{clearInterval(tm);unlockScreen();$('train').classList.remove('active');renderHome();};
+  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();$('train').classList.remove('active');renderHome();};
   $('t-pause').onclick=null;
 }
 function bossPlank(){
@@ -777,6 +849,7 @@ function bossPlank(){
   let sec=0;const el=$('t-count');
   $('t-phase').textContent='BOSS · PLANK';$('t-name').textContent='平板支撐測驗';
   $('t-sub').textContent='撐到極限 · 落地按「結束」';$('t-next').textContent='';
+  setTrainDemo('平板支撐',null,false);
   el.textContent='0:00';
   const tm=setInterval(()=>{ sec++;
     el.textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
@@ -784,7 +857,7 @@ function bossPlank(){
     if(sec===150)speak('兩分半。目標達成，繼續推。');
   },1000);
   $('t-abort').textContent='結束';
-  $('t-abort').onclick=()=>{clearInterval(tm);unlockScreen();$('train').classList.remove('active');
+  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();$('train').classList.remove('active');
     $('t-abort').textContent='結束';bossInput('plank',sec);};
   $('t-pause').onclick=null;
 }
@@ -1039,10 +1112,16 @@ function wireBody(){
   };
 }
 function renderSetup(){
-  $('vids').innerHTML=VIDEOS.map(v=>v[1]
-    ? '<div class="vidline"><span>'+v[0]+'</span><a href="https://www.youtube.com/results?search_query='
-      +encodeURIComponent(v[1])+'" target="_blank" rel="noopener">觀看 ↗</a></div>'
-    : '<div class="eyebrow" style="padding:12px 0 4px">'+v[0]+'</div>').join('');
+  $('vids').innerHTML=VIDEOS.map((v,i)=>{
+    if(!v[1])return '<div class="eyebrow" style="padding:12px 0 4px">'+v[0]+'</div>';
+    const k=HAS_DEMO?DT_DEMOS.keyFor(v[0]):null;
+    return '<div class="vidline"><span>'+v[0]+'</span><span>'
+      +(k?'<button data-demo="'+k+'" data-i="'+i+'">示範</button>':'')
+      +'<a href="https://www.youtube.com/results?search_query='+encodeURIComponent(v[1])
+      +'" target="_blank" rel="noopener" style="margin-left:10px">真人 ↗</a></span></div>';
+  }).join('');
+  $('vids').querySelectorAll('button[data-demo]').forEach(b=>{
+    b.onclick=()=>openDemo(b.dataset.demo,VIDEOS[+b.dataset.i][1]);});
   const lv=state.level,today=new Date().getDay();
   $('week-tbl').innerHTML=WEEK.map((p,i)=>{
     const name=p.type==='boss'?'Boss Day · 十動作＋測驗'
@@ -1081,6 +1160,8 @@ document.querySelectorAll('#tabs button').forEach(b=>{
 $('h-minimal').onclick=()=>startWorkout(minimalSeq(state.level),'minimal');
 $('h-rain').onclick=()=>startWorkout(rainSeq(),'rain');
 $('d-ok').onclick=()=>{$('done').classList.remove('active');renderHome();showScreen('s-home');};
+$('dm-close').onclick=closeDemo;
+$('demo-modal').onclick=e=>{if(e.target===$('demo-modal'))closeDemo();};
 /* ================= INIT ================= */
 (async function(){
   await loadState();

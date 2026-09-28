@@ -208,8 +208,16 @@ section{padding:60px 0;border-bottom:1px solid var(--edge)}
   align-items:center;justify-content:center;text-align:center;padding:24px}
 .t-phase{font-family:var(--mono);font-size:11.5px;letter-spacing:.3em;color:#9A9884;margin-bottom:10px}
 .t-name{font-size:32px;font-weight:800;line-height:1.2;margin-bottom:5px;color:#E8E4D8}
-.t-sub{font-size:14px;color:#E8A33D;margin-bottom:20px;font-family:var(--mono)}
-.t-count{font-family:var(--mono);font-size:104px;font-weight:800;line-height:1;
+.t-sub{font-size:14px;color:#E8A33D;margin-bottom:10px;font-family:var(--mono)}
+.m-demo{display:block;width:78%;aspect-ratio:20/13;margin:0 auto 8px;background:#1C1F17;border:1px solid #33382B;border-radius:10px}
+.m-cue{font-size:11px;color:#9A9884;line-height:1.5;margin:0 18px 8px}
+.dm-fig{fill:none;stroke:#E8E4D8;stroke-width:3.5px;stroke-linecap:round;stroke-linejoin:round}
+.dm-fig *{vector-effect:non-scaling-stroke}
+.dm-head{fill:#E8E4D8;stroke:none}
+.dm-ground{stroke:#33382B;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.dm-prop{fill:none;stroke:#6B6F5C;stroke-width:2px;vector-effect:non-scaling-stroke}
+.dm-band{stroke:#E8A33D;stroke-width:1.8px;vector-effect:non-scaling-stroke}
+.t-count{font-family:var(--mono);font-size:72px;font-weight:800;line-height:1;
   font-variant-numeric:tabular-nums;color:#E8E4D8}
 .t-count.amber{color:#E8A33D}
 .t-next{font-size:12.5px;color:#9A9884;margin-top:20px}
@@ -344,6 +352,8 @@ footer{padding:44px 0 60px}
             <div class="t-phase">42 / 48</div>
             <div class="t-name">靠牆倒立撐</div>
             <div class="t-sub">Wall Handstand Hold 20s · 面牆</div>
+            <svg class="m-demo" data-demo="hshold" aria-hidden="true"></svg>
+            <div class="m-cue">雙手推地、肩膀頂向耳朵，身體收緊成一直線，腳輕靠牆。</div>
             <div class="t-count amber">0:18</div>
             <div class="t-next">下一個：組間休息</div>
             <div class="t-prog"><i style="width:85%"></i></div>
@@ -353,7 +363,7 @@ footer{padding:44px 0 60px}
         <div class="unit-cap">
           <span class="tag">Screen 02 — Training</span>
           <h3>免持：中文語音報動作、報秒數</h3>
-          <p>每個動作前有 8 秒「準備」轉場並唸出下一個動作名；最後 5 秒逼逼聲。全程 wake lock 不鎖屏，手機躺在地上不用碰。圖中是肩推鏈的倒立撐 —— 牆就是器材。</p>
+          <p>每個動作前有 8 秒「準備」轉場並唸出下一個動作名；最後 5 秒逼逼聲。畫面中央是內建線條示範動畫（離線可用），計次動作每一輪對齊一下的節拍；休息與準備時改播「下一個」動作。全程 wake lock 不鎖屏。圖中是肩推鏈的倒立撐 —— 牆就是器材。</p>
         </div>
       </div>
 
@@ -561,11 +571,11 @@ footer{padding:44px 0 60px}
             <div class="eyebrow">Setup</div>
             <div class="aph1">設定與教學</div>
             <div class="acard">
-              <h4>動作影片（僅首週學習用）</h4>
-              <div class="vidline"><span>貓牛式 Cat-Cow</span><a>觀看 ↗</a></div>
-              <div class="vidline"><span>90/90 髖旋轉</span><a>觀看 ↗</a></div>
-              <div class="vidline"><span>伏地挺身（HRP 標準）</span><a>觀看 ↗</a></div>
-              <div class="vidline"><span>平板支撐（AFT 標準）</span><a>觀看 ↗</a></div>
+              <h4>動作示範</h4>
+              <div class="vidline"><span>貓牛式 Cat-Cow</span><a>示範 · 真人 ↗</a></div>
+              <div class="vidline"><span>90/90 髖旋轉</span><a>示範 · 真人 ↗</a></div>
+              <div class="vidline"><span>伏地挺身（HRP 標準）</span><a>示範 · 真人 ↗</a></div>
+              <div class="vidline"><span>平板支撐（AFT 標準）</span><a>示範 · 真人 ↗</a></div>
             </div>
             <div class="acard">
               <h4>設定</h4>
@@ -586,7 +596,7 @@ footer{padding:44px 0 60px}
         <div class="unit-cap">
           <span class="tag">Screen 06 — Setup</span>
           <h3>兩個開關，一組備份</h3>
-          <p>沒有帳號、沒有雲端、沒有訂閱。資料在裝置上，備份就是把一段 JSON 複製走。影片連結只在第一週學動作時用。</p>
+          <p>沒有帳號、沒有雲端、沒有訂閱。資料在裝置上，備份就是把一段 JSON 複製走。每個動作都有離線示範動畫；「真人」是 YouTube 搜尋連結，需連網。</p>
         </div>
       </div>
 
@@ -755,6 +765,11 @@ footer{padding:44px 0 60px}
   </div>
 </footer>
 
+<script src="demos.js"></script>
+<script>
+/* 展示頁的訓練畫面播放真的示範動畫（與 App 同一份 demos.js） */
+if(window.DT_DEMOS)document.querySelectorAll('svg[data-demo]').forEach(s=>DT_DEMOS.mount(s,s.dataset.demo));
+</script>
 <script>
 (function(){
   // Ribbon = the PROGRAM's weekly cycle repeated 8×, not anyone's attendance record.
