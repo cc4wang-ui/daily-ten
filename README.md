@@ -1,5 +1,7 @@
 # Daily Ten
 
+> 版本追溯中：本 repo 是目前已核對的 GitHub 版本。Cross 指出曾在 Codex 做過含影片及其他 App 對標的較新版；該對話和產物尚未找回，故本 repo 不能宣稱是整個專案的最後版本。詳見 [PROJECT_STATE.md](./PROJECT_STATE.md)。
+
 以十動作為主幹的語音導引訓練計時器 + streak 追蹤器。可安裝的 PWA，已快取頁面可離線開啟。
 專案目標：HRP 伏地挺身 / Plank / 兩英里跑達到 AFT 男性 17–21 歲的三項 60 分門檻（15 下 / 1:30 / 19:57）。這是自選的三項訓練目標，**不是正式 AFT 通過判定**：正式測驗共五項，且 App 未按使用者年齡調整。[門檻來源：美國陸軍 AFT 計分表（2025-06-01 生效）](https://www.army.mil/e2/downloads/rv7/aft/AFT_Scoring_Scales_250601.pdf)。
 
