@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "level": 2,
+  "xp": 0,
+  "streak": {"current":0,"best":0,"lastDate":null},
+  "sessions": [],
+  "prs": {
+    "hrp": [],
+    "plank": [],
+    "run2mi": [],
+    "pushup": [],
+    "pike": [],
+    "sideplank": []
+  },
+  "body": {
+    "weight": [],
+    "waist": [],
+    "arm": [],
+    "shoulder": [],
+    "thigh": [],
+    "rhr": [],
+    "sleep": []
+  },
+  "profile": {"heightCm":null,"age":null},
+  "settings": {"voice":true,"beep":true,"band":true}
+}

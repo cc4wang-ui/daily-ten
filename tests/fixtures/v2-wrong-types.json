@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "level": "3",
+  "xp": "120",
+  "streak": {"current":"4","best":6,"lastDate":"2026-09-20"},
+  "sessions": [
+    {"date":"2026-09-13","type":"boss","xp":20},
+    "2026-09-14",
+    {"date":"2026-09-15","type":"full","xp":"10"},
+    {"date":"2026/09/16","type":"full","xp":10},
+    {"date":"2026-09-17","xp":10},
+    {"date":"2026-09-17","type":"full","xp":10},
+    {"date":"2026-09-18","type":"cycle","xp":15},
+    {"date":"2026-09-19","type":"rest","xp":null},
+    {"date":"2026-09-20","type":"boss","xp":20}
+  ],
+  "prs": {
+    "hrp": [
+      {"date":"2026-09-13","reps":"12"},
+      {"reps":14},
+      {"date":"2026-09-20","reps":15}
+    ],
+    "plank": [],
+    "run2mi": "none",
+    "pushup": {},
+    "pike": [],
+    "sideplank": [
+      {"date":"2026-09-20","v":45}
+    ]
+  },
+  "body": {
+    "weight": [
+      {"date":"2026-09-19","v":68.2},
+      {"date":"2026-09-20","v":"abc"},
+      null
+    ],
+    "waist": [],
+    "arm": [],
+    "shoulder": [],
+    "thigh": [],
+    "rhr": "60",
+    "sleep": [
+      {"date":"2026-09-20","v":"7.5"}
+    ]
+  },
+  "profile": "none",
+  "settings": {"voice":"false","beep":1,"band":"yes"}
+}

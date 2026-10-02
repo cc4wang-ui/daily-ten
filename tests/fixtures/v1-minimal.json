@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "level": 2,
+  "xp": 35,
+  "streak": {"current":1,"best":2,"lastDate":"2026-08-05"},
+  "sessions": [
+    {"date":"2026-08-02","type":"boss","xp":20},
+    {"date":"2026-08-03","type":"full","xp":10},
+    {"date":"2026-08-05","type":"rain","xp":5}
+  ],
+  "prs": {
+    "hrp": [
+      {"date":"2026-08-02","reps":12}
+    ],
+    "plank": [],
+    "run2mi": []
+  },
+  "settings": {"voice":true,"beep":true}
+}

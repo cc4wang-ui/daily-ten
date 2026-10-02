@@ -1,0 +1,286 @@
+/* data-guardian：schema.js／time.js 單元測試（純 Node，不開瀏覽器） */
+import { test, expect } from '@playwright/test';
+import { SCHEMA_VERSION, DEFAULT_IDENTITY, defaultState, validateImport } from '../js/state/schema.js';
+import { isoLocal, localDateStr, compactStamp, isValidDateStr, dayNumber, dayNumberToStr } from '../js/state/time.js';
+import { loadFixture, NOW, useTokyoTime, findBannedWords } from './state.helpers.js';
+
+useTokyoTime(test);
+
+const codes = (r) => r.errors.map((e) => e.code);
+const paths = (r) => r.errors.map((e) => e.path);
+
+test.describe('defaultState', () => {
+  test('內容精確符合 v3 規格', () => {
+    expect(SCHEMA_VERSION).toBe(3);
+    expect(DEFAULT_IDENTITY).toBe('我是獨立、自律、持續成長的人。');
+    expect(defaultState(NOW)).toStrictEqual({
+      version: 3, level: 2, xp: 0,
+      streak: { current: 0, best: 0, lastDate: null },
+      sessions: [],
+      prs: { hrp: [], plank: [], run2mi: [], pushup: [], pike: [], sideplank: [] },
+      body: { weight: [], waist: [], arm: [], shoulder: [], thigh: [], rhr: [], sleep: [] },
+      profile: { heightCm: null, age: null },
+      settings: { voice: true, beep: true, band: true, bedtime: '23:00', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 },
+      habits: {
+        sleep: { log: [] },
+        explore: {
+          items: [{ id: 'dj', name: 'DJ', minimalAction: '練 1 個 transition', createdAt: '2026-10-02T15:30:00+09:00', status: 'trying' }],
+          log: []
+        }
+      },
+      goals: { identity: '我是獨立、自律、持續成長的人。', weekly: [], season: [] },
+      phase: { current: 'P1', startedAt: null, history: [] },
+      game: {
+        xp: { move: 0, sleep: 0, explore: 0, total: 0 }, level: null,
+        streaks: { train: { current: 0, best: 0, lastDate: null }, life: { current: 0, best: 0, lastDate: null } },
+        freezeTokens: 0, achievements: {}, perfectDays: []
+      },
+      meta: { lastBackupAt: null }
+    });
+  });
+
+  test('每次回傳全新物件（改一份不影響下一份）', () => {
+    const a = defaultState(NOW);
+    a.sessions.push({ date: '2026-10-02', type: 'full', xp: 10 });
+    a.game.xp.move = 99;
+    a.habits.explore.items[0].name = 'x';
+    const b = defaultState(NOW);
+    expect(b.sessions).toEqual([]);
+    expect(b.game.xp.move).toBe(0);
+    expect(b.habits.explore.items[0].name).toBe('DJ');
+    expect(b.game).not.toBe(a.game);
+  });
+
+  test('預設 now 為現在時間（createdAt 含 offset）', () => {
+    expect(defaultState().habits.explore.items[0].createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
+  });
+
+  test('defaultState 本身能通過匯入驗證', () => {
+    expect(validateImport(defaultState(NOW))).toEqual({ ok: true });
+  });
+});
+
+test.describe('time.js', () => {
+  test('isoLocal／localDateStr：Asia/Tokyo', () => {
+    expect(isoLocal(NOW)).toBe('2026-10-02T15:30:00+09:00');
+    expect(localDateStr(NOW)).toBe('2026-10-02');
+    expect(compactStamp(NOW)).toBe('20261002153000');
+  });
+
+  test('isoLocal：UTC、負 offset、半小時 offset', () => {
+    process.env.TZ = 'UTC';
+    expect(isoLocal(NOW)).toBe('2026-10-02T06:30:00+00:00');
+    process.env.TZ = 'America/Los_Angeles';
+    expect(isoLocal(NOW)).toBe('2026-10-01T23:30:00-07:00');
+    expect(localDateStr(NOW)).toBe('2026-10-01');
+    process.env.TZ = 'Asia/Kolkata';
+    expect(isoLocal(NOW)).toBe('2026-10-02T12:00:00+05:30');
+  });
+
+  test('isoLocal：無效日期改用現在，不產生 NaN 字串', () => {
+    expect(isoLocal(new Date('garbage'))).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
+    expect(localDateStr('garbage')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test('isValidDateStr：真實存在的日期才算', () => {
+    for (const ok of ['2026-10-02', '2028-02-29', '2026-12-31', '0001-01-01']) expect(isValidDateStr(ok)).toBe(true);
+    for (const bad of ['2026-02-29', '2026-02-30', '2026-13-01', '2026-00-10', '2026-9-1', '2026/09/01', '20260901', '', null, 20260901])
+      expect(isValidDateStr(bad)).toBe(false);
+  });
+
+  test('dayNumber 與時區無關，可來回轉換', () => {
+    const a = dayNumber('2026-12-31');
+    process.env.TZ = 'America/Los_Angeles';
+    expect(dayNumber('2026-12-31')).toBe(a);
+    expect(dayNumber('2027-01-01') - a).toBe(1);
+    expect(dayNumberToStr(a + 1)).toBe('2027-01-01');
+    expect(dayNumber('2026-03-01') - dayNumber('2026-02-28')).toBe(1);
+    expect(dayNumber('2028-03-01') - dayNumber('2028-02-28')).toBe(2);
+  });
+});
+
+test.describe('validateImport：好檔', () => {
+  for (const name of ['v1-minimal.json', 'v2-real.json', 'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json']) {
+    test(`${name} 通過`, () => {
+      expect(validateImport(loadFixture(name))).toEqual({ ok: true });
+    });
+  }
+
+  test('真實備份的怪資料要能通過（打錯的數字、非列舉 type、小數、重複日期）', () => {
+    const s = loadFixture('v2-real.json');
+    s.body.sleep.push({ date: '2026-09-28', v: 30 });     // 睡眠誤填 30
+    s.body.weight.push({ date: '2026-09-29', v: 685 });   // 少打小數點
+    s.body.rhr.push({ date: '2026-09-29', v: 0.5 });
+    s.sessions.push({ date: '2026-09-29', type: 'yoga-flow', xp: 12.5 }); // 未來的新 type、小數 XP
+    s.sessions.push({ date: '2026-09-29', type: 'full', xp: 10 });        // 同日兩筆
+    s.prs.plank.push({ date: '2026-09-29', sec: 0 });
+    s.xp = 361.5;
+    expect(validateImport(s)).toEqual({ ok: true });
+  });
+
+  test('未知的額外欄位保留、不報錯', () => {
+    const s = loadFixture('v3.json');
+    s.future = { anything: [1, 2, { deep: 'x'.repeat(5000) }] };
+    s.settings.theme = 'dark';
+    s.sessions[0].note = '手機版新增的欄位';
+    s.prs.deadhang = [{ when: 'yesterday' }];
+    s.game.newCounter = -5;
+    s.habits.reading = { log: ['whatever'] };
+    expect(validateImport(s)).toEqual({ ok: true });
+  });
+});
+
+test.describe('validateImport：壞檔', () => {
+  test('import-bad-missing-fields.json → missing_field（streak、sessions）', () => {
+    const r = validateImport(loadFixture('import-bad-missing-fields.json'));
+    expect(r.ok).toBe(false);
+    expect(r.errors).toStrictEqual([
+      { code: 'missing_field', path: 'streak', message: '缺少必要欄位：連續天數（streak）' },
+      { code: 'missing_field', path: 'sessions', message: '缺少必要欄位：訓練紀錄（sessions）' }
+    ]);
+  });
+
+  test('import-bad-wrong-types.json → invalid_type', () => {
+    const r = validateImport(loadFixture('import-bad-wrong-types.json'));
+    expect(r.ok).toBe(false);
+    expect(paths(r)).toStrictEqual(['xp', 'sessions', 'prs.hrp[0].date', 'settings.voice']);
+    expect(new Set(codes(r))).toEqual(new Set(['invalid_type']));
+    expect(r.errors[0].message).toBe('XP（xp）應為數字');
+    expect(r.errors[2].message).toBe('PR 紀錄（prs.hrp[0].date）缺少必要的值，應為 YYYY-MM-DD 格式的日期');
+  });
+
+  test('import-bad-oversized.json → out_of_range', () => {
+    const r = validateImport(loadFixture('import-bad-oversized.json'));
+    expect(r.ok).toBe(false);
+    expect(paths(r)).toStrictEqual(['level', 'xp', 'streak.current', 'streak.best', 'prs.hrp[0].reps', 'body.weight[0].v']);
+    expect(new Set(codes(r))).toEqual(new Set(['out_of_range']));
+    expect(r.errors[1].message).toBe('XP（xp）數值超出合理範圍（應介於 0–10,000,000）');
+  });
+
+  test('頂層不是物件 → invalid_type', () => {
+    for (const v of [null, [], 'text', 42, true, undefined]) {
+      const r = validateImport(v);
+      expect(r).toStrictEqual({ ok: false, errors: [{ code: 'invalid_type', path: '', message: '檔案內容不是 Daily Ten 的資料格式' }] });
+    }
+  });
+
+  test('streak 型別錯 → invalid_type；缺 current → invalid_type', () => {
+    const s = loadFixture('v2-real.json');
+    s.streak = 5;
+    expect(validateImport(s).errors).toStrictEqual([{ code: 'invalid_type', path: 'streak', message: '連續天數（streak）應為物件' }]);
+    s.streak = { best: 3, lastDate: null };
+    const r = validateImport(s);
+    expect(r.errors).toStrictEqual([{ code: 'invalid_type', path: 'streak.current', message: '連續天數（streak.current）缺少必要的值，應為整數' }]);
+  });
+
+  test('version：字串、0、小數、比目前新', () => {
+    const s = loadFixture('v2-real.json');
+    s.version = '2';
+    expect(validateImport(s).errors).toStrictEqual([{ code: 'invalid_type', path: 'version', message: '版本（version）應為數字' }]);
+    s.version = 0;
+    expect(codes(validateImport(s))).toStrictEqual(['out_of_range']);
+    s.version = 2.5;
+    expect(codes(validateImport(s))).toStrictEqual(['out_of_range']);
+    s.version = 4;
+    const r = validateImport(s);
+    expect(codes(r)).toStrictEqual(['out_of_range']);
+    expect(r.errors[0].message).toBe('這份資料來自較新版本的 App（v4），請先更新 App 再匯入');
+    delete s.version; // v1 沒有 version 也可以
+    expect(validateImport(s)).toEqual({ ok: true });
+  });
+
+  test('錯誤最多收集 100 筆', () => {
+    const s = loadFixture('v2-real.json');
+    s.sessions = Array.from({ length: 300 }, () => ({ date: 'bad', type: '', xp: 'x' }));
+    const r = validateImport(s);
+    expect(r.ok).toBe(false);
+    expect(r.errors.length).toBe(100);
+  });
+});
+
+test.describe('validateImport：邊界值', () => {
+  const base = () => loadFixture('v3.json');
+  const cases = [
+    ['xp 上限', (s) => { s.xp = 10000000; }, null],
+    ['xp 超過上限', (s) => { s.xp = 10000001; }, ['out_of_range', 'xp']],
+    ['xp 負數', (s) => { s.xp = -1; }, ['out_of_range', 'xp']],
+    ['xp 字串', (s) => { s.xp = '120'; }, ['invalid_type', 'xp']],
+    ['level 1', (s) => { s.level = 1; }, null],
+    ['level 5', (s) => { s.level = 5; }, null],
+    ['level 0', (s) => { s.level = 0; }, ['out_of_range', 'level']],
+    ['level 6', (s) => { s.level = 6; }, ['out_of_range', 'level']],
+    ['level 2.5', (s) => { s.level = 2.5; }, ['out_of_range', 'level']],
+    ['level 字串', (s) => { s.level = '3'; }, ['invalid_type', 'level']],
+    ['streak.current 上限', (s) => { s.streak.current = 100000; s.streak.best = 100000; }, null],
+    ['streak.current 超過', (s) => { s.streak.current = 100001; }, ['out_of_range', 'streak.current']],
+    ['streak.best 小數', (s) => { s.streak.best = 1.5; }, ['out_of_range', 'streak.best']],
+    ['streak.lastDate null', (s) => { s.streak.lastDate = null; }, null],
+    ['streak.lastDate 格式錯', (s) => { s.streak.lastDate = '2026/10/01'; }, ['out_of_range', 'streak.lastDate']],
+    ['hrp reps 上限', (s) => { s.prs.hrp[0].reps = 10000; }, null],
+    ['hrp reps 超過', (s) => { s.prs.hrp[0].reps = 10001; }, ['out_of_range', 'prs.hrp[0].reps']],
+    ['hrp 用錯欄位（v 取代 reps）', (s) => { s.prs.hrp[0] = { date: '2026-09-06', v: 18 }; }, ['invalid_type', 'prs.hrp[0].reps']],
+    ['plank sec 上限', (s) => { s.prs.plank[0].sec = 86400; }, null],
+    ['plank sec 超過', (s) => { s.prs.plank[0].sec = 86401; }, ['out_of_range', 'prs.plank[0].sec']],
+    ['run2mi sec 負數', (s) => { s.prs.run2mi[0].sec = -1; }, ['out_of_range', 'prs.run2mi[0].sec']],
+    ['pushup v 字串', (s) => { s.prs.pushup[0].v = '22'; }, ['invalid_type', 'prs.pushup[0].v']],
+    ['sideplank v 上限（秒）', (s) => { s.prs.sideplank[0].v = 86400; }, null],
+    ['body v 為 0', (s) => { s.body.weight[0].v = 0; }, ['out_of_range', 'body.weight[0].v']],
+    ['body v 上限', (s) => { s.body.weight[0].v = 100000; }, null],
+    ['body v 超過', (s) => { s.body.weight[0].v = 100001; }, ['out_of_range', 'body.weight[0].v']],
+    ['body 項目缺 date', (s) => { delete s.body.rhr[0].date; }, ['invalid_type', 'body.rhr[0].date']],
+    ['session type 空字串', (s) => { s.sessions[0].type = ''; }, ['invalid_type', 'sessions[0].type']],
+    ['session type 20 字', (s) => { s.sessions[0].type = 'x'.repeat(20); }, null],
+    ['session type 21 字', (s) => { s.sessions[0].type = 'x'.repeat(21); }, ['out_of_range', 'sessions[0].type']],
+    ['session date 不存在', (s) => { s.sessions[0].date = '2026-02-30'; }, ['out_of_range', 'sessions[0].date']],
+    ['session date 是數字', (s) => { s.sessions[0].date = 20260824; }, ['invalid_type', 'sessions[0].date']],
+    ['session 閏日', (s) => { s.sessions[0].date = '2028-02-29'; }, null],
+    ['identity 500 字', (s) => { s.goals.identity = '我'.repeat(500); }, null],
+    ['identity 501 字', (s) => { s.goals.identity = '我'.repeat(501); }, ['out_of_range', 'goals.identity']],
+    ['bedtime 23:59', (s) => { s.settings.bedtime = '23:59'; }, null],
+    ['bedtime 24:00', (s) => { s.settings.bedtime = '24:00'; }, ['out_of_range', 'settings.bedtime']],
+    ['wakeTime 7:00', (s) => { s.settings.wakeTime = '7:00'; }, ['out_of_range', 'settings.wakeTime']],
+    ['settings.band 字串', (s) => { s.settings.band = 'false'; }, ['invalid_type', 'settings.band']],
+    ['game.level 數字', (s) => { s.game.level = 3; }, null],
+    ['game.level 物件', (s) => { s.game.level = { move: 2, sleep: 1, explore: 1 }; }, null],
+    ['game.level 字串', (s) => { s.game.level = 'L3'; }, ['invalid_type', 'game.level']],
+    ['game.xp.total 字串', (s) => { s.game.xp.total = '396'; }, ['invalid_type', 'game.xp.total']],
+    ['game 不是物件', (s) => { s.game = 'x'; }, ['invalid_type', 'game']],
+    ['meta.lastBackupAt 數字', (s) => { s.meta.lastBackupAt = 123; }, ['invalid_type', 'meta.lastBackupAt']],
+    ['explore item 缺 name', (s) => { delete s.habits.explore.items[0].name; }, ['invalid_type', 'habits.explore.items[0].name']],
+    ['explore interest 6', (s) => { s.habits.explore.log = [{ date: '2026-10-01', itemId: 'dj', interest: 6 }]; }, ['out_of_range', 'habits.explore.log[0].interest']]
+  ];
+  for (const [name, mutate, expected] of cases) {
+    test(name, () => {
+      const s = base();
+      mutate(s);
+      const r = validateImport(s);
+      if (expected === null) expect(r).toEqual({ ok: true });
+      else expect(r.errors.map((e) => [e.code, e.path])).toStrictEqual([expected]);
+    });
+  }
+
+  test('陣列長度上限 50,000 筆', () => {
+    const s = base();
+    const one = { date: '2026-10-01', type: 'full', xp: 10 };
+    s.sessions = Array.from({ length: 50000 }, () => one);
+    expect(validateImport(s)).toEqual({ ok: true });
+    s.sessions.push(one);
+    expect(validateImport(s).errors).toStrictEqual([{ code: 'out_of_range', path: 'sessions', message: '訓練紀錄（sessions）筆數過多（上限 50,000 筆）' }]);
+  });
+});
+
+test.describe('錯誤訊息', () => {
+  test('全部是繁中、含欄位路徑、沒有用語表的「不用」詞', () => {
+    const files = ['import-bad-missing-fields.json', 'import-bad-wrong-types.json', 'import-bad-oversized.json', 'v2-wrong-types.json', 'v2-missing-fields.json'];
+    const all = files.flatMap((f) => validateImport(loadFixture(f)).errors);
+    const s = loadFixture('v3.json');
+    s.version = 9; s.sessions[0].type = ''; s.goals.identity = '我'.repeat(501); s.settings.bedtime = '25:00'; s.game.level = 'x';
+    all.push(...validateImport(s).errors, ...validateImport(null).errors);
+    expect(all.length).toBeGreaterThan(30);
+    for (const e of all) {
+      expect(e.message).toMatch(/[一-鿿]/);
+      if (e.path && !e.message.includes('較新版本')) expect(e.message).toContain(e.path);
+      expect(findBannedWords(e.message)).toEqual([]);
+    }
+  });
+});
