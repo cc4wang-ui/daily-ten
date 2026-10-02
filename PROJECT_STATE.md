@@ -69,6 +69,9 @@
 | 匯入的「確認匯入」快速點兩下會一次套用，二次確認形同虛設（qa-checker 第 1 輪發現）。 | 第一次按後 1 秒內的點擊一律忽略，超過 1 秒、10 秒內再按才套用；外觀不變。 |
 | PR #0（指示檔）尚未 merge 就開始 M1。 | M1 分支疊在 PR #0 分支上；Cross 授權後由 Claude merge PR #7，M1 PR 對 main 的 diff 只含 M1。 |
 | 用 symlink 共用 `node_modules` 時，`.gitignore` 的 `node_modules/` 不會排除 symlink。 | 改成 `node_modules`（不加斜線）。 |
+| M1 上線後 Cross 手機上仍是舊版：SW cache-first，第一次開啟先給快取的舊版；iPhone 從背景切回不算重開，所以一直停在舊版。M1 外觀刻意不變，也很難看出差別。 | D23：開啟／回前景時檢查新版，閒置才自動重新載入（訓練中不打斷）；不認得新協定的舊頁面由 SW 直接導向新版；SETUP 顯示 App 版本。 |
+| `check-repo` 寫死期望的 CACHE 版號，每次改版都要手動同步。 | 改成比對 main：分支改了 App 檔，CACHE 就必須大於 main 的版號。 |
+| 本環境的 git 權限不能刪除遠端分支（403）。 | 已合併的 6 個舊分支保留，不影響功能。 |
 | Playwright 截圖比對的雜訊：fake clock 會讓兩個分頁的動畫相位不同、fullPage 截圖固定分頁列會飄、圓角有 ±1 像素差。 | 載入後先對齊時間、逐屏截圖再拼接、Chromium 加 `--disable-partial-raster`；同版本自比 0 px 後才拿來比對。 |
 
 ## Open failures / unverified
@@ -92,6 +95,10 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 資料層單元測試 200 項（fixture：v1、v2 真實、v2 缺欄位、v2 型別錯、空陣列、v3、被改回 v2、壞 JSON、四種壞匯入檔）；拆 module 前後與 `ec87e03` 截圖比對（ui-engineer 自測 233＋237 張，除 SETUP 資料備份卡外 0 px）；用語表 self-test 108 項、新增違規 0；`check-repo`（失效網址、SW v6 預快取、前端掃描）通過。qa-checker 獨立驗收：第 1 輪 PASS（266 passed／0 failed，含 e2e 66 項：遷移、訓練全流程、匯入壞檔、備份與提醒邊界、載入失敗、離線、main SW v5→v6 升級路徑、與 `ec87e03` 像素比對 0 px；植入 15 個缺陷全部抓到），GitHub Actions 第 4 次執行同一套全綠；第 2 輪驗收連點保護，見 `reports/qa-m1-*.md`。**未驗證**：iPhone 真機全部項目。
 
-## Last session — 2026-10-02
+## Last session — 2026-10-03
+
+Cross 回報「網址還是舊版」→ 做 D23 自動更新＋版本顯示（PR 見 GitHub）；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`；部署平台與 Drive 週報待 Cross 單選（A 搬 Vercel＋Drive 週報／B 只搬 Vercel／C 留 Pages＋Drive／D 不變）。
+
+## Session — 2026-10-02
 
 M1 地基：PR #7（指示檔＋網址）由 Claude 依 Cross 授權 merge；`m1/foundation` 完成 module 拆分、state v3、備份／匯入、用語表檢查、CI。M1 已 merge（PR #8，Pages 部署成功、main CI 綠燈）；U2 已確認起床 07:00／就寢 23:00。接續：① Cross 跑真機清單；② M2a：engine、早安打卡、D6/D18/D19、P1→P2、每週／季度目標、`.ics`、sim。先讀 `HANDOFF.md` 再動工。
