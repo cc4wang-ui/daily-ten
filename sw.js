@@ -1,20 +1,37 @@
 /* Daily Ten — Service Worker (cache-first, offline-capable)
-   改版時只需把 CACHE 版本號 +1，舊 cache 會在 activate 時自動清掉。 */
+   改版時把 CACHE 版本號 +1；新增檔案要加進 ASSETS（CI 的 check-repo 會檢查）。舊 cache 會在 activate 時自動清掉。 */
 'use strict';
 const CACHE = 'daily-ten-v6';
 const ASSETS = [
   './',
   './index.html',
-  './demos.js',
-  './mockup.html',
-  './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
+  './css/tokens.css',
+  './css/app.css',
+  './js/app.js',
+  './js/ui/audio.js',
+  './js/ui/body.js',
+  './js/ui/boss.js',
+  './js/ui/content.js',
+  './js/ui/dates.js',
+  './js/ui/demo.js',
+  './js/ui/dom.js',
+  './js/ui/history.js',
+  './js/ui/home.js',
+  './js/ui/program.js',
+  './js/ui/session.js',
+  './js/ui/setup.js',
+  './js/ui/train.js',
+  './js/ui/wakelock.js',
   './js/state/store.js',
   './js/state/schema.js',
   './js/state/migrate.js',
   './js/state/backup.js',
-  './js/state/time.js'
+  './js/state/time.js',
+  './demos.js',
+  './mockup.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
