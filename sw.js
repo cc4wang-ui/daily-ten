@@ -25,6 +25,7 @@ const ASSETS = [
   './js/ui/session.js',
   './js/ui/setup.js',
   './js/ui/train.js',
+  './js/ui/update.js',
   './js/ui/wakelock.js',
   './js/state/store.js',
   './js/state/schema.js',
