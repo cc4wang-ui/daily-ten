@@ -66,6 +66,7 @@
 | 舊匯入流程遇到格式錯誤的檔案，會把 `null` 寫進 localStorage（等於資料遺失）。 | M1 改為先驗證、預覽差異、兩次確認才覆蓋；壞檔只顯示錯誤，覆蓋前另存 pre-import。 |
 | 舊版 SW 快取的 App 讀到 v3 會把 `version` 改回 2，再記一次訓練。 | 以 `game` 物件判斷已遷移；legacy→game 用複製不用累加（fixture `v3-reverted-to-v2`：XP 406，不是 802）。 |
 | 拆成多個 module 後，預快取少列一個檔，離線冷啟動就會缺 module。 | CI `check-repo` 比對 `ASSETS` 與實際檔案；SW install 用 `cache:'reload'` 避免新 HTML 配到舊 module；開機包 try/catch，module 載入失敗顯示啟動失敗卡、不白屏。 |
+| 匯入的「確認匯入」快速點兩下會一次套用，二次確認形同虛設（qa-checker 第 1 輪發現）。 | 第一次按後 1 秒內的點擊一律忽略，超過 1 秒、10 秒內再按才套用；外觀不變。 |
 | PR #0（指示檔）尚未 merge 就開始 M1。 | M1 分支疊在 PR #0 分支上；Cross 授權後由 Claude merge PR #7，M1 PR 對 main 的 diff 只含 M1。 |
 | 用 symlink 共用 `node_modules` 時，`.gitignore` 的 `node_modules/` 不會排除 symlink。 | 改成 `node_modules`（不加斜線）。 |
 | Playwright 截圖比對的雜訊：fake clock 會讓兩個分頁的動畫相位不同、fullPage 截圖固定分頁列會飄、圓角有 ±1 像素差。 | 載入後先對齊時間、逐屏截圖再拼接、Chromium 加 `--disable-partial-raster`；同版本自比 0 px 後才拿來比對。 |
@@ -79,6 +80,7 @@
 - **產品範圍決策**：是否繼續使用 17–21 歲男性三項門檻作個人挑戰，或改依實際年齡顯示官方分數，需使用者決定。正式 AFT 的另兩項未實作。
 - **已知功能缺口**：PR 畫面只顯示成績與固定門檻，沒有自動算差距；睡眠與跑步退步規則沒有自動執行；L5 是 App level，非三項全達標。
 - **資料韌性**：M1 已補匯入驗證、差異預覽、兩次確認、備份下載、載入失敗保護與 fixture 測試；仍無雲端備份（原則 1：不做）。未來時間的 `lastBackupAt`（裝置時鐘錯）會讓提醒延後到該時間。
+- **減少動態效果**：示範動畫沒有依 `prefers-reduced-motion` 調整（既有行為，M1 未改），M3 處理。
 - **既有用語**：用語表檢查列出 2 筆既有違規（SETUP「時長」、Boss 完成畫面「數據」），依 PLAN.md 屬外觀變更，M3 修正。
 - **身體建議**：熱量／訓練文字是一般性的產品假設，不是個人醫療或營養評估；本次只核對內部一致性，沒有臨床驗證。
 
@@ -88,7 +90,7 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 ## 驗證紀錄 — 2026-10-02（M1；本機 Chromium＋GitHub Actions，非真機）
 
-資料層單元測試 200 項（fixture：v1、v2 真實、v2 缺欄位、v2 型別錯、空陣列、v3、被改回 v2、壞 JSON、四種壞匯入檔）；拆 module 前後與 `ec87e03` 截圖比對（ui-engineer 自測 233＋237 張，除 SETUP 資料備份卡外 0 px）；用語表 self-test 108 項、新增違規 0；`check-repo`（失效網址、SW v6 預快取、前端掃描）通過。獨立驗收見 `reports/qa-m1-*.md`。**未驗證**：iPhone 真機全部項目。
+資料層單元測試 200 項（fixture：v1、v2 真實、v2 缺欄位、v2 型別錯、空陣列、v3、被改回 v2、壞 JSON、四種壞匯入檔）；拆 module 前後與 `ec87e03` 截圖比對（ui-engineer 自測 233＋237 張，除 SETUP 資料備份卡外 0 px）；用語表 self-test 108 項、新增違規 0；`check-repo`（失效網址、SW v6 預快取、前端掃描）通過。qa-checker 獨立驗收：第 1 輪 PASS（266 passed／0 failed，含 e2e 66 項：遷移、訓練全流程、匯入壞檔、備份與提醒邊界、載入失敗、離線、main SW v5→v6 升級路徑、與 `ec87e03` 像素比對 0 px；植入 15 個缺陷全部抓到），GitHub Actions 第 4 次執行同一套全綠；第 2 輪驗收連點保護，見 `reports/qa-m1-*.md`。**未驗證**：iPhone 真機全部項目。
 
 ## Last session — 2026-10-02
 
