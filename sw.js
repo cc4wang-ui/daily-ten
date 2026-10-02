@@ -1,7 +1,7 @@
 /* Daily Ten — Service Worker (cache-first, offline-capable)
    改版時只需把 CACHE 版本號 +1，舊 cache 會在 activate 時自動清掉。 */
 'use strict';
-const CACHE = 'daily-ten-v5';
+const CACHE = 'daily-ten-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -9,11 +9,19 @@ const ASSETS = [
   './mockup.html',
   './manifest.webmanifest',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './js/state/store.js',
+  './js/state/schema.js',
+  './js/state/migrate.js',
+  './js/state/backup.js',
+  './js/state/time.js'
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache:'reload' 繞過瀏覽器 HTTP 快取，避免新版 index.html 配到舊版 module（拆成多檔後版本必須一致）
+  e.waitUntil(caches.open(CACHE)
+    .then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
