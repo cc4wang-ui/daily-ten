@@ -1,0 +1,14 @@
+{
+  "name": "daily-ten",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Daily Ten 開發工具（僅 dev）：測試與檢查。App 本身沒有 build。",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "serve": "node tools/serve.mjs . 4173"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
