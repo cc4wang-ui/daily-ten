@@ -3,14 +3,15 @@
    → context.setOffline(true)＋攔下所有網路請求 → reload 與「新分頁冷啟動」→ 四個分頁、示範視窗、保底版跑完都可用。 */
 import {
   test, expect, readFixture, openApp, seedState, storedState, expectHome, gotoTab, runWorkoutToEnd,
-  waitReady, swAssets
+  waitReady, swAssets, cacheNumber
 } from './helpers.js';
 
 test.use({ serviceWorkers: 'allow' });
 
 async function waitForPrecache(page) {
   const { cache, assets } = swAssets();
-  expect(cache).toBe('daily-ten-v6');
+  /* CACHE 名稱直接讀 sw.js（不寫死版號，升版不必改測試）；只檢查格式 */
+  expect(cache).toMatch(/^daily-ten-v\d+$/);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   const expected = assets.map((a) => new URL(a, page.url()).pathname).sort();
@@ -39,6 +40,8 @@ async function exerciseAllScreens(page, { xp, current, best }) {
   await gotoTab(page, 's-setup');
   await expect(page.locator('#vids .vidline').first()).toBeVisible();
   await expect(page.locator('#week-tbl .prline')).toHaveCount(7);
+  /* D23：離線時 SETUP 最下方的版本行仍顯示（版本取自 Cache Storage） */
+  await expect(page.locator('#app-version')).toHaveText(`App 版本 v${cacheNumber(swAssets().cache)}`);
   /* 示範視窗：離線可看、動畫會動 */
   await page.locator('#vids button[data-demo]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
