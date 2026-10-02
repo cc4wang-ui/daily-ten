@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "serve": "node tools/serve.mjs . 4173"
+    "serve": "node tools/serve.mjs . 4173",
+    "check:repo": "node .github/scripts/check-repo.mjs",
+    "check:glossary": "node tools/jev/check-glossary.js --ci",
+    "test:glossary": "node tools/jev/check-glossary.js --self-test"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1"
