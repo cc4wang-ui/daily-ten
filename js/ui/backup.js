@@ -7,6 +7,7 @@ import { $ } from './dom.js';
 
 const DAY_MS = 86400000;
 const ARM_MS = 10000; // 第一次按「確認匯入」後，10 秒內再按才真的覆蓋
+const GUARD_MS = 1000; // 進入待確認後 1 秒內的點擊一律忽略：雙擊或連續兩次 tap 不會直接覆蓋
 const CONFIRM_TEXT = '確認匯入（覆蓋目前資料）';
 const ARMED_TEXT = '再按一次，確認覆蓋';
 
@@ -73,6 +74,7 @@ export function renderBackupStatus() {
 
 let pending = null; // parseImport 通過、等待確認的資料
 let armTimer = null;
+let armedAt = 0; // 進入待確認的時間（performance.now，與計時器同一個時鐘）
 
 function disarm() {
   if (armTimer) { clearTimeout(armTimer); armTimer = null; }
@@ -152,9 +154,11 @@ export function wireBackupCard(onImported) {
     if (!pending) return;
     if (!armTimer) {
       $('imp-confirm').textContent = ARMED_TEXT;
+      armedAt = performance.now();
       armTimer = setTimeout(disarm, ARM_MS);
       return;
     }
+    if (performance.now() - armedAt < GUARD_MS) return; // 太快：視為連點，不套用、也不改外觀
     const incoming = pending;
     resetImport();
     if (await applyImport(incoming)) {
