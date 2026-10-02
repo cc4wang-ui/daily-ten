@@ -65,19 +65,19 @@
 
 ## 部署到 GitHub Pages（5 步）
 
-1. 這個 repo 已是 `crosswang-collab/daily-ten`。
+1. 這個 repo 已是 `cc4wang-ui/daily-ten`。
 2. GitHub 網站 → **Settings** → **Pages**。
 3. **Build and deployment → Source** 選 **Deploy from a branch**。
 4. **Branch** 選 `main`、資料夾 `/ (root)`，按 **Save**。
-5. 等 1–2 分鐘，網址為 `https://crosswang-collab.github.io/daily-ten/`。
+5. 等 1–2 分鐘，網址為 `https://cc4wang-ui.github.io/daily-ten/`。
 
 ## 展示給別人看
 
-`https://crosswang-collab.github.io/daily-ten/mockup.html` — 展示頁，包含首次啟動狀態及其他情境示意、一週節奏與五級劑量。畫面為示意，訓練與紀錄以 App 即時資料為準。
+`https://cc4wang-ui.github.io/daily-ten/mockup.html` — 展示頁，包含首次啟動狀態及其他情境示意、一週節奏與五級劑量。畫面為示意，訓練與紀錄以 App 即時資料為準。
 
 ## iPhone 安裝
 
-Safari 開啟 App 網址 `https://crosswang-collab.github.io/daily-ten/`（不是 `mockup.html`）→ 分享鈕 → **加入主畫面** → 從主畫面圖示開啟。GitHub Pages 必須先啟用。
+Safari 開啟 App 網址 `https://cc4wang-ui.github.io/daily-ten/`（不是 `mockup.html`）→ 分享鈕 → **加入主畫面** → 從主畫面圖示開啟。GitHub Pages 必須先啟用。
 
 ## 更新 App
 
