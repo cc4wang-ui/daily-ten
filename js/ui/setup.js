@@ -1,5 +1,6 @@
-/* Daily Ten — SETUP 畫面：示範／影片清單、設定開關、匯出／匯入、一週節奏。M1 自 index.html 原樣搬出。 */
-import { getState, setState, saveState, migrateState } from '../state/store.js';
+/* Daily Ten — SETUP 畫面：示範／影片清單、設定開關、資料備份（下載、匯出、匯入）、一週節奏。M1 自 index.html 原樣搬出；
+   1b 起匯入改走 backup.js 的「驗證 → 差異預覽 → 二次確認」。 */
+import { getState, saveState } from '../state/store.js';
 import { $ } from './dom.js';
 import { VIDEOS } from './content.js';
 import { HAS_DEMO, openDemo } from './demo.js';
@@ -7,6 +8,7 @@ import { hasBand, BLOCKS, DOW, WEEK, estMin, fullSeq, restSeq, planSeq } from '.
 import { renderHome } from './home.js';
 import { renderHist } from './history.js';
 import { renderBody } from './body.js';
+import { wireBackupCard } from './backup.js';
 
 export function renderSetup(){
   $('vids').innerHTML=VIDEOS.map((v,i)=>{
@@ -38,12 +40,6 @@ export function renderSetup(){
   /* 器材變了，課表內容與時長都要跟著重算 */
   $('cfg-band').onchange=e=>{getState().settings.band=e.target.checked;saveState();renderSetup();renderHome();};
   $('exp-btn').onclick=()=>{$('exp-area').value=JSON.stringify(getState());$('io-msg').textContent='已匯出 — 全選複製保存。';};
-  $('imp-btn').onclick=()=>{
-    try{const s=JSON.parse($('exp-area').value);
-      if(!s.version||!s.streak)throw new Error('格式不符');
-      const next=migrateState(s);if(!next)throw new Error('格式不符');
-      setState(next);saveState();renderHome();renderHist();renderSetup();renderBody();
-      $('io-msg').textContent='匯入成功。';}
-    catch(e){$('io-msg').textContent='匯入失敗：'+e.message;}
-  };
+  /* 下載備份、選檔／貼上匯入（驗證 → 差異預覽 → 二次確認）；匯入成功後同原本一樣重繪四個分頁 */
+  wireBackupCard(()=>{renderHome();renderHist();renderSetup();renderBody();});
 }

@@ -23,7 +23,18 @@
   <section class="screen active" id="s-home">
     <div class="eyebrow">DAILY TEN · AFT PROGRAM</div>
     <h1 id="h-date">—</h1>
+    <div id="err-card" class="banner" role="alert">
+      <div id="err-text"></div>
+      <button class="btn-sub" id="err-download">下載原始資料</button>
+      <button class="btn-sub" id="err-dismiss">知道了</button>
+      <div class="small" id="err-note"></div>
+    </div>
     <div id="h-banner" class="banner"></div>
+    <div id="bk-reminder" class="banner">
+      <div id="bk-reminder-text"></div>
+      <button class="btn-sub" id="bk-reminder-btn">下載備份</button>
+      <div class="small" id="bk-reminder-msg"></div>
+    </div>
     <div class="dogtag">
       <div class="streak-num" id="h-streak">0</div>
       <div class="streak-lab">CONSECUTIVE DAYS</div>
@@ -152,9 +163,21 @@
     </div>
     <div class="card">
       <h3>資料備份</h3>
+      <button class="btn-sub" id="bk-download" style="margin-top:4px">下載備份</button>
+      <p class="small" id="bk-status"></p>
       <button class="btn-sub" id="exp-btn" style="margin-top:4px">匯出 JSON</button>
       <textarea id="exp-area" placeholder="匯出結果顯示於此；貼上 JSON 後按匯入可還原"></textarea>
       <button class="btn-sub" id="imp-btn">匯入（覆蓋現有資料）</button>
+      <button class="btn-sub" id="imp-file-btn">選擇備份檔匯入</button>
+      <input type="file" id="imp-file" accept=".json,application/json,text/plain" hidden>
+      <div id="imp-error" class="banner" role="alert"></div>
+      <div id="imp-preview" hidden>
+        <div id="imp-rows"></div>
+        <p class="small">琥珀色的項目匯入後會改變。</p>
+        <div id="imp-warnings" class="banner"></div>
+        <button class="btn-main" id="imp-confirm">確認匯入（覆蓋目前資料）</button>
+        <button class="btn-sub" id="imp-cancel">取消</button>
+      </div>
       <p class="small" id="io-msg"></p>
     </div>
     <div class="card">

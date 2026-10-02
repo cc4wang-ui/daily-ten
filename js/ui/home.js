@@ -1,4 +1,4 @@
-/* Daily Ten — HOME 畫面：今日計畫、連續天數、Never Miss Twice 提示、升級按鈕。M1 自 index.html 原樣搬出。 */
+/* Daily Ten — HOME 畫面：今日計畫、連續天數、Never Miss Twice 提示、升級按鈕、備份提醒卡。M1 自 index.html 原樣搬出。 */
 import { getState, saveState } from '../state/store.js';
 import { $ } from './dom.js';
 import { todayStr, dayGap } from './dates.js';
@@ -6,6 +6,7 @@ import { BLOCKS, DOW, estMin, minimalSeq, todayPlan, planSeq, blockSeq } from '.
 import { sessionOn, levelUpEligible } from './session.js';
 import { startWorkout } from './train.js';
 import { startBoss } from './boss.js';
+import { renderBackupReminder } from './backup.js';
 
 export function renderHome(){
   const t=todayStr(),plan=todayPlan();
@@ -44,4 +45,5 @@ export function renderHome(){
     lu.onclick=()=>{getState().level=Math.min(5,getState().level+1);saveState();renderHome();
       alert('升級至 L'+getState().level+'。劑量已自動調整。');};}
   else lu.style.display='none';
+  renderBackupReminder();
 }
