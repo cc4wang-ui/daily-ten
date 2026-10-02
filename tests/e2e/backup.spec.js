@@ -6,7 +6,7 @@
    headless Chromium 沒有 navigator.share，App 走 Blob 下載（iPhone 分享選單列入真機清單）。 */
 import {
   test, expect, readFixture, openApp, seedState, storageSnapshot, storedState, rawMain, gotoTab,
-  clickAndDownload, expectGlossaryClean, waitReady, MAIN_KEY, NOW_ISO
+  clickAndDownload, expectGlossaryClean, waitReady, confirmImportTwice, MAIN_KEY, NOW_ISO
 } from './helpers.js';
 
 const NEVER = '還沒有下載過備份。資料只存在這台裝置，建議現在下載一份。';
@@ -71,8 +71,7 @@ test.describe('下載備份（Asia/Tokyo）', () => {
     expect(changed).toHaveLength(11);
     expect(changed.filter((c) => !c.endsWith('=false'))).toEqual([]);
     await expect(page.locator('#imp-warnings')).toBeHidden();
-    await page.click('#imp-confirm');
-    await page.click('#imp-confirm');
+    await confirmImportTwice(page); // 第二下在 1.5 秒後（連點保護：1 秒內的點擊忽略）
     await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
     expect(await storedState(page)).toEqual(backup);
     expectGlossaryClean(texts);

@@ -5,12 +5,11 @@
    預期值取自 tests/fixtures/README.md 第 2 節。 */
 import {
   test, expect, readFixture, fixturePath, openApp, seedState, storageSnapshot, storedState, rawMain,
-  expectHome, gotoTab, expectGlossaryClean, identifierPaths, MAIN_KEY, PRE_IMPORT_KEY, NOW_ISO
+  expectHome, gotoTab, expectGlossaryClean, identifierPaths, confirmImportTwice, seedOnce, waitReady,
+  IMPORT_CONFIRM_TEXT as CONFIRM, IMPORT_ARMED_TEXT as ARMED, MAIN_KEY, PRE_IMPORT_KEY, NOW_ISO
 } from './helpers.js';
 
 const HEADER = '無法匯入，目前的資料沒有任何變更：';
-const CONFIRM = '確認匯入（覆蓋目前資料）';
-const ARMED = '再按一次，確認覆蓋';
 const NOT_JSON = '檔案不是有效的 JSON 格式，可能已損壞或不是 Daily Ten 的備份檔';
 const TOO_LARGE = '檔案太大（超過 5,000,000 字元），不是 Daily Ten 的備份檔';
 
@@ -164,6 +163,7 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     await expect(page.locator('#imp-preview')).toBeVisible();
     expect(await storageSnapshot(page)).toEqual(before); // 第一次按：不套用
 
+    await page.clock.runFor(1_500); // 看完提示再按（1 秒內的點擊會被連點保護忽略）
     await page.click('#imp-confirm');
     await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
     await expect(page.locator('#imp-preview')).toBeHidden();
@@ -199,8 +199,7 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     expect(rows[0]).toEqual(['version', '版本', 'v3', 'v3', false]);
     expect(rows[2]).toEqual(['xp', 'XP', '361', '396', true]);
     await expect(page.locator('#imp-warnings')).toBeHidden();
-    await page.click('#imp-confirm');
-    await page.click('#imp-confirm');
+    await confirmImportTwice(page);
     await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
     await expect(page.locator('#exp-area')).toHaveValue('');
     const s = await storedState(page);
@@ -255,11 +254,172 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
 
     /* 最後真的匯入一次：兩次確認才寫入 */
     await chooseFile(page, fixturePath('v2-real.json'));
-    await page.click('#imp-confirm');
-    await page.click('#imp-confirm');
+    await confirmImportTwice(page);
     await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
     expect((await storedState(page)).xp).toBe(361);
   });
+});
+
+/* M1 第 2 輪：js/ui/backup.js 的連點保護（4180f2b）——第一次按「確認匯入」記下 performance.now()，
+   之後 1,000 ms 內的點擊一律忽略（不套用、不改外觀）；滿 1 秒、10 秒內再按才套用；10 秒到自動恢復。
+   假時鐘暫停，點擊之間的時間只由 runFor 決定，所以間隔是精確值。目前 = v3.json（XP 396）；預覽 = v2-real.json（XP 361）。 */
+test.describe('匯入：連點保護（待確認後 1 秒內的點擊忽略）', () => {
+  async function previewV2Real(page) {
+    await openApp(page, { seed: seedState(readFixture('v3.json')) });
+    await gotoTab(page, 's-setup');
+    const before = await storageSnapshot(page);
+    expect(Object.keys(before)).toEqual([MAIN_KEY]);
+    await chooseFile(page, fixturePath('v2-real.json'));
+    await expect(page.locator('#imp-preview')).toBeVisible();
+    await expect(page.locator('#imp-confirm')).toHaveText(CONFIRM);
+    return before;
+  }
+  /* 沒套用：所有 key 與值都不變、仍在預覽中 */
+  async function expectNotApplied(page, before, { armed }) {
+    expect(await storageSnapshot(page)).toEqual(before);
+    await expect(page.locator('#io-msg')).not.toHaveText('匯入成功。');
+    await expect(page.locator('#imp-preview')).toBeVisible();
+    await expect(page.locator('#imp-confirm')).toHaveText(armed ? ARMED : CONFIRM);
+  }
+  /* 已套用：主 key 換成匯入的資料、pre-import = 覆蓋前、預覽收起 */
+  async function expectApplied(page, before, xp = 361) {
+    await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
+    await expect(page.locator('#imp-preview')).toBeHidden();
+    const after = await storageSnapshot(page);
+    expect(Object.keys(after).sort()).toEqual([MAIN_KEY, PRE_IMPORT_KEY].sort());
+    expect(JSON.parse(after[MAIN_KEY]).xp).toBe(xp);
+    expect(JSON.parse(after[MAIN_KEY]).version).toBe(3);
+    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(JSON.parse(before[MAIN_KEY]));
+    await gotoTab(page, 's-home');
+    await expect(page.locator('#h-xp')).toHaveText(String(xp));
+  }
+
+  test('雙擊「確認匯入」不套用、停在待確認；1.5 秒後再按一下才套用', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.dblclick('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(1_500);
+    await page.click('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('兩次 tap 間隔 200 ms 不套用（再 200 ms 第三下也不套用），仍停在「再按一次，確認覆蓋」', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(200);
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(200);
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+  });
+
+  test('邊界：第一下後 999 ms 的點擊忽略；滿 1,000 ms 的點擊套用', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(999);
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(1);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('兩次 tap 間隔 1.5 秒才套用', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(1_500);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('邊界：第一下後 9,999 ms 仍可套用（10 秒待確認時段內）', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(9_999);
+    await expect(page.locator('#imp-confirm')).toHaveText(ARMED);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('間隔超過 10 秒：文字恢復，第二下不套用（等同重新第一次按），重新進入待確認後同樣受 1 秒保護', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(10_500);
+    await expectNotApplied(page, before, { armed: false });
+    await page.tap('#imp-confirm'); // 等同重新第一次按
+    await expectNotApplied(page, before, { armed: true });
+    await page.tap('#imp-confirm'); // 0 ms：被新的待確認保護擋下
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(1_500);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('取消會解除待確認：重新預覽後要重新按兩次', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(1_500); // 此時再按就會套用——但先取消
+    await page.click('#imp-cancel');
+    await expect(page.locator('#io-msg')).toHaveText('已取消匯入，資料沒有變更。');
+    await expect(page.locator('#imp-preview')).toBeHidden();
+    expect(await storageSnapshot(page)).toEqual(before);
+    /* 重新選同一個檔：回到未確認狀態，第一下只進入待確認 */
+    await chooseFile(page, fixturePath('v2-real.json'));
+    await expectNotApplied(page, before, { armed: false });
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    await page.clock.runFor(1_500);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before);
+  });
+
+  test('待確認時重新預覽（換檔或壞檔）會解除待確認，最後套用的是最新預覽的資料', async ({ page }) => {
+    const before = await previewV2Real(page);
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(1_500); // 此時再按就會套用 v2-real——但先換成壞檔
+    await paste(page, readFixture('import-bad-wrong-types.json'));
+    await expect(page.locator('#imp-error')).toHaveClass('banner danger');
+    await expect(page.locator('#imp-preview')).toBeHidden();
+    await expect(page.locator('#imp-confirm')).toHaveText(CONFIRM);
+    expect(await storageSnapshot(page)).toEqual(before);
+    /* 換成 v1-minimal：新的預覽、未確認；第一下只進入待確認 */
+    await paste(page, readFixture('v1-minimal.json'));
+    await expect(page.locator('#imp-rows .prline[data-key="version"] > :nth-child(3)')).toHaveText('v1 → v3');
+    await expectNotApplied(page, before, { armed: false });
+    await page.tap('#imp-confirm');
+    await expectNotApplied(page, before, { armed: true });
+    /* 待確認中再選另一個檔（v2-real）：又回到未確認 */
+    await page.clock.runFor(1_500);
+    await chooseFile(page, fixturePath('v2-real.json'));
+    await expectNotApplied(page, before, { armed: false });
+    await page.tap('#imp-confirm');
+    await page.clock.runFor(1_500);
+    await page.tap('#imp-confirm');
+    await expectApplied(page, before, 361); // 套用的是最後預覽的 v2-real，不是 v1
+  });
+});
+
+/* 同一個保護在「真實時鐘」下（不裝假時鐘：performance.now 與 setTimeout 都是瀏覽器原生的） */
+test('連點保護（真實時鐘）：真的雙擊不套用；真的等 1.2 秒再按才套用', async ({ page }) => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await seedOnce(page, seedState(readFixture('v3.json')));
+  await page.goto('/index.html');
+  await waitReady(page);
+  await gotoTab(page, 's-setup');
+  const before = await storageSnapshot(page);
+  await chooseFile(page, fixturePath('v2-real.json'));
+  await page.dblclick('#imp-confirm');
+  await expect(page.locator('#imp-confirm')).toHaveText(ARMED);
+  expect(await storageSnapshot(page)).toEqual(before);
+  await sleep(1_200);
+  await page.click('#imp-confirm');
+  await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
+  const after = await storageSnapshot(page);
+  expect(JSON.parse(after[MAIN_KEY]).xp).toBe(361);
+  expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(JSON.parse(before[MAIN_KEY]));
 });
 
 test.afterAll(() => {

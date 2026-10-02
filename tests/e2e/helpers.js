@@ -160,6 +160,19 @@ export async function runWorkoutToEnd(page, maxSeconds = 3600) {
     { maxSeconds, every: 5, label: '訓練結束' });
 }
 
+/* ---------- 匯入的二次確認 ----------
+   第一次按「確認匯入」進入待確認；js/ui/backup.js 在進入待確認後 1 秒內的點擊一律忽略（連點保護），
+   10 秒內再按才套用。時鐘是暫停的，兩次 click 之間的假時間是 0 ms，所以第二下之前要推進時間：
+   這裡用 1.5 秒，模擬看完「再按一次，確認覆蓋」才按的真人（邊界值由 import.spec.js 的連點保護測試專門驗）。 */
+export const IMPORT_CONFIRM_TEXT = '確認匯入（覆蓋目前資料）';
+export const IMPORT_ARMED_TEXT = '再按一次，確認覆蓋';
+export async function confirmImportTwice(page, gapMs = 1_500) {
+  await page.click('#imp-confirm');
+  await expect(page.locator('#imp-confirm')).toHaveText(IMPORT_ARMED_TEXT);
+  await page.clock.runFor(gapMs);
+  await page.click('#imp-confirm');
+}
+
 /* ---------- 下載 ---------- */
 export async function clickAndDownload(page, selector) {
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click(selector)]);
