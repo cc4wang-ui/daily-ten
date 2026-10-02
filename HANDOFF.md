@@ -8,7 +8,7 @@ Daily Ten 是個人訓練 PWA：降低每日出席門檻、依星期自動排十
 
 ## 📍 當前階段
 
-- Repo：[crosswang-collab/daily-ten](https://github.com/crosswang-collab/daily-ten)。先讀 [PROJECT_STATE.md](./PROJECT_STATE.md)、[README.md](./README.md)、[COMPETITORS.md](./COMPETITORS.md)、`index.html`、`demos.js`，再看 `mockup.html`。
+- Repo：[cc4wang-ui/daily-ten](https://github.com/cc4wang-ui/daily-ten)。先讀 [PROJECT_STATE.md](./PROJECT_STATE.md)、[README.md](./README.md)、[COMPETITORS.md](./COMPETITORS.md)、`index.html`、`demos.js`，再看 `mockup.html`。
 - Codex 影片／競品版**沒有找回**；Cross 於 2026-09-28 決定重建為新功能，不稱為恢復。
 - 已做：PWA、展示頁、週輪替課表、BODY、v1→v2 狀態遷移、彈力帶／徒手開關；**53 個離線線條示範動畫**（訓練中同步播放、休息時播下一個、SETUP 示範視窗＋YouTube 搜尋連結）；競品對標文件；SW 快取 v5。
 - 現況界線：本機 Chromium 端對端檢查通過（覆蓋率、播放／暫停、離線重載、舊資料遷移）。GitHub Pages、iPhone 安裝／離線／TTS、動畫在真機的流暢度未驗證。示範未經教練審核；競品資料未在商店頁核對。沒有 CI。
