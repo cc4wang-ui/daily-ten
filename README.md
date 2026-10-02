@@ -53,15 +53,23 @@
 
 | 檔案 | 用途 |
 |------|------|
-| `index.html` | 整個 App（inline CSS/JS，無框架、無 build） |
+| `index.html` | App 外殼（只有 markup；無框架、無 build） |
+| `css/tokens.css`、`css/app.css` | 設計 token 與樣式（M1 自 index.html 抽出，外觀不變） |
+| `js/app.js`、`js/ui/*.js` | App 程式：開機、各畫面、計時引擎、課表（原生 ES modules） |
+| `js/state/*.js` | 資料層：state v3、遷移、載入失敗保護、備份下載、匯入驗證 |
 | `demos.js` | 動作示範動畫引擎與動作庫（App 與展示頁共用） |
-| `COMPETITORS.md` | 競品對標與取捨 |
 | `mockup.html` | 展示用畫面示意頁（給沒裝過的人看，顯示首次啟動的空白狀態） |
 | `manifest.webmanifest` | PWA 安裝設定 |
 | `sw.js` | Service Worker，cache-first 離線快取 |
 | `icon-192.png` / `icon-512.png` | App 圖示 |
+| `COMPETITORS.md` | 競品對標與取捨 |
+| `CLAUDE.md`、`PLAN.md`、`.claude/` | 開發指示、本版計畫、subagent 與流程定義 |
 | `PROJECT_STATE.md` | 進度、架構、決策、踩坑與待辦的單一專案紀錄 |
 | `HANDOFF.md` | 下一個對話的精簡接手指令 |
+| `package.json`、`playwright.config.js`、`tests/` | 自動測試（僅開發用；App 執行不需要） |
+| `tools/` | 開發工具：本機伺服器 `serve.mjs`、台灣用語檢查 `jev/` |
+| `.github/` | CI（GitHub Actions）與 repo 檢查腳本 |
+| `reports/` | 驗收與文案報告 |
 
 ## 部署到 GitHub Pages（5 步）
 
@@ -81,9 +89,19 @@ Safari 開啟 App 網址 `https://cc4wang-ui.github.io/daily-ten/`（不是 `moc
 
 ## 更新 App
 
-改完 code 後：把 `sw.js` 裡的 `CACHE = 'daily-ten-vN'` 版本號 +1，commit 推上去。
+改完 code 後：把 `sw.js` 裡的 `CACHE = 'daily-ten-vN'` 版本號 +1；新增的 App 檔要加進 `sw.js` 的 `ASSETS`（CI 會檢查，漏了離線就會缺檔）。commit 推上去。
 屬於 Daily Ten 的舊快取會在新版 Service Worker 啟用時清除；若裝置離線，需連線後才會取得新版本。
+App 改用 ES modules，必須透過 http(s) 開啟（GitHub Pages 或 `npm run serve`），不能直接雙擊 `index.html`。
+
+## 開發與測試（給開發者）
+
+`npm ci` → `npm test`（Playwright：資料層單元測試＋e2e）。另有 `npm run check:repo`（失效網址、SW 預快取、前端掃描）與 `npm run check:glossary`（台灣繁中用語表）。每次 push 由 GitHub Actions 跑同一套。
 
 ## 備份
 
-App 內 Setup 頁 → 匯出 JSON → **全選複製文字並另外保存**；匯入會覆蓋現有資料。資料存在此裝置 localStorage，清除瀏覽器資料或換裝置前請自行備份。現有介面不會下載 JSON 檔。
+資料只存在這台裝置的 localStorage，沒有雲端。
+
+- **下載備份**：SETUP → 資料備份 →「下載備份」，存成 `daily-ten-backup-YYYY-MM-DD.json`。iPhone 會跳出分享選單 →「儲存到檔案」。超過 7 天沒備份（或從未備份），首頁會出現提醒卡，一鍵就能下載。
+- **匯入**：「選擇備份檔匯入」或把 JSON 貼進文字框後按「匯入」。App 先驗證格式，壞檔只會顯示錯誤、不動現有資料；通過後先顯示「目前／匯入後」差異預覽，要按兩次確認才會覆蓋。
+- **載入失敗保護**：資料讀不出來或格式異常時，原始內容會另存一份並在首頁顯示錯誤卡，可下載保存，App 不會白屏。
+- 「匯出 JSON」（文字框複製）仍保留。
