@@ -48,7 +48,8 @@ function showFatal(err){
 /* ===== 自動更新（D23）：純 DOM，不依賴其他 module；不支援 SW 或 SW 被封鎖時全部安靜略過 =====
    新版 SW 啟用後會送 {type:'DT_UPDATE_READY', version}，附一個 MessagePort：
    1. 立刻從 port 回 {type:'DT_UPDATE_ACK'}（3 秒內沒回，SW 會直接重新導向，那是給舊版頁面用的）。
-   2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入；否則每 2 秒再看一次。
+   2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入、沒有正在輸入；
+      否則每 2 秒再看一次。
    3. 重新載入前把版本名存進 sessionStorage，開機後在 HOME 提示一次（畫面在 js/ui/update.js）。
    另外：回到前景（visibilitychange → visible）與恢復連線（online）時請瀏覽器檢查新版，60 秒內最多一次——
    iPhone 從背景切回 App 不算重開，不檢查就會一直停在舊版。 */
@@ -57,13 +58,29 @@ const IDLE_POLL_MS=2000;
 const UPDATE_CHECK_MS=60000;
 let trainingNow=null; // boot() 載入 train.js 後換成 isTraining；載入前（或載入失敗）只看畫面
 let pendingVersion=null,idleTimer=null,lastUpdateCheck=null;
+/* 文字輸入框：textarea 與可打字的 input（勾選框、檔案等不算——勾選框的值固定是 "on"，點過也會留著焦點） */
+const NON_TEXT_INPUT=/^(checkbox|radio|file|hidden|button|submit|reset|image|range|color)$/i;
+const isTextField=el=>!!el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!NON_TEXT_INPUT.test(el.type)));
+/* 正在輸入：焦點在看得到的文字輸入框；或前景畫面有填了字的輸入框（BODY 填到一半、SETUP 貼上的 JSON）。
+   數字欄位打到一半（例「68.」）時 value 是空的，用 validity.badInput 補判。 */
+function typing(){
+  const a=document.activeElement;
+  if(isTextField(a)&&a.getClientRects().length>0)return true;
+  const scr=document.querySelector('.screen.active');
+  if(!scr)return false;
+  for(const el of scr.querySelectorAll('input,textarea')){
+    if(isTextField(el)&&(el.value.trim()!==''||(el.validity&&el.validity.badInput)))return true;
+  }
+  return false;
+}
 function isIdle(){
   if(trainingNow&&trainingNow())return false;
   const active=id=>{const el=document.getElementById(id);return !!el&&el.classList.contains('active');};
   if(active('train')||active('done')||active('demo-modal')||active('s-boss'))return false;
   /* 匯入預覽：hidden 屬性關掉，或所在的 SETUP 不在前景（離開 SETUP 再回來時預覽本來就會被收起）都算沒開 */
   const pv=document.getElementById('imp-preview');
-  return !pv||pv.hidden||pv.getClientRects().length===0;
+  if(pv&&!pv.hidden&&pv.getClientRects().length>0)return false;
+  return !typing();
 }
 function reloadWhenIdle(){
   try{if(!isIdle())return;}catch(e){return;} // 判斷不了就當作忙碌：寧可等下次開 App，也不打斷
