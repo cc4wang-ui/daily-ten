@@ -1,0 +1,20 @@
+/* Daily Ten — 設計 token。M1 只把既有顏色集中到這裡，數值不變、外觀零變更（亮色主題在 M3）。 */
+:root{
+  --bg:#12140F; --panel:#1C1F17; --panel2:#242820; --line:#33382B;
+  --ink:#E8E4D8; --ink-dim:#9A9884; --amber:#E8A33D; --red:#D64545;
+  --green:#7A9B57; --yellow:#D9C34A;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  /* 以下原為 app.css 規則內的顏色字面值，數值逐字搬來 */
+  --on-amber:#12140F;                /* 琥珀主按鈕上的文字 */
+  --on-red:#fff;                     /* 紅底按鈕文字（.btn-danger-fill） */
+  --red-soft:#F0A0A0;                /* 紅色提示框內文字 */
+  --amber-deep:#C98A2B;              /* 熱力圖：加練日 */
+  --olive:#6B6A50;                   /* 熱力圖：保底版／雨天 */
+  --ink-faint:#6B6F5C;               /* 示範動畫的器材線 */
+  --amber-a18:rgba(232,163,61,.18);  /* 連續天數數字光暈 */
+  --yellow-a12:rgba(217,195,74,.12); /* 警告底色 */
+  --red-a14:rgba(214,69,69,.14);     /* 危險底色 */
+  --green-a14:rgba(122,155,87,.14);  /* 判讀「良好」底色 */
+  --green-a15:rgba(122,155,87,.15);  /* 升級按鈕底色 */
+  --scrim:rgba(10,11,8,.92);         /* 示範視窗遮罩 */
+}
