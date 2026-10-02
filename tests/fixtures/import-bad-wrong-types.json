@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "level": 3,
+  "xp": "361",
+  "streak": {"current":9,"best":11,"lastDate":"2026-09-28"},
+  "sessions": {},
+  "prs": {
+    "hrp": [
+      {"reps":18}
+    ],
+    "plank": [],
+    "run2mi": []
+  },
+  "settings": {"voice":"yes","beep":true,"band":false}
+}

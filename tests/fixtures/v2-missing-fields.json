@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "streak": {"current":3,"lastDate":"2026-09-20"},
+  "sessions": [
+    {"date":"2026-09-14","type":"full","xp":10},
+    {"date":"2026-09-15","type":"full","xp":10},
+    {"date":"2026-09-18","type":"cycle","xp":15},
+    {"date":"2026-09-19","type":"rest","xp":5},
+    {"date":"2026-09-20","type":"boss","xp":20}
+  ],
+  "prs": {
+    "hrp": [
+      {"date":"2026-09-20","reps":15}
+    ],
+    "plank": [],
+    "run2mi": []
+  },
+  "settings": {"voice":false}
+}

@@ -1,0 +1,23 @@
+{
+  "description": "既有違規清單（以內容比對，不看檔名與行號）。check-glossary.js --ci 只擋不在此清單的違規。產生自 M1 對照基準 ec87e03；只能在「新增違規 = 0」時重產（例如 M3 修正後縮小清單），不得用來吸收新增違規。",
+  "generatedFrom": "ec87e03",
+  "command": "node tools/jev/check-glossary.js --write-baseline --root <ec87e03 的 checkout>",
+  "glossary": "tools/jev/zh-tw-glossary.json",
+  "files": [
+    "demos.js",
+    "index.html"
+  ],
+  "count": 2,
+  "entries": [
+    {
+      "rule": "data",
+      "term": "數據",
+      "text": "測驗完成。數據不說謊。"
+    },
+    {
+      "rule": "duration",
+      "term": "時長",
+      "text": "時長依你目前等級的劑量算出，會隨升級變長。 伸展組 A 髖與後鏈／B 胸肩與上背／C 全身流動，依星期自動輪替 —— 你不需要選。 全部早上進行，錨定在刷牙後。預設課表需瑜珈墊、彈力帶、一面牆；關閉彈力帶時改用毛巾替代。"
+    }
+  ]
+}

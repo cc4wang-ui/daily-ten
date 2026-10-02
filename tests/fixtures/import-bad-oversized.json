@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "level": 99,
+  "xp": 99999999999,
+  "streak": {"current":5000000,"best":5000000,"lastDate":"2026-09-28"},
+  "sessions": [
+    {"date":"2026-09-28","type":"full","xp":10}
+  ],
+  "prs": {
+    "hrp": [
+      {"date":"2026-09-27","reps":1000000}
+    ],
+    "plank": [],
+    "run2mi": [],
+    "pushup": [],
+    "pike": [],
+    "sideplank": []
+  },
+  "body": {
+    "weight": [
+      {"date":"2026-09-28","v":1000000000}
+    ],
+    "waist": [],
+    "arm": [],
+    "shoulder": [],
+    "thigh": [],
+    "rhr": [],
+    "sleep": []
+  }
+}
