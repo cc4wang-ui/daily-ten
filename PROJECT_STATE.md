@@ -48,7 +48,7 @@
 | 2026-09-28 | 追查 Codex 影片／競品版未果，標註來源缺口。 | PR #5、`37dd40e` |
 | 2026-09-28 | 重建為新功能：`demos.js` 53 個離線示範動畫、訓練畫面同步播放、SETUP 示範視窗、展示頁動畫、`COMPETITORS.md`；SW 快取 v5。 | PR #6、`ec87e03` |
 | 2026-10-02 | 專案指示檔（CLAUDE.md、PLAN.md、`.claude/`）進 repo；README／HANDOFF 改為 `cc4wang-ui` 網址（D10、D11）。 | PR #7、`8261c3f` |
-| 2026-10-02 | **M1 地基**：拆 ES modules＋設計 token（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。 | 分支 `m1/foundation`；驗證見下 |
+| 2026-10-02 | **M1 地基**：拆 ES modules＋設計 token（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。 | PR #8、`3feb97c`；驗證見下 |
 
 ## Lessons learned / pitfalls
 
@@ -94,4 +94,4 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 ## Last session — 2026-10-02
 
-M1 地基：PR #7（指示檔＋網址）由 Claude 依 Cross 授權 merge；`m1/foundation` 完成 module 拆分、state v3、備份／匯入、用語表檢查、CI。接續：① Cross merge M1 並跑真機清單；② M2a 開工前確認起床／就寢目標（U2，預設 07:00／23:00）；③ M2a：engine、早安打卡、D6/D18/D19、P1→P2、每週／季度目標、`.ics`、sim。先讀 `HANDOFF.md` 再動工。
+M1 地基：PR #7（指示檔＋網址）由 Claude 依 Cross 授權 merge；`m1/foundation` 完成 module 拆分、state v3、備份／匯入、用語表檢查、CI。M1 已 merge（PR #8，Pages 部署成功、main CI 綠燈）；U2 已確認起床 07:00／就寢 23:00。接續：① Cross 跑真機清單；② M2a：engine、早安打卡、D6/D18/D19、P1→P2、每週／季度目標、`.ics`、sim。先讀 `HANDOFF.md` 再動工。

@@ -9,13 +9,13 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 ## 📍 當前階段
 
 - Repo：[cc4wang-ui/daily-ten](https://github.com/cc4wang-ui/daily-ten)；App 網址 `https://cc4wang-ui.github.io/daily-ten/`（Pages 已啟用、部署成功；真機開啟待 Cross 確認）。
-- PR #7（指示檔＋網址）已 merge。**M1 地基**在分支 `m1/foundation`（PR 見 GitHub）：ES modules 拆分（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。
+- PR #7（指示檔＋網址）、PR #8（**M1 地基**，main `3feb97c`，Pages 已部署）皆已 merge：ES modules 拆分（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。
 - 未驗證：iPhone 真機（開啟、舊紀錄還在、飛航模式、下載備份到「檔案」、匯入、TTS＋示範）。
 
 ## ⏭ 下一步（依優先序）
 
-1. Cross：merge M1 PR → 照 PR 的真機清單逐條勾。
-2. M2a 開工前 checkpoint：確認起床／就寢目標（U2，預設 07:00／23:00，可在設定改）。
+1. Cross：照 PR #8 的真機清單逐條勾（第一次開可能仍是舊版，完全關掉再開）。
+2. U2 已確認（2026-10-02）：起床 07:00、就寢 23:00（各 ±30 分，可在設定改）。M2a 開工時直接進 checkpoint（做什麼／不做什麼／風險）。
 3. M2a 睡飽＋目標：engine（XP／等級／streak／freeze／Perfect Day／階段）、早安打卡、D6 自動降量、D18 時段漸進計分、D19 回歸任務、每週目標、季度目標、`.ics`、90 天 sim。派工：game-designer＋data-guardian → ui-engineer → qa-checker。
 
 ## 必須保留的 project knowledge
