@@ -7,7 +7,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
 const ROOT = process.cwd();
-const EXPECTED_CACHE = 'daily-ten-v6';
+const EXPECTED_CACHE = 'daily-ten-v7';
 const OLD_OWNER = ['crosswang', 'collab'].join('-'); // 拆開寫，本檔自己不算一次
 const OLD_OWNER_ALLOW = new Set(['CLAUDE.md', 'PLAN.md']);
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'test-results', 'playwright-report', 'blob-report']);

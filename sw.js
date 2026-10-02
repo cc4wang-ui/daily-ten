@@ -1,7 +1,10 @@
 /* Daily Ten — Service Worker (cache-first, offline-capable)
-   改版時把 CACHE 版本號 +1；新增檔案要加進 ASSETS（CI 的 check-repo 會檢查）。舊 cache 會在 activate 時自動清掉。 */
+   改版時把 CACHE 版本號 +1；新增檔案要加進 ASSETS（CI 的 check-repo 會檢查）。舊 cache 會在 activate 時自動清掉。
+   自動更新（D23）：新版啟用後通知每個開著的頁面。新版頁面回覆 DT_UPDATE_ACK，等閒置（不在訓練中）時自己重新載入；
+   舊版頁面不認得通知，3 秒後由這裡直接重新導向同一網址，讓舊程式也能換成新版（瀏覽器不支援時就等下次開啟）。 */
 'use strict';
-const CACHE = 'daily-ten-v6';
+const CACHE = 'daily-ten-v7';
+const ACK_TIMEOUT_MS = 3000;
 const ASSETS = [
   './',
   './index.html',
@@ -42,12 +45,36 @@ self.addEventListener('install', (e) => {
     .then(() => self.skipWaiting()));
 });
 
+/* 通知一個頁面「新版已就緒」：新版頁面回 ACK 自己處理；舊版頁面沒回應就直接重新導向 */
+function announce(client) {
+  return new Promise((resolve) => {
+    let acked = false;
+    try {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (ev) => {
+        if (ev.data && ev.data.type === 'DT_UPDATE_ACK') { acked = true; resolve(); }
+      };
+      client.postMessage({ type: 'DT_UPDATE_READY', version: CACHE }, [ch.port2]);
+    } catch (err) { /* 不支援 MessageChannel：當作舊版頁面處理 */ }
+    setTimeout(() => {
+      if (acked) return;
+      // 不 await：導覽請求要等 activate 結束才會送出，等待會互相卡住
+      try { if (typeof client.navigate === 'function') client.navigate(client.url).catch(() => {}); } catch (err) {}
+      resolve();
+    }, ACK_TIMEOUT_MS);
+  });
+}
+
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('daily-ten-v') && k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    const old = keys.filter((k) => k.startsWith('daily-ten-v') && k !== CACHE);
+    await Promise.all(old.map((k) => caches.delete(k)));
+    await self.clients.claim();
+    if (!old.length) return; // 第一次安裝：頁面本來就是最新版，不用重新載入
+    const clients = await self.clients.matchAll({ type: 'window' });
+    await Promise.all(clients.map(announce));
+  })());
 });
 
 self.addEventListener('fetch', (e) => {
