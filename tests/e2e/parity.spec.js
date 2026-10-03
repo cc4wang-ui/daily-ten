@@ -385,6 +385,33 @@ test.describe('等價比對：基準 ec87e03 vs 新版（A/A 後 A/B）', () => 
   }
 });
 
+/* ---------- SETUP 結構（D23）：新版只多最下方一行版本 ----------
+   #s-setup 的直接子元素逐一比對（標籤、id、class、卡片標題／文字）：新版 = 基準的全部子元素（順序相同）＋最後一個
+   <p id="app-version">（不在任何 .card 內）。逐卡截圖比對在上面的情境裡（SW 被封鎖 → 版本行隱藏，不影響卡片）。 */
+test('SETUP 結構：新版 = 基準的子元素（逐卡、順序相同）＋最下方一行版本（#app-version，不在 .card 內）', async ({ browser }) => {
+  const outline = {};
+  for (const which of ['A', 'B']) {
+    const ctx = await browser.newContext(contextOptions({ baseURL: ORIGIN[which] }));
+    const w = watchContext(ctx);
+    try {
+      const page = await ctx.newPage();
+      await openApp(page, { seed: seedState(v2WithBackup(NOW_ISO)) });
+      await tab(page, 's-setup');
+      outline[which] = await page.evaluate(() => [...document.getElementById('s-setup').children].map((el) => ({
+        tag: el.tagName, id: el.id, cls: el.className, hidden: el.hidden,
+        label: el.classList.contains('card') ? (el.querySelector('h3') ? el.querySelector('h3').textContent.trim() : '') : el.textContent.trim().slice(0, 60)
+      })));
+    } finally {
+      await ctx.close();
+    }
+    assertWatchClean(w, which);
+  }
+  console.log(`[qa] SETUP 子元素：基準 ${outline.A.length} 個、新版 ${outline.B.length} 個；卡片 ${outline.A.filter((e) => e.cls === 'card').length} 張`);
+  expect(outline.B.slice(0, outline.A.length)).toEqual(outline.A);
+  /* SW 被封鎖（等價比對的 context）→ 版本行隱藏、沒有文字 */
+  expect(outline.B.slice(outline.A.length)).toEqual([{ tag: 'P', id: 'app-version', cls: 'small', hidden: true, label: '' }]);
+});
+
 /* ---------- 課表資料與規則等價（DoD 3：沒有新增或改名動作；行為零變更） ----------
    兩版各自在頁面內呼叫課表函式（基準：classic script 的全域函式；新版：import 同一個 module 實例），
    L1–L5 × 有／無彈力帶 × 三組伸展 × 三種區塊 × 一週七天的全部序列、加上過場後的完整步驟、時長估算、

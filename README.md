@@ -64,6 +64,7 @@
 | `icon-192.png` / `icon-512.png` | App 圖示 |
 | `COMPETITORS.md` | 競品對標與取捨 |
 | `CLAUDE.md`、`PLAN.md`、`.claude/` | 開發指示、本版計畫、subagent 與流程定義 |
+| `docs/ITERATION.md` | 每週迭代迴圈與 Cross 的輸入點（D22） |
 | `PROJECT_STATE.md` | 進度、架構、決策、踩坑與待辦的單一專案紀錄 |
 | `HANDOFF.md` | 下一個對話的精簡接手指令 |
 | `package.json`、`playwright.config.js`、`tests/` | 自動測試（僅開發用；App 執行不需要） |
@@ -89,8 +90,9 @@ Safari 開啟 App 網址 `https://cc4wang-ui.github.io/daily-ten/`（不是 `moc
 
 ## 更新 App
 
-改完 code 後：把 `sw.js` 裡的 `CACHE = 'daily-ten-vN'` 版本號 +1；新增的 App 檔要加進 `sw.js` 的 `ASSETS`（CI 會檢查，漏了離線就會缺檔）。commit 推上去。
-屬於 Daily Ten 的舊快取會在新版 Service Worker 啟用時清除；若裝置離線，需連線後才會取得新版本。
+**使用者不用做任何事**：新版上線後，App 在開啟或從背景切回時自動檢查，閒置時自動換成新版（訓練中不打斷），換完會短暫顯示「已更新到最新版」；SETUP 最下方顯示目前的 App 版本（D23）。離線時會在下次連線後更新。
+
+開發者：改了 App 檔就把 `sw.js` 的 `CACHE = 'daily-ten-vN'` +1，新增的 App 檔加進 `ASSETS`（CI `check-repo` 會比對 main 檢查兩者）。
 App 改用 ES modules，必須透過 http(s) 開啟（GitHub Pages 或 `npm run serve`），不能直接雙擊 `index.html`。
 
 ## 開發與測試（給開發者）

@@ -1,13 +1,14 @@
 /* Daily Ten — CI repo 檢查（Orchestrator 維護；零依賴，Node 22）
    1. 失效網址：舊帳號網址出現 0 次（CLAUDE.md、PLAN.md 描述舊網址的說明文字除外）
-   2. Service Worker：CACHE 版號 = 期望值；預快取清單涵蓋所有 App 檔，且清單內檔案都存在
+   2. Service Worker：預快取清單涵蓋所有 App 檔且檔案都存在；本分支相對 main 改了 App 檔時，CACHE 版號必須大於 main 的版號
    3. 前端掃描：App 檔不含 API key 樣式與 AI 端點；外部網址只允許 YouTube 搜尋連結（SVG 命名空間除外）
    用法：node .github/scripts/check-repo.mjs　　失敗時 exit 1 並列出位置。 */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
-const EXPECTED_CACHE = 'daily-ten-v6';
+const BASE_REF = process.env.CHECK_BASE_REF || 'origin/main'; // 比對 CACHE 版號的基準（CI 需 fetch-depth: 0）
 const OLD_OWNER = ['crosswang', 'collab'].join('-'); // 拆開寫，本檔自己不算一次
 const OLD_OWNER_ALLOW = new Set(['CLAUDE.md', 'PLAN.md']);
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'test-results', 'playwright-report', 'blob-report']);
@@ -46,7 +47,20 @@ const appFiles = files.filter((f) =>
   /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f));
 const sw = existsSync(join(ROOT, 'sw.js')) ? read('sw.js') : '';
 const cache = (sw.match(/const\s+CACHE\s*=\s*'([^']+)'/) || [])[1];
-if (cache !== EXPECTED_CACHE) fail('sw', `CACHE = ${cache || '（找不到）'}，期望 ${EXPECTED_CACHE}`);
+const cacheNum = Number(((cache || '').match(/^daily-ten-v(\d+)$/) || [])[1]);
+if (!cacheNum) fail('sw', `CACHE = ${cache || '（找不到）'}，格式應為 daily-ten-vN`);
+const git = (args) => { try { return execSync(`git ${args}`, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
+const baseSw = git(`show ${BASE_REF}:sw.js`);
+const baseNum = baseSw ? Number((baseSw.match(/const\s+CACHE\s*=\s*'daily-ten-v(\d+)'/) || [])[1]) : 0;
+const mergeBase = baseSw ? git(`merge-base ${BASE_REF} HEAD`) : null;
+// 分支自 merge-base 以來的變更（含尚未 commit 的修改），不含 main 之後的新 commit
+const changed = mergeBase ? (git(`diff --name-only ${mergeBase}`) || '').split('\n').filter(Boolean) : [];
+const isAppPath = (f) => /^(index\.html|demos\.js|mockup\.html|manifest\.webmanifest|icon-\d+\.png)$/.test(f) || /^(css|js)\//.test(f) || /^data\/[^/]+\.json$/.test(f);
+const appChanged = changed.filter(isAppPath);
+if (baseNum && appChanged.length && !(cacheNum > baseNum)) {
+  fail('sw', `App 檔有變更（${appChanged.slice(0, 3).join('、')}${appChanged.length > 3 ? '…' : ''}），CACHE 須大於 ${BASE_REF} 的 v${baseNum}（目前 v${cacheNum || '?'}）`);
+}
+if (!baseSw) console.log(`check-repo：找不到 ${BASE_REF}，略過 CACHE 版號比對`);
 const assetsBlock = (sw.match(/const\s+ASSETS\s*=\s*\[([\s\S]*?)\]/) || [])[1] || '';
 const assets = [...assetsBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
 if (!assets.includes('./')) fail('sw', "預快取清單缺 './'");
@@ -87,4 +101,4 @@ if (failures.length) {
   for (const f of failures) console.error('  ' + f);
   process.exit(1);
 }
-console.log(`check-repo：通過（App 檔 ${appFiles.length} 個、預快取 ${assets.length} 項、CACHE ${cache}）`);
+console.log(`check-repo：通過（App 檔 ${appFiles.length} 個、預快取 ${assets.length} 項、CACHE ${cache}${baseNum ? `，main 為 v${baseNum}` : ''}）`);

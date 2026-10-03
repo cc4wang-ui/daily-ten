@@ -10,13 +10,13 @@
 
 | 項目 | 數量 |
 |---|---:|
-| 掃描檔數 | 23 |
-| UI 字串數（含中文字的字串） | 634 |
+| 掃描檔數 | 24 |
+| UI 字串數（含中文字的字串） | 638 |
 | 新增違規（不在 baseline，CI 會擋） | 0 |
 | 既有違規（baseline 內，M3 修正） | 2 |
 | baseline 條目本次未出現 | 0 |
 
-掃描檔案：`demos.js`、`index.html`、`js/app.js`、`js/state/backup.js`、`js/state/migrate.js`、`js/state/schema.js`、`js/state/store.js`、`js/state/time.js`、`js/ui/audio.js`、`js/ui/backup.js`、`js/ui/body.js`、`js/ui/boss.js`、`js/ui/content.js`、`js/ui/dates.js`、`js/ui/demo.js`、`js/ui/dom.js`、`js/ui/history.js`、`js/ui/home.js`、`js/ui/program.js`、`js/ui/session.js`、`js/ui/setup.js`、`js/ui/train.js`、`js/ui/wakelock.js`（`data/*.json` 尚不存在，略過）
+掃描檔案：`demos.js`、`index.html`、`js/app.js`、`js/state/backup.js`、`js/state/migrate.js`、`js/state/schema.js`、`js/state/store.js`、`js/state/time.js`、`js/ui/audio.js`、`js/ui/backup.js`、`js/ui/body.js`、`js/ui/boss.js`、`js/ui/content.js`、`js/ui/dates.js`、`js/ui/demo.js`、`js/ui/dom.js`、`js/ui/history.js`、`js/ui/home.js`、`js/ui/program.js`、`js/ui/session.js`、`js/ui/setup.js`、`js/ui/train.js`、`js/ui/update.js`、`js/ui/wakelock.js`（`data/*.json` 尚不存在，略過）
 
 ## 新增違規
 
@@ -28,7 +28,7 @@ M1 行為零變更，既有畫面的用語只列出、不修改（PLAN.md §3）
 
 | 位置 | 規則（詞） | 字串 | 建議用詞 |
 |---|---|---|---|
-| `index.html:186` | `duration`（時長） | `時長依你目前等級的劑量算出，會隨升級變長。 伸展組 A 髖與…` | 時數／時間 |
+| `index.html:187` | `duration`（時長） | `時長依你目前等級的劑量算出，會隨升級變長。 伸展組 A 髖與…` | 時數／時間 |
 | `js/ui/boss.js:88` | `data`（數據） | `測驗完成。數據不說謊。` | 統計／紀錄 |
 
 ## 規則清單（CLAUDE.md §11）

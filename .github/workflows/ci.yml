@@ -38,10 +38,15 @@ jobs:
       - name: Prepare parity baseline
         run: git worktree add "$RUNNER_TEMP/parity-base" ec87e03
 
+      # 目前線上版本（origin/main），給「舊版 → 新版」的自動更新測試用；在 main 上與 HEAD 相同時測試會自動略過
+      - name: Prepare upgrade baseline
+        run: git worktree add "$RUNNER_TEMP/upgrade-base" origin/main
+
       - name: Playwright（單元＋e2e）
         run: npm test
         env:
           PARITY_BASE_DIR: ${{ runner.temp }}/parity-base
+          UPGRADE_BASE_DIR: ${{ runner.temp }}/upgrade-base
 
       - name: Upload Playwright report
         if: always()

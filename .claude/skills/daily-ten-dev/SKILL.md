@@ -21,7 +21,7 @@ Subagents 不能再派 subagent，所有派工都由主 session 發出。
 共用檔（`sw.js`, `package.json`, `README.md`, `PROJECT_STATE.md`, `HANDOFF.md`, `PLAN.md`, `CLAUDE.md`, `.github/**`, `.claude/**`）只由 Orchestrator 在整合階段修改。
 
 ## Phase 0 — 接手（每次新 session）
-1. `git checkout main && git pull`，讀 `CLAUDE.md`、`PLAN.md`、`PROJECT_STATE.md`。
+1. `git checkout main && git pull`，讀 `CLAUDE.md`、`PLAN.md`、`PROJECT_STATE.md`、`docs/ITERATION.md`。Cross 只說「繼續」時，照 `HANDOFF.md` 的下一步直接開工（D22）。
 2. 回覆 Cross 三塊：**服務目標／現況（含與 handoff 的差異）／本次要做的 Milestone**。
 3. 若無 `PLAN.md`：依 `CLAUDE.md` §3、§8 產出，commit 後 **checkpoint：等 Cross 回「OK」才進 Phase 1**。若 PLAN.md 已標示 Cross 確認，直接進 Phase 1。
 
@@ -42,8 +42,9 @@ Subagents 不能再派 subagent，所有派工都由主 session 發出。
 
 ## Phase 3 — 交付
 1. `sw.js` CACHE +1，更新 `PROJECT_STATE.md`、`HANDOFF.md`。
-2. 開 PR，描述含：做了什麼（表格）、未做與原因、qa 報告連結、**Cross iPhone 真機清單**（≤10 條、可勾）。
-3. 給 Cross 的訊息 ≤10 行：PR 連結＋真機清單＋下一個 Milestone 的一句預告。
+2. 開 PR，描述含：做了什麼（表格）、未做與原因、qa 報告連結、**Cross iPhone 真機清單**（≤3 條、可勾，只列機器驗不了的）。
+3. qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge（D22）；Cross 說「先別 merge」時才停。
+4. 給 Cross 的訊息 ≤10 行：已上線的內容＋真機清單＋下一輪的一句預告（需要他決定時，附一個單選）。
 
 ## Jev 使用規則（build time only）
 - 先確認 `typesafe-ai` skill 可用並讀 live docs：`https://docs.typesafe.ai/llms.txt`；API／SDK 細節以 live docs 為準，不憑記憶。

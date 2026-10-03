@@ -1,7 +1,8 @@
 /* Daily Ten — 入口：載入 state、接線、首次 render、分頁切換、Service Worker 註冊。
    M1 自 index.html 原樣搬出（行為零變更）；state 一律經由 js/state/store.js。
    1b：loadState() 回 repaired／recovered 時顯示 HOME 錯誤卡；整個開機流程包在 try/catch，
-   module 改成在 boot() 裡動態 import——任何一個檔案載入或執行失敗，都會落到 showFatal()，不會白屏。 */
+   module 改成在 boot() 裡動態 import——任何一個檔案載入或執行失敗，都會落到 showFatal()，不會白屏。
+   D23：自動更新的頁面端（SW 通知 → 回 ACK → 閒置才重新載入；回到前景／恢復連線時檢查新版），見下方「自動更新」。 */
 
 /* ===== 啟動失敗保護：純 DOM，不依賴任何其他 module ===== */
 const RAW_KEY='daily-ten-state'; // 與 store.js 的 STORAGE_KEY 相同；store 載入失敗時也要能下載
@@ -44,6 +45,87 @@ function showFatal(err){
   }catch(e){/* 連錯誤卡都畫不出來：HOME 的靜態 markup 仍然可見 */}
 }
 
+/* ===== 自動更新（D23）：純 DOM，不依賴其他 module；不支援 SW 或 SW 被封鎖時全部安靜略過 =====
+   新版 SW 啟用後會送 {type:'DT_UPDATE_READY', version}，附一個 MessagePort：
+   1. 立刻從 port 回 {type:'DT_UPDATE_ACK'}（3 秒內沒回，SW 會直接重新導向，那是給舊版頁面用的）。
+   2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入、沒有正在輸入；
+      否則每 2 秒再看一次。
+   3. 重新載入前把版本名存進 sessionStorage，開機後在 HOME 提示一次（畫面在 js/ui/update.js）。
+   另外：回到前景（visibilitychange → visible）與恢復連線（online）時請瀏覽器檢查新版，60 秒內最多一次——
+   iPhone 從背景切回 App 不算重開，不檢查就會一直停在舊版。 */
+const UPDATED_KEY='daily-ten-updated-to'; // sessionStorage：重新載入後要提示的版本名（例 daily-ten-v8）
+const IDLE_POLL_MS=2000;
+const UPDATE_CHECK_MS=60000;
+let trainingNow=null; // boot() 載入 train.js 後換成 isTraining；載入前（或載入失敗）只看畫面
+let pendingVersion=null,idleTimer=null,lastUpdateCheck=null;
+/* 文字輸入框：textarea 與可打字的 input（勾選框、檔案等不算——勾選框的值固定是 "on"，點過也會留著焦點） */
+const NON_TEXT_INPUT=/^(checkbox|radio|file|hidden|button|submit|reset|image|range|color)$/i;
+const isTextField=el=>!!el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!NON_TEXT_INPUT.test(el.type)));
+/* 正在輸入：焦點在看得到的文字輸入框；或前景畫面有填了字的輸入框（BODY 填到一半、SETUP 貼上的 JSON）。
+   數字欄位打到一半（例「68.」）時 value 是空的，用 validity.badInput 補判。 */
+function typing(){
+  const a=document.activeElement;
+  if(isTextField(a)&&a.getClientRects().length>0)return true;
+  const scr=document.querySelector('.screen.active');
+  if(!scr)return false;
+  for(const el of scr.querySelectorAll('input,textarea')){
+    if(isTextField(el)&&(el.value.trim()!==''||(el.validity&&el.validity.badInput)))return true;
+  }
+  return false;
+}
+function isIdle(){
+  if(trainingNow&&trainingNow())return false;
+  const active=id=>{const el=document.getElementById(id);return !!el&&el.classList.contains('active');};
+  if(active('train')||active('done')||active('demo-modal')||active('s-boss'))return false;
+  /* 匯入預覽：hidden 屬性關掉，或所在的 SETUP 不在前景（離開 SETUP 再回來時預覽本來就會被收起）都算沒開 */
+  const pv=document.getElementById('imp-preview');
+  if(pv&&!pv.hidden&&pv.getClientRects().length>0)return false;
+  return !typing();
+}
+function reloadWhenIdle(){
+  try{if(!isIdle())return;}catch(e){return;} // 判斷不了就當作忙碌：寧可等下次開 App，也不打斷
+  clearInterval(idleTimer);idleTimer=null;
+  try{sessionStorage.setItem(UPDATED_KEY,pendingVersion||'');}catch(e){}
+  location.reload();
+}
+function onSwMessage(ev){
+  const d=ev&&ev.data;
+  if(!d||d.type!=='DT_UPDATE_READY')return;
+  try{if(ev.ports&&ev.ports[0])ev.ports[0].postMessage({type:'DT_UPDATE_ACK'});}catch(e){}
+  pendingVersion=typeof d.version==='string'?d.version:'';
+  if(!idleTimer)idleTimer=setInterval(reloadWhenIdle,IDLE_POLL_MS);
+  reloadWhenIdle();
+}
+function checkForUpdate(){
+  const now=Date.now();
+  /* 60 秒節流；系統時間被往回調時不擋 */
+  if(lastUpdateCheck!==null&&now>=lastUpdateCheck&&now-lastUpdateCheck<UPDATE_CHECK_MS)return;
+  lastUpdateCheck=now;
+  try{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});}catch(e){}
+}
+/* 上一次重新載入是自動更新造成的：取出版本名（只用一次），開機後交給 js/ui/update.js 顯示 */
+let updatedTo=null;
+try{updatedTo=sessionStorage.getItem(UPDATED_KEY);if(updatedTo!==null)sessionStorage.removeItem(UPDATED_KEY);}catch(e){}
+/* module 頂層、任何 await 之前就接上：開機途中送來的通知也收得到 */
+try{
+  if('serviceWorker' in navigator){
+    const swc=navigator.serviceWorker;
+    swc.addEventListener('message',onSwMessage);
+    if(typeof swc.startMessages==='function')swc.startMessages();
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate();});
+    window.addEventListener('online',checkForUpdate);
+  }
+}catch(e){}
+/* 「已更新」提示與 SETUP 版本行：非必要畫面，另外載入，失敗也不影響 App */
+let updateUi=null;
+function loadUpdateUi(){
+  import('./ui/update.js').then(m=>{
+    updateUi=m;
+    if(updatedTo!==null)m.showUpdatedNote(updatedTo);
+    m.renderAppVersion();
+  }).catch(e=>console.warn('更新提示載入失敗',e));
+}
+
 async function boot(){
   const [store,dom,program,demo,train,home,history,body,setup,backupUi]=await Promise.all([
     import('./state/store.js'),import('./ui/dom.js'),import('./ui/program.js'),import('./ui/demo.js'),
@@ -52,12 +134,13 @@ async function boot(){
   const {loadState,getState}=store, {$,showScreen}=dom, {minimalSeq,rainSeq}=program, {closeDemo}=demo,
         {startWorkout,isTraining}=train, {renderHome}=home, {renderHist}=history, {renderBody,wireBody}=body,
         {renderSetup}=setup, {showLoadError}=backupUi;
+  trainingNow=isTraining;
   /* ================= WIRE ================= */
   document.querySelectorAll('#tabs button').forEach(b=>{
     b.onclick=()=>{ if(isTraining())return; showScreen(b.dataset.s);
       if(b.dataset.s==='s-hist')renderHist();
       if(b.dataset.s==='s-body')renderBody();
-      if(b.dataset.s==='s-setup')renderSetup();
+      if(b.dataset.s==='s-setup'){renderSetup();if(updateUi)updateUi.renderAppVersion();}
       if(b.dataset.s==='s-home')renderHome(); };
   });
   $('h-minimal').onclick=()=>startWorkout(minimalSeq(getState().level),'minimal');
@@ -70,6 +153,7 @@ async function boot(){
   wireBody();
   renderHome();renderSetup();renderBody();
   if(loaded&&(loaded.status==='repaired'||loaded.status==='recovered'))showLoadError(loaded.error);
+  loadUpdateUi();
 }
 boot().catch(showFatal);
 
