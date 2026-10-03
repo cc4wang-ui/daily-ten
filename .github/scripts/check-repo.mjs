@@ -72,6 +72,24 @@ for (const a of assets) {
   else if (!appFiles.includes(rel)) fail('sw', `預快取清單的 ${a} 不是 App 檔（測試／工具檔不應快取）`);
 }
 
+/* 2b. Vercel 只上線 App 檔（D24）：.vercelignore 不得排除任何預快取的檔案，否則新網址離線冷啟動會缺檔 */
+if (existsSync(join(ROOT, '.vercelignore'))) {
+  const patterns = read('.vercelignore').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+  const toRe = (p) => new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]') + '$');
+  // gitignore 語意（簡化版）：含「/」的樣式從根目錄比對；不含「/」的樣式比對路徑中的任一層名稱
+  const ignored = (rel) => patterns.some((p) => {
+    const pat = p.replace(/^\//, '').replace(/^\*\*\//, '').replace(/\/$/, '');
+    const re = toRe(pat);
+    if (pat.includes('/') || p.startsWith('/')) return re.test(rel) || rel.startsWith(pat + '/');
+    return rel.split('/').some((seg) => re.test(seg));
+  });
+  for (const a of assets) {
+    const rel = a.replace(/^\.\//, '');
+    if (rel && ignored(rel)) fail('vercel', `.vercelignore 排除了預快取的 ${a}`);
+  }
+  if (ignored('sw.js')) fail('vercel', '.vercelignore 排除了 ./sw.js（Service Worker 本身）');
+}
+
 /* 3. 前端掃描 */
 const SECRET_PATTERNS = [
   [/sk-[A-Za-z0-9_-]{16,}/, 'API key 樣式（sk-）'],
@@ -82,6 +100,9 @@ const SECRET_PATTERNS = [
   [/api\.openai\.com|api\.anthropic\.com|typesafe\.ai|generativelanguage\.googleapis\.com/i, 'AI 端點']
 ];
 const frontFiles = [...appFiles, 'sw.js'].filter((f) => f.endsWith('.js') || f.endsWith('.html') || f.endsWith('.css') || f.endsWith('.json') || f.endsWith('.webmanifest'));
+// D24：App 自己的新網址只准出現在 js/ui/relocate.js 的 NEW_APP_URL（搬家卡的連結，使用者點了才導覽）
+const MOVE_FILE = 'js/ui/relocate.js';
+const moveUrl = existsSync(join(ROOT, MOVE_FILE)) ? (read(MOVE_FILE).match(/NEW_APP_URL\s*=\s*'(https:\/\/[^']+)'/) || [])[1] : undefined;
 for (const rel of frontFiles) {
   const text = read(rel);
   for (const [re, label] of SECRET_PATTERNS) {
@@ -92,6 +113,7 @@ for (const rel of frontFiles) {
     const url = m[0];
     if (url.startsWith('https://www.youtube.com/results?search_query=')) continue;
     if (url.startsWith('http://www.w3.org/')) continue; // SVG／XML 命名空間，不是網路請求
+    if (rel === MOVE_FILE && moveUrl && url === moveUrl) continue;
     fail('frontend', `${rel}:${lineOf(text, m.index)} 外部網址 ${url}`);
   }
 }

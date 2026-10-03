@@ -24,6 +24,32 @@
     <div class="eyebrow">DAILY TEN · AFT PROGRAM</div>
     <h1 id="h-date">—</h1>
     <div id="upd-note" class="banner" role="status" aria-live="polite"></div>
+    <!-- D24 搬家引導（js/ui/relocate.js）：舊網址顯示搬家卡、新網址且資料全新時顯示匯入卡；其他網址一律維持 hidden -->
+    <div id="mv-legacy" class="card mv-card" role="region" aria-labelledby="mv-legacy-title" hidden>
+      <h3 id="mv-legacy-title">App 搬到新網址了</h3>
+      <p>新網址更新更快，照下面 3 步搬，紀錄一筆都不會少。</p>
+      <p class="mv-hint" id="mv-legacy-empty" hidden>這裡還沒有紀錄。如果紀錄在主畫面的舊圖示裡，請從舊圖示打開，再下載備份。</p>
+      <ol class="mv-steps" role="list">
+        <li><span class="mv-num">1</span><div class="mv-step">
+          <button class="btn-sub" id="mv-backup">下載備份</button>
+          <div class="small mv-msg" id="mv-backup-msg" role="status"></div>
+        </div></li>
+        <li><span class="mv-num">2</span><div class="mv-step">
+          <a class="btn-sub mv-link" id="mv-open" target="_blank" rel="noopener">打開新網址</a>
+          <div class="small mv-msg mv-host" id="mv-open-host"></div>
+        </div></li>
+        <li class="mv-text"><span class="mv-num">3</span><div class="mv-step">
+          <p>在 Safari 按「分享」→「加入主畫面」→ 從新圖示打開 → 選剛下載的備份檔。</p>
+          <p>搬好後，長按這個舊圖示刪除。</p>
+        </div></li>
+      </ol>
+    </div>
+    <div id="mv-import" class="card mv-card" role="region" aria-labelledby="mv-import-title" hidden>
+      <h3 id="mv-import-title">從舊網址搬資料</h3>
+      <p>選擇剛下載的備份檔，紀錄就會搬過來。</p>
+      <p class="mv-hint" id="mv-import-hint" hidden>先加入主畫面再匯入：主畫面的 App 和 Safari 的資料是分開的。</p>
+      <button class="btn-sub" id="mv-import-btn">選擇備份檔</button>
+    </div>
     <div id="err-card" class="banner" role="alert">
       <div id="err-text"></div>
       <button class="btn-sub" id="err-download">下載原始資料</button>

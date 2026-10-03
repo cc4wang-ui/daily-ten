@@ -8,17 +8,15 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 
 ## 📍 當前階段
 
-- Repo：[cc4wang-ui/daily-ten](https://github.com/cc4wang-ui/daily-ten)；App 網址 `https://cc4wang-ui.github.io/daily-ten/`（Pages 已啟用、部署成功；真機開啟待 Cross 確認）。
-- PR #7（指示檔＋網址）、PR #8（**M1 地基**）、PR #9（U2 紀錄）已 merge；D23 自動更新 PR（SW v7）QA PASS，CI 綠燈即 merge。M1 內容：ES modules 拆分（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。
+- Repo：[cc4wang-ui/daily-ten](https://github.com/cc4wang-ui/daily-ten)；App 正式網址 `https://daily-ten-app.vercel.app/`（D24，Vercel）；舊網址 `https://cc4wang-ui.github.io/daily-ten/` 只剩搬家卡。
+- PR #7（指示檔＋網址）、PR #8（**M1 地基**）、PR #9（U2 紀錄）、PR #10（**D23 自動更新**，SW v7）已 merge；搬家 PR（D24，SW v8）見下一步。M1 內容：ES modules 拆分（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。
 - 未驗證：iPhone 真機（開啟、舊紀錄還在、飛航模式、下載備份到「檔案」、匯入、TTS＋示範、自動更新）。v6→v7 這一次要從多工畫面滑掉再開，先等畫面自己刷新（約 10 秒）再訓練；v7 起全自動。
 - 流程：低輸入模式（D22）——Cross 說「繼續」即可；QA PASS＋CI 綠燈由 Orchestrator 直接 merge。每週迴圈見 `docs/ITERATION.md`。
 
 ## ⏭ 下一步（依優先序）
 
-1. **Cross 選 A（2026-10-03）：搬 Vercel＋Drive 週報。**
-   - Vercel：Cross 在 GitHub 把 `daily-ten` 加進 Vercel App 的 repo 存取清單後，用 Vercel MCP `create_git_project`（repo `cc4wang-ui/daily-ten`、team `team_6HL0acbpoaKW1HCfcLy7fA0h`、專案名 `daily-ten`）建專案，確認正式網址。
-   - 搬家 PR：`vercel.json`／`.vercelignore`、舊網址首頁搬家卡（下載備份＋打開新網址）、新網址首次開啟的「選擇備份檔」卡（沿用匯入流程）、每週備份改走分享選單（可直接存 Drive）、CACHE +1、D24／D25 寫入 CLAUDE.md 與 PLAN.md、README／HANDOFF 網址。
-   - 週報：Cross 確認 loop 契約後才建 routine（每週日晚上讀 Drive 最新備份 → 週報＋3 個提案 → Cross 選一個 → 開發）。
+1. **D24 搬到 Vercel（Cross 2026-10-03：「直接新建一個」）**：Vercel 專案 `daily-ten`（不連 GitHub），正式網址 `https://daily-ten-app.vercel.app/`，轉送 GitHub Pages 的內容，main merge 後自動同步（`docs/DEPLOY.md`）。搬家 PR #11 merge 後，舊網址首頁出現搬家卡，Cross 照卡片搬資料（約 10–15 下，一次性）。
+   - 週報（D25）：排程 `daily-ten-weekly` 綁在建立它的 session（那裡才有 Google Drive／Vercel 連接器），每週一 07:45 東京；契約見 `docs/ITERATION.md`。
 2. U2 已確認（2026-10-02）：起床 07:00、就寢 23:00（各 ±30 分，可在設定改）。M2a 開工時直接進 checkpoint（做什麼／不做什麼／風險）。
 3. M2a 睡飽＋目標：engine（XP／等級／streak／freeze／Perfect Day／階段）、早安打卡、D6 自動降量、D18 時段漸進計分、D19 回歸任務、每週目標、季度目標、`.ics`、90 天 sim。派工：game-designer＋data-guardian → ui-engineer → qa-checker。
 

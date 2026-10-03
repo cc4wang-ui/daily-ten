@@ -43,7 +43,7 @@ Subagents 不能再派 subagent，所有派工都由主 session 發出。
 ## Phase 3 — 交付
 1. `sw.js` CACHE +1，更新 `PROJECT_STATE.md`、`HANDOFF.md`。
 2. 開 PR，描述含：做了什麼（表格）、未做與原因、qa 報告連結、**Cross iPhone 真機清單**（≤3 條、可勾，只列機器驗不了的）。
-3. qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge（D22）；Cross 說「先別 merge」時才停。
+3. qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge（D22）；Cross 說「先別 merge」時才停。正式網址（Vercel）轉送 GitHub Pages，merge 後不用另外部署（D24，`docs/DEPLOY.md`）。
 4. 給 Cross 的訊息 ≤10 行：已上線的內容＋真機清單＋下一輪的一句預告（需要他決定時，附一個單選）。
 
 ## Jev 使用規則（build time only）

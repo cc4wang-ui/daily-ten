@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/", "destination": "https://cc4wang-ui.github.io/daily-ten/" },
+    { "source": "/:path*", "destination": "https://cc4wang-ui.github.io/daily-ten/:path*" }
+  ]
+}

@@ -5,6 +5,8 @@
       約 3 秒後由新 SW 的 client.navigate() 導向新版 → 資料完整（localStorage 逐字相同）、只導向一次、存檔後為 v3、離線可用。
    2. 目前線上版本（UPGRADE_BASE_DIR，origin/main 的 worktree）→ 目前版本：同上，SETUP 顯示「App 版本 vN」。
       UPGRADE_BASE_DIR 的 CACHE 與目前相同（在 main 上）或沒設時略過。
+      舊版已有 D23 自動更新（v7 起，有 js/ui/update.js）時：舊頁面回 ACK、閒置時自己重新載入（不是 SW 強制導向），
+      所以新版會顯示「已更新到最新版（vN）」；舊版本來就有版本行與提示列。判斷「重開先看到舊版」改比對文件裡的 id 清單。
    3. D12 實機重播（維持原意）：新版存成 v3 → 真的舊版程式記一次訓練、寫回 version 2 → 新版再開 XP 不重複計算。
    導向所需時間印在 log（[qa] …）並記在測試 annotation，報告引用。 */
 import {
@@ -13,6 +15,8 @@ import {
   swAssets, cacheNumber, readSwCache, REPO_DIR, cacheNames, waitControlled, markDocument, sameDocument,
   countNavigations, realWait
 } from './helpers.js';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const CUR = swAssets().cache;
 const CUR_N = cacheNumber(CUR);
@@ -23,18 +27,24 @@ const UPGRADE_CACHE = UPGRADE_DIR ? readSwCache(UPGRADE_DIR) : null;
 test.use({ serviceWorkers: 'allow', trace: 'off' });
 
 /* 舊版（baseDir）→ 目前版本：重開一次後，不再人工重開，舊頁面被自動導向新版 */
+/* 文件裡所有 id（排序後）：同一版的 index.html 一定相同，用來確認「重開先看到的是快取裡的舊版」 */
+const idFingerprint = (page) => page.evaluate(() => [...document.querySelectorAll('[id]')].map((e) => e.id).sort().join(','));
+
 async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, { oldCache, oldHasBackup, label }) {
   test.setTimeout(150_000);
+  /* 舊版有沒有 D23 自動更新（頁面端）：有 → 回 ACK、閒置自己重新載入、新版顯示「已更新」提示 */
+  const oldHasUpdater = existsSync(join(baseDir, 'js/ui/update.js'));
   const navs = countNavigations(page);
   deploy.setRoot(baseDir);
   await installClock(page);
   await seedOnce(page, seedState(readFixture('v2-real.json')));
   await page.goto(deploy.url());
   await waitReady(page);
-  /* 舊版：沒有版本行與「已更新」提示（v5 也沒有「下載備份」） */
-  await expect(page.locator('#app-version')).toHaveCount(0);
-  await expect(page.locator('#upd-note')).toHaveCount(0);
+  /* 舊版：v5／v6 沒有版本行與「已更新」提示（v5 也沒有「下載備份」）；v7 起兩者都有 */
+  await expect(page.locator('#app-version')).toHaveCount(oldHasUpdater ? 1 : 0);
+  await expect(page.locator('#upd-note')).toHaveCount(oldHasUpdater ? 1 : 0);
   await expect(page.locator('#bk-download')).toHaveCount(oldHasBackup ? 1 : 0);
+  const oldIds = await idFingerprint(page);
   await expectHome(page, { level: 3, xp: 361, current: 9, best: 11 });
   await waitControlled(page, oldCache);
 
@@ -53,7 +63,7 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   await waitReady(page);
   const t0 = Date.now();
   const token = await markDocument(page);
-  await expect(page.locator('#app-version'), '重開：先看到快取裡的舊版').toHaveCount(0);
+  expect(await idFingerprint(page), '重開：先看到快取裡的舊版').toBe(oldIds);
   const navsAtReopen = navs.length;
 
   /* 不再人工重開：等舊頁面被自動導向 */
@@ -71,7 +81,12 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   await expect(page.locator('#app-version')).toHaveCount(1);
   await expect(page.locator('#bk-download')).toHaveCount(1);
   await expect(page.locator('#err-card')).toBeHidden();
-  await expect(page.locator('#upd-note'), '舊頁面沒有寫提示旗標 → 不提示').toBeHidden();
+  if (oldHasUpdater) {
+    /* 舊頁面回 ACK、閒置時自己重新載入（重新載入前寫提示旗標；SW 強制導向不會寫）→ 新版提示一次 */
+    await expect(page.locator('#upd-note'), '舊頁面走 D23 協定自己重新載入 → 提示新版').toHaveText(`已更新到最新版（v${CUR_N}）`);
+  } else {
+    await expect(page.locator('#upd-note'), '舊頁面沒有寫提示旗標 → 不提示').toBeHidden();
+  }
   expect(await cacheNames(page)).toEqual([CUR]);
   await expectHome(page, { level: 3, xp: 364, current: 1, best: 11 });
   await expect(page.locator('#bk-reminder')).toBeVisible(); // 有紀錄、從未備份
