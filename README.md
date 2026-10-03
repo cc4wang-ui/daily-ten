@@ -61,7 +61,7 @@
 | `mockup.html` | 展示用畫面示意頁（給沒裝過的人看，顯示首次啟動的空白狀態） |
 | `manifest.webmanifest` | PWA 安裝設定 |
 | `sw.js` | Service Worker，cache-first 離線快取；新版自動更新（D23） |
-| `vercel.json`、`.vercelignore`、`tools/deploy/`、`docs/DEPLOY.md` | Vercel 部署設定與流程：無 build，只上線 App 檔（D24） |
+| `tools/deploy/vercel-proxy.json`、`docs/DEPLOY.md`、`vercel.json`、`.vercelignore` | Vercel 轉送設定與部署說明（D24） |
 | `icon-192.png` / `icon-512.png` | App 圖示 |
 | `COMPETITORS.md` | 競品對標與取捨 |
 | `CLAUDE.md`、`PLAN.md`、`.claude/` | 開發指示、本版計畫、subagent 與流程定義 |
@@ -75,9 +75,9 @@
 
 ## 部署（Vercel，D24）
 
-- 正式網址：`https://daily-ten-app.vercel.app/`。Vercel 專案沒有連 GitHub，`main` 每次 merge 後由 Claude 部署（流程見 [docs/DEPLOY.md](./docs/DEPLOY.md)，清單由 `tools/deploy/manifest.mjs` 產生）。
-- 設定：`vercel.json`（無 build、無安裝步驟）、`.vercelignore`（只上線 App 檔；CI `check-repo` 確認不會排除預快取的檔案）。
-- 舊網址 `https://cc4wang-ui.github.io/daily-ten/`（GitHub Pages）保留：首頁只多一張搬家卡，引導下載備份 → 打開新網址 → 加入主畫面 → 匯入。
+- 正式網址：`https://daily-ten-app.vercel.app/`。Vercel 把請求轉送到 GitHub Pages（`tools/deploy/vercel-proxy.json`），`main` merge 後約 1 分鐘兩邊同時更新，不用手動部署（見 [docs/DEPLOY.md](./docs/DEPLOY.md)）。
+- 根目錄 `vercel.json`、`.vercelignore` 是日後改成直接部署時用的設定（只上線 App 檔；CI `check-repo` 確認不會排除預快取的檔案）。
+- GitHub Pages `https://cc4wang-ui.github.io/daily-ten/` 是內容來源，不能關；這個網址的首頁多一張搬家卡，引導下載備份 → 打開新網址 → 加入主畫面 → 匯入。
 
 ## 展示給別人看
 

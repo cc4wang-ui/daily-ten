@@ -15,7 +15,7 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 
 ## ⏭ 下一步（依優先序）
 
-1. **D24 搬到 Vercel（Cross 2026-10-03：「直接新建一個」）**：Vercel 專案 `daily-ten`（不連 GitHub），正式網址 `https://daily-ten-app.vercel.app/`；main merge 後依 `docs/DEPLOY.md` 由 Claude 部署。搬家 PR #11 merge 後，舊網址首頁出現搬家卡，Cross 照卡片搬資料（約 10–15 下，一次性）。
+1. **D24 搬到 Vercel（Cross 2026-10-03：「直接新建一個」）**：Vercel 專案 `daily-ten`（不連 GitHub），正式網址 `https://daily-ten-app.vercel.app/`，轉送 GitHub Pages 的內容，main merge 後自動同步（`docs/DEPLOY.md`）。搬家 PR #11 merge 後，舊網址首頁出現搬家卡，Cross 照卡片搬資料（約 10–15 下，一次性）。
    - 週報（D25）：排程 `daily-ten-weekly` 綁在建立它的 session（那裡才有 Google Drive／Vercel 連接器），每週一 07:45 東京；契約見 `docs/ITERATION.md`。
 2. U2 已確認（2026-10-02）：起床 07:00、就寢 23:00（各 ±30 分，可在設定改）。M2a 開工時直接進 checkpoint（做什麼／不做什麼／風險）。
 3. M2a 睡飽＋目標：engine（XP／等級／streak／freeze／Perfect Day／階段）、早安打卡、D6 自動降量、D18 時段漸進計分、D19 回歸任務、每週目標、季度目標、`.ics`、90 天 sim。派工：game-designer＋data-guardian → ui-engineer → qa-checker。

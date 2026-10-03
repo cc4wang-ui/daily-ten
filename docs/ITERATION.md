@@ -39,7 +39,7 @@ flowchart TD
 
 ## 部署與週報（Cross 2026-10-03 選 A）
 
-- **部署（D24）**：Vercel，正式網址 `daily-ten-app.vercel.app`；專案不連 GitHub，merge 後由 Claude 部署（`docs/DEPLOY.md`）。舊網址 `cc4wang-ui.github.io/daily-ten/` 留一張搬家卡：下載備份 → 打開新網址 → 加入主畫面 → 在新圖示裡匯入（主畫面 App 與 Safari 的資料分開，所以要在新圖示裡匯入）。
+- **部署（D24）**：Vercel，正式網址 `daily-ten-app.vercel.app`；轉送 GitHub Pages 的內容，merge 後自動同步（`docs/DEPLOY.md`）。舊網址 `cc4wang-ui.github.io/daily-ten/` 留一張搬家卡：下載備份 → 打開新網址 → 加入主畫面 → 在新圖示裡匯入（主畫面 App 與 Safari 的資料分開，所以要在新圖示裡匯入）。
 - **週報（D25，步驟 ④）**：Cross 每週按「下載備份」，分享選單選 Drive 存一份（任何資料夾）。排程 session 只讀 Drive 上最新的備份，產出週報＋3 個提案，推播給 Cross；Cross 單選後才開發。App 本身仍不連網、無帳號。
 - 週報不寫回 repo（repo 是公開的）、不寫 Drive。
 

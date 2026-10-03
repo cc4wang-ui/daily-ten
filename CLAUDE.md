@@ -82,7 +82,7 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D21 | 文案 | 台灣繁中用語表（§11）；成就以「行為」命名，避免純刷量型佔多數 |
 | D22 | 低輸入模式 | qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge；Cross 只做方向單選與 ≤3 條真機確認（流程見 `docs/ITERATION.md`） |
 | D23 | 自動更新 | 新版上線後，App 在開啟或回到前景時自動檢查並套用；只在閒置時重新載入，訓練中不打斷；SETUP 顯示 App 版本 |
-| D24 | 部署平台 | Vercel（正式網址 `daily-ten-app.vercel.app`）；專案不連 GitHub（Vercel 的 GitHub 連線在另一個帳號），main merge 後由 Claude 部署（`docs/DEPLOY.md`）；舊網址 `cc4wang-ui.github.io/daily-ten/` 保留，只顯示搬家卡（下載備份 → 新網址匯入） |
+| D24 | 部署平台 | 正式網址 Vercel `daily-ten-app.vercel.app`，轉送 GitHub Pages 的內容（Vercel 連不到這個 repo；main merge 即兩邊更新，見 `docs/DEPLOY.md`）；`cc4wang-ui.github.io/daily-ten/` 是內容來源、不能關，首頁顯示搬家卡（下載備份 → 新網址匯入） |
 | D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md`。屬開發流程、不是 App 功能：App 仍無帳號、無雲端、無 runtime AI（原則 1、7 不變）；用 Cross 自存的備份做分析，Cross 2026-10-03 選 A 時同意 |
 
 ## 4. 目標架構
