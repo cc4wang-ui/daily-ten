@@ -12,6 +12,8 @@ import {
   markDocument, sameDocument, recordSwMessages, swMessages, requestSwUpdate, realWait, expectGlossaryClean, MAIN_KEY,
   countNavigations, NOW_ISO
 } from './helpers.js';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 const CUR = swAssets().cache;            // 目前版本，例 daily-ten-v7
 const CUR_N = cacheNumber(CUR);
@@ -19,6 +21,13 @@ const NEXT_N = CUR_N + 1;                // 模擬下一版
 const NEXT = `daily-ten-v${NEXT_N}`;
 const NOTE_TEXT = `已更新到最新版（v${NEXT_N}）`;
 const UPDATED_KEY = 'daily-ten-updated-to';
+const SHOTS_DIR = process.env.QA_SHOTS_DIR || '';
+/* QA_SHOTS_DIR 有設時存截圖（報告引用的證據） */
+async function shot(page, name) {
+  if (!SHOTS_DIR) return;
+  mkdirSync(SHOTS_DIR, { recursive: true });
+  await page.screenshot({ path: join(SHOTS_DIR, `${name}.png`) });
+}
 
 let nextCopy = null;
 test.beforeAll(() => { nextCopy = makeDeployCopy(NEXT); });
@@ -89,6 +98,8 @@ test('首次安裝：不通知、不重新載入、不提示；SETUP 最下方�
     };
   });
   expect(info).toEqual({ inCard: false, parent: 's-setup', isLastChild: true, belowLastCard: true });
+  await v.scrollIntoViewIfNeeded();
+  await shot(page, 'd23-setup-app-version');
   expectGlossaryClean([await v.textContent(), NOTE_TEXT, '已更新到最新版']);
 });
 
@@ -96,6 +107,7 @@ test('閒置：v_N → v_N+1 自動重新載入；HOME 提示新版、約 4 秒�
   await openCurrent(page, deploy, { seed: 'v3.json' });
   await expectHome(page, { level: 3, xp: 396, current: 12, best: 12 });
   const before = await storageSnapshot(page);
+  const navs = countNavigations(page);
   const token = await markDocument(page);
   deploy.setRoot(nextCopy.dir);
   const t0 = Date.now();
@@ -110,6 +122,10 @@ test('閒置：v_N → v_N+1 自動重新載入；HOME 提示新版、約 4 秒�
   await expect(note).toBeVisible();
   await expect(note).toHaveText(NOTE_TEXT);
   expect(await note.evaluate((el) => el.className)).toBe('banner ok');
+  await shot(page, 'd23-home-updated-note');
+  /* 只重新載入一次：頁面回了 ACK，SW 的 3 秒逾時不會再導向（真實時間等 4 秒） */
+  await realWait(4_000);
+  expect(navs.length, '重新載入次數').toBe(1);
   expect(await cacheNames(page)).toEqual([NEXT]);
   expect(await page.evaluate((k) => sessionStorage.getItem(k), UPDATED_KEY), '提示旗標用完即刪').toBeNull();
   expect(await storageSnapshot(page), '自動更新不改 localStorage').toEqual(before);
@@ -360,6 +376,97 @@ test('回到前景：visibilitychange → registration.update() 並套用新版�
   const t2 = await markDocument(page);
   await realWait(1_000);
   expect(await sameDocument(page, t2)).toBe(true);
+});
+
+test('「已更新」提示浮在最上方：出現時 HOME 其他元素位置不變、點擊穿透（pointer-events: none）', async ({ page, deploy }) => {
+  await openCurrent(page, deploy);
+  const layout = () => page.evaluate(() => [...document.querySelectorAll('#s-home > *')]
+    .filter((el) => el.id !== 'upd-note' && el.getClientRects().length > 0)
+    .map((el) => `${el.id || el.className}@${Math.round(el.getBoundingClientRect().top)}`));
+  const before = await layout();
+  const token = await markDocument(page);
+  deploy.setRoot(nextCopy.dir);
+  await requestSwUpdate(page);
+  await expect.poll(() => sameDocument(page, token), { timeout: 15_000 }).toBe(false);
+  await waitReady(page);
+  const note = page.locator('#upd-note');
+  await expect(note).toHaveText(NOTE_TEXT);
+  expect(await layout(), '提示出現時其他元素位置不變').toEqual(before);
+  const hit = await note.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const under = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { pointerEvents: getComputedStyle(el).pointerEvents, hitIsNote: under === el || el.contains(under) };
+  });
+  expect(hit).toEqual({ pointerEvents: 'none', hitIsNote: false });
+});
+
+test('BODY 數字欄位打到一半（只打「.」：value 是空的、validity.badInput）：不重新載入；清掉後才重新載入', async ({ page, deploy }) => {
+  await openCurrent(page, deploy);
+  await gotoTab(page, 's-body');
+  await page.locator('#bd-weight').pressSequentially('.');
+  expect(await page.evaluate(() => { const el = document.getElementById('bd-weight'); return { value: el.value, badInput: el.validity.badInput }; }))
+    .toEqual({ value: '', badInput: true });
+  await page.locator('#bd-weight').blur();
+  const before = await storageSnapshot(page);
+  const token = await markDocument(page);
+  await deployNextWhileBusy(page, deploy);
+  await expectNoReload(page, token, '數字打到一半');
+  await page.fill('#bd-weight', '');
+  await page.locator('#bd-weight').blur();
+  await expectReloadToNext(page, token, '清掉後');
+  expect(await storageSnapshot(page)).toEqual(before);
+});
+
+test('SETUP 勾選框剛點過（焦點留在勾選框，值固定是 "on"）不算正在輸入：照樣重新載入，剛改的設定有存', async ({ page, deploy }) => {
+  await openCurrent(page, deploy);
+  await gotoTab(page, 's-setup');
+  await page.click('#cfg-band');
+  expect(await page.evaluate(() => ({ id: document.activeElement.id, value: document.activeElement.value }))).toEqual({ id: 'cfg-band', value: 'on' });
+  const saved = await storageSnapshot(page);
+  expect(JSON.parse(saved[MAIN_KEY]).settings.band).toBe(true); // v2-real 是 false，點一下變 true
+  const token = await markDocument(page);
+  deploy.setRoot(nextCopy.dir);
+  await requestSwUpdate(page);
+  await expect.poll(() => sameDocument(page, token), { timeout: 15_000 }).toBe(false);
+  await waitReady(page);
+  await expect(page.locator('#upd-note')).toHaveText(NOTE_TEXT);
+  expect(await storageSnapshot(page)).toEqual(saved);
+});
+
+test('瀏覽器不支援 Service Worker 與 Cache Storage（例如部分 App 內建瀏覽器）：App 正常、版本行不顯示、不報錯', async ({ page }) => {
+  await page.addInitScript(() => {
+    delete Navigator.prototype.serviceWorker;
+    try { delete window.caches; } catch (e) { /* 不可刪就略過 */ }
+    try { delete Window.prototype.caches; } catch (e) { /* 同上 */ }
+  });
+  await openApp(page, { seed: seedState(readFixture('v2-real.json')) });
+  expect(await page.evaluate(() => ({ sw: 'serviceWorker' in navigator, caches: typeof window.caches }))).toEqual({ sw: false, caches: 'undefined' });
+  await gotoTab(page, 's-setup');
+  await expect(page.locator('#app-version')).toBeHidden();
+  await expect(page.locator('#app-version')).toHaveText('');
+  await gotoTab(page, 's-home');
+  await expectHome(page, { level: 3, xp: 361, current: 9, best: 11 });
+  await expect(page.locator('#upd-note')).toBeHidden();
+});
+
+test('恢復連線（真的斷網再連上，瀏覽器自己發 online 事件）→ 呼叫 update() 一次，有新版就套用', async ({ page, context, deploy }) => {
+  await page.addInitScript(() => {
+    window.__qaUpdateCalls = 0;
+    const orig = ServiceWorkerRegistration.prototype.update;
+    ServiceWorkerRegistration.prototype.update = function (...args) { window.__qaUpdateCalls++; return orig.apply(this, args); };
+  });
+  await openCurrent(page, deploy);
+  expect(await page.evaluate(() => window.__qaUpdateCalls)).toBe(0);
+  const token = await markDocument(page);
+  await context.setOffline(true);
+  deploy.setRoot(nextCopy.dir);
+  await realWait(300);
+  expect(await page.evaluate(() => window.__qaUpdateCalls), '斷網時不檢查').toBe(0);
+  await context.setOffline(false);
+  await expect.poll(() => sameDocument(page, token), { timeout: 20_000, message: '連上後抓到新版 → 閒置 → 重新載入' }).toBe(false);
+  await waitReady(page);
+  await expect(page.locator('#upd-note')).toHaveText(NOTE_TEXT);
+  expect(await cacheNames(page)).toEqual([NEXT]);
 });
 
 test('多個 key 的 localStorage 在自動更新前後逐字相同（含修補過的備份 key 與匯入前 key）', async ({ page, deploy }) => {

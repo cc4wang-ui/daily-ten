@@ -283,7 +283,7 @@ export function switchableServer(port) {
 /* 把目前的樹（sw.js ASSETS 列出的 App 檔＋sw.js）複製到暫存目錄，CACHE 換成 cacheName：模擬「下一版」部署。
    回傳 { dir, remove() }。 */
 export function makeDeployCopy(cacheName) {
-  const dir = mkdtempSync(join(tmpdir(), `daily-ten-${cacheName}-`));
+  const dir = mkdtempSync(join(tmpdir(), `qa-deploy-${cacheName}-`));
   const { assets } = swAssets();
   for (const a of assets) {
     if (a === './') continue;

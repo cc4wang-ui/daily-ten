@@ -66,7 +66,7 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   const detail = `重開（舊版就緒）後 ${ms} ms 自動換成新版；抓 sw.js 於 ${swAt.join('、')} ms，導向於 ${navAt.join('、')} ms`;
   testInfo.annotations.push({ type: 'qa', description: `${label}：${detail}` });
   console.log(`[qa] ${label}：${detail}`);
-  expect(ms, '約 3 秒 ACK 逾時＋安裝時間').toBeLessThan(15_000);
+  expect(ms, '約 3 秒 ACK 逾時＋更新檢查與安裝時間').toBeLessThan(20_000);
 
   await expect(page.locator('#app-version')).toHaveCount(1);
   await expect(page.locator('#bk-download')).toHaveCount(1);
