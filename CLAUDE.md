@@ -69,7 +69,7 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D8 | 測試 | `package.json`（dev only）＋Playwright＋GitHub Actions CI |
 | D9 | 範圍拆分 | ~~三個 PR~~ → 由 D20 取代 |
 | D10 | 專案指示檔 | `CLAUDE.md`、`.claude/**` commit 進 repo |
-| D11 | 失效網址 | README、HANDOFF 全改為 `cc4wang-ui.github.io/daily-ten/` |
+| D11 | 失效網址 | ~~README、HANDOFF 全改為 `cc4wang-ui.github.io/daily-ten/`~~ → 由 D24 取代 |
 | D12 | 舊版 App 覆寫風險 | v3 保留並雙寫舊欄位 `xp`、`streak`；以 `game` 物件存在與否判斷已遷移 |
 | D13 | `body.sleep` | 與 `habits.sleep.log` 並存不合併；`body.sleep` 不計 XP |
 | D14 | `window.storage` | M1 保留，M3 評估移除 |
@@ -83,7 +83,7 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D22 | 低輸入模式 | qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge；Cross 只做方向單選與 ≤3 條真機確認（流程見 `docs/ITERATION.md`） |
 | D23 | 自動更新 | 新版上線後，App 在開啟或回到前景時自動檢查並套用；只在閒置時重新載入，訓練中不打斷；SETUP 顯示 App 版本 |
 | D24 | 部署平台 | Vercel（正式網址 `daily-ten.vercel.app`，main merge 即部署、每個 PR 有預覽網址）；舊網址 `cc4wang-ui.github.io/daily-ten/` 保留，只顯示搬家卡（下載備份 → 新網址匯入） |
-| D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md` |
+| D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md`。屬開發流程、不是 App 功能：App 仍無帳號、無雲端、無 runtime AI（原則 1、7 不變）；用 Cross 自存的備份做分析，Cross 2026-10-03 選 A 時同意 |
 
 ## 4. 目標架構
 ```

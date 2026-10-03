@@ -78,7 +78,7 @@ if (existsSync(join(ROOT, '.vercelignore'))) {
   const toRe = (p) => new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]') + '$');
   // gitignore 語意（簡化版）：含「/」的樣式從根目錄比對；不含「/」的樣式比對路徑中的任一層名稱
   const ignored = (rel) => patterns.some((p) => {
-    const pat = p.replace(/^\//, '').replace(/\/$/, '');
+    const pat = p.replace(/^\//, '').replace(/^\*\*\//, '').replace(/\/$/, '');
     const re = toRe(pat);
     if (pat.includes('/') || p.startsWith('/')) return re.test(rel) || rel.startsWith(pat + '/');
     return rel.split('/').some((seg) => re.test(seg));
@@ -87,6 +87,7 @@ if (existsSync(join(ROOT, '.vercelignore'))) {
     const rel = a.replace(/^\.\//, '');
     if (rel && ignored(rel)) fail('vercel', `.vercelignore 排除了預快取的 ${a}`);
   }
+  if (ignored('sw.js')) fail('vercel', '.vercelignore 排除了 ./sw.js（Service Worker 本身）');
 }
 
 /* 3. 前端掃描 */
