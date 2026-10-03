@@ -4,7 +4,7 @@ import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { runBackup, renderBackupReminder, renderBackupStatus } from './backup.js';
 
-export const NEW_APP_URL = 'https://daily-ten.vercel.app/';
+export const NEW_APP_URL = 'https://daily-ten-app.vercel.app/';
 export const LEGACY_HOSTS = ['cc4wang-ui.github.io'];
 
 /* 畫面是 index.html 的 #mv-legacy、#mv-import（預設 hidden）。renderHome() 每次都呼叫 renderMoveCard() 重新判斷：

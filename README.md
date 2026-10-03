@@ -61,7 +61,7 @@
 | `mockup.html` | 展示用畫面示意頁（給沒裝過的人看，顯示首次啟動的空白狀態） |
 | `manifest.webmanifest` | PWA 安裝設定 |
 | `sw.js` | Service Worker，cache-first 離線快取；新版自動更新（D23） |
-| `vercel.json`、`.vercelignore` | Vercel 部署設定：無 build，只上線 App 檔（D24） |
+| `vercel.json`、`.vercelignore`、`tools/deploy/`、`docs/DEPLOY.md` | Vercel 部署設定與流程：無 build，只上線 App 檔（D24） |
 | `icon-192.png` / `icon-512.png` | App 圖示 |
 | `COMPETITORS.md` | 競品對標與取捨 |
 | `CLAUDE.md`、`PLAN.md`、`.claude/` | 開發指示、本版計畫、subagent 與流程定義 |
@@ -75,17 +75,17 @@
 
 ## 部署（Vercel，D24）
 
-- 正式網址：`https://daily-ten.vercel.app/`。`main` 每次 merge 自動部署；每個 PR 有自己的預覽網址。
+- 正式網址：`https://daily-ten-app.vercel.app/`。Vercel 專案沒有連 GitHub，`main` 每次 merge 後由 Claude 部署（流程見 [docs/DEPLOY.md](./docs/DEPLOY.md)，清單由 `tools/deploy/manifest.mjs` 產生）。
 - 設定：`vercel.json`（無 build、無安裝步驟）、`.vercelignore`（只上線 App 檔；CI `check-repo` 確認不會排除預快取的檔案）。
 - 舊網址 `https://cc4wang-ui.github.io/daily-ten/`（GitHub Pages）保留：首頁只多一張搬家卡，引導下載備份 → 打開新網址 → 加入主畫面 → 匯入。
 
 ## 展示給別人看
 
-`https://daily-ten.vercel.app/mockup.html` — 展示頁，包含首次啟動狀態及其他情境示意、一週節奏與五級劑量。畫面為示意，訓練與紀錄以 App 即時資料為準。
+`https://daily-ten-app.vercel.app/mockup.html` — 展示頁，包含首次啟動狀態及其他情境示意、一週節奏與五級劑量。畫面為示意，訓練與紀錄以 App 即時資料為準。
 
 ## iPhone 安裝
 
-Safari 開啟 App 網址 `https://daily-ten.vercel.app/`（不是 `mockup.html`）→ 分享鈕 → **加入主畫面** → 從主畫面圖示開啟。
+Safari 開啟 App 網址 `https://daily-ten-app.vercel.app/`（不是 `mockup.html`）→ 分享鈕 → **加入主畫面** → 從主畫面圖示開啟。
 
 從舊網址搬過來：打開舊圖示，照首頁搬家卡的 3 步做（下載備份 → 打開新網址並加入主畫面 → 在新圖示裡選備份檔匯入），搬好後刪掉舊圖示。主畫面 App 和 Safari 的資料是分開的，一定要在新圖示裡匯入。
 
