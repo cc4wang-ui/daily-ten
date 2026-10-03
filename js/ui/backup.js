@@ -27,7 +27,7 @@ function textEl(tag, text) {
   return el;
 }
 /* 下載期間停用按鈕，避免連點叫出兩次分享面板；成功時 backup.js 已寫入 meta.lastBackupAt。
-   D24 舊網址的搬家卡（js/ui/move.js）也用這個 */
+   D24 舊網址的搬家卡（js/ui/relocate.js）也用這個 */
 export async function runBackup(btn) {
   btn.disabled = true;
   try { return await downloadBackup(); } finally { btn.disabled = false; }

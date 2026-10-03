@@ -74,13 +74,15 @@
 | `check-repo` 寫死期望的 CACHE 版號，每次改版都要手動同步。 | 改成比對 main：分支改了 App 檔，CACHE 就必須大於 main 的版號。 |
 | 本環境的 git 權限不能刪除遠端分支（403）。 | 已合併的 6 個舊分支保留，不影響功能。 |
 | Vercel 用 MCP 建專案連 GitHub 回 400「需要先安裝 GitHub integration」，但同帳號其他專案已連 GitHub。 | Vercel 的 GitHub App 是「只限選定 repo」，daily-ten 不在清單；要 Cross 在 GitHub 的 App 設定把 daily-ten 加進去（本環境無法代辦）。 |
+| 換網址時 localStorage 不會跟著走；iPhone 主畫面 App 與 Safari 的儲存也分開。 | 搬家只靠備份檔：舊網址搬家卡下載備份 → 新網址主畫面 App 的匯入卡（沿用驗證、預覽、兩次確認）。用 Safari 開舊網址時資料是空的，搬家卡會提醒改從舊圖示打開。 |
+| 搬家模組原本叫 `js/ui/move.js`，和之後「動 Move」支柱的 `js/habits/move.js` 撞名。 | 改名 `js/ui/relocate.js`。 |
 | Playwright 截圖比對的雜訊：fake clock 會讓兩個分頁的動畫相位不同、fullPage 截圖固定分頁列會飄、圓角有 ±1 像素差。 | 載入後先對齊時間、逐屏截圖再拼接、Chromium 加 `--disable-partial-raster`；同版本自比 0 px 後才拿來比對。 |
 
 ## Open failures / unverified
 
 - **示範動畫品質**：依一般動作要領繪製，未經教練／物理治療師審核；90/90、鴿式、側平板、俯臥 Y/T/W 等為簡化視角。請 Cross 在真機逐一看過，標出看不懂或不對的動作。
 - **競品資料**：來自 2026-09-28 搜尋摘要；App Store／YouTube 在本環境被擋，價格與功能未在商店頁逐項核對。
-- **部署與真機**：GitHub Pages 已啟用（Actions「pages build and deployment」在 `main` 部署成功，2026-10-02）；但本環境 proxy 擋 github.io，公開網址能否載入、iPhone Safari 加入主畫面、離線重開、TTS、分享選單「儲存到檔案」仍待 Cross 真機確認（見 M1 PR 真機清單）。
+- **部署與真機**：D24 起正式網址改為 Vercel `daily-ten.vercel.app`（搬家 PR merge 後生效）；GitHub Pages 舊網址保留、只顯示搬家卡。GitHub Pages 已啟用（Actions「pages build and deployment」在 `main` 部署成功，2026-10-02、2026-10-03 v7）；但本環境 proxy 擋 github.io，公開網址能否載入、iPhone Safari 加入主畫面、離線重開、TTS、分享選單「儲存到檔案」仍待 Cross 真機確認（見 M1 PR 真機清單）。
 - **測試基礎**：M1 起有 Playwright（資料層單元測試＋e2e）與 GitHub Actions CI；CI 的「拆 module 前後等價比對」以 `ec87e03` 為基準，**M2a 起畫面會刻意改變，需移除或改基準**。自動測試不等於真機驗證與長期訓練成效。
 - **產品範圍決策**：是否繼續使用 17–21 歲男性三項門檻作個人挑戰，或改依實際年齡顯示官方分數，需使用者決定。正式 AFT 的另兩項未實作。
 - **已知功能缺口**：PR 畫面只顯示成績與固定門檻，沒有自動算差距；睡眠與跑步退步規則沒有自動執行；L5 是 App level，非三項全達標。
@@ -99,7 +101,7 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 ## Last session — 2026-10-03
 
-Cross 回報「網址還是舊版」→ D23 自動更新＋版本顯示；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`。qa-checker D23 第 1 輪 PASS（312 passed ×2、植入 14 個缺陷全抓到，`reports/qa-d23-1.md`）。Cross 選 A：搬 Vercel＋Drive 週報。進度：Vercel 建專案被擋（Vercel 的 GitHub App 沒有 daily-ten 的存取權，需 Cross 在 GitHub 加入）；週報 routine 待 Cross 確認 loop 契約。
+Cross 回報「網址還是舊版」→ D23 自動更新＋版本顯示；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`。qa-checker D23 第 1 輪 PASS（312 passed ×2、植入 14 個缺陷全抓到，`reports/qa-d23-1.md`）。PR #10 merge，GitHub Pages 部署 v7。Cross 選 A：搬 Vercel＋Drive 週報。搬家 PR（D24，SW v8）：舊網址搬家卡、新網址匯入卡、Vercel 設定、check-repo 新增「`.vercelignore` 不得排除預快取檔」與「新網址只准出現在 relocate.js」。Vercel 建專案等 Cross 在 GitHub 授權；週報 routine 等 Cross 確認 loop 契約。
 
 **已點名的取捨（v6→v7 一次性）**：v7 上線後第一次冷啟動先看到快取的 v6；v6 不懂新協定，約 6–7 秒後由 SW 強制導向 v7。這幾秒內若已開始訓練，會被刷新一次（訓練剛開始、還沒記錄，其他資料不變；網路慢時這段會拉長）。選擇照現況上線（Cross 明確要求「不要讓我自己修」），真機清單第 1 條提醒先等畫面自己刷新再訓練；v7 起的頁面都會回 ACK，訓練中不再被打斷。另：v6 沒有「回前景檢查」，這一次仍要從多工畫面滑掉再開，之後才全自動。
 

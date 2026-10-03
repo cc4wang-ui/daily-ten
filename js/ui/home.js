@@ -1,5 +1,5 @@
 /* Daily Ten — HOME 畫面：今日計畫、連續天數、Never Miss Twice 提示、升級按鈕、備份提醒卡。M1 自 index.html 原樣搬出。
-   D24：最上方的搬家引導卡（舊網址搬家、新網址匯入）在 move.js，每次 renderHome 重新判斷。 */
+   D24：最上方的搬家引導卡（舊網址搬家、新網址匯入）在 relocate.js，每次 renderHome 重新判斷。 */
 import { getState, saveState } from '../state/store.js';
 import { $ } from './dom.js';
 import { todayStr, dayGap } from './dates.js';
@@ -8,7 +8,7 @@ import { sessionOn, levelUpEligible } from './session.js';
 import { startWorkout } from './train.js';
 import { startBoss } from './boss.js';
 import { renderBackupReminder } from './backup.js';
-import { renderMoveCard } from './move.js';
+import { renderMoveCard } from './relocate.js';
 
 export function renderHome(){
   const t=todayStr(),plan=todayPlan();

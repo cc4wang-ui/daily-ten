@@ -82,6 +82,8 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D21 | 文案 | 台灣繁中用語表（§11）；成就以「行為」命名，避免純刷量型佔多數 |
 | D22 | 低輸入模式 | qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge；Cross 只做方向單選與 ≤3 條真機確認（流程見 `docs/ITERATION.md`） |
 | D23 | 自動更新 | 新版上線後，App 在開啟或回到前景時自動檢查並套用；只在閒置時重新載入，訓練中不打斷；SETUP 顯示 App 版本 |
+| D24 | 部署平台 | Vercel（正式網址 `daily-ten.vercel.app`，main merge 即部署、每個 PR 有預覽網址）；舊網址 `cc4wang-ui.github.io/daily-ten/` 保留，只顯示搬家卡（下載備份 → 新網址匯入） |
+| D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md` |
 
 ## 4. 目標架構
 ```
@@ -103,6 +105,7 @@ tools/jev/            # build-time 腳本（Node）；含 zh-tw-glossary.json
 tools/sim/            # 90 天平衡模擬
 tests/                # Playwright + fixtures（v1、v2、v3 state）
 sw.js                 # 任何檔案變動 → CACHE 版號 +1，並更新預快取清單
+vercel.json, .vercelignore  # D24 部署設定；只上線 App 檔（CI 檢查不會排除預快取的檔案）
 ```
 
 ## 5. State v3（localStorage key 不變：`daily-ten-state`）
@@ -167,7 +170,8 @@ M1 一次把 v3 欄位建好（空值），避免 M2 再升 v4。
 7. PR 描述附「Cross iPhone 真機清單」（只列機器驗不了的項目，逐條可勾）。
 
 ## 10. 已知坑
-- 舊網址 `crosswang-collab.github.io` 已失效 → `cc4wang-ui.github.io/daily-ten/`。
+- 網址：正式網址 `daily-ten.vercel.app`（D24）；`cc4wang-ui.github.io/daily-ten/` 只剩搬家卡；更早的 `crosswang-collab.github.io` 已失效。
+- 不同網址的 localStorage 不互通，iPhone 主畫面 App 與 Safari 的儲存也分開 → 換網址只能靠備份檔搬資料，而且要在主畫面 App 裡匯入。
 - iOS Safari：TTS 需使用者手勢觸發；wake lock 要做 fallback；PWA 無背景執行。
 - 匯入會覆蓋 → 必須先預覽差異並二次確認。
 - 跨時區：時間存 ISO 含 offset，遊戲日以當地時間計。

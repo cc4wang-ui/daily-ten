@@ -139,7 +139,7 @@ textarea{width:100%;height:90px;background:var(--panel2);border:1px solid var(--
 #upd-note{position:fixed;top:calc(env(safe-area-inset-top) + var(--toast-top));left:var(--toast-side);right:var(--toast-side);
   max-width:calc(520px - 2 * var(--toast-side));margin:0 auto;z-index:45;text-align:center;pointer-events:none}
 #app-version{text-align:center}
-/* ---- 搬家引導（D24，js/ui/move.js）：舊網址搬家卡、新網址匯入卡 — 沿用 .card／.btn-sub，加琥珀邊框、步驟編號；沒有動態效果 ---- */
+/* ---- 搬家引導（D24，js/ui/relocate.js）：舊網址搬家卡、新網址匯入卡 — 沿用 .card／.btn-sub，加琥珀邊框、步驟編號；沒有動態效果 ---- */
 .mv-card{border-color:var(--amber)}
 .mv-card h3{color:var(--amber);font-size:16px}
 .mv-card p{color:var(--ink);text-wrap:pretty}

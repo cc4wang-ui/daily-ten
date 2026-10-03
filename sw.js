@@ -21,7 +21,7 @@ const ASSETS = [
   './js/ui/dom.js',
   './js/ui/history.js',
   './js/ui/home.js',
-  './js/ui/move.js',
+  './js/ui/relocate.js',
   './js/ui/program.js',
   './js/ui/session.js',
   './js/ui/setup.js',
