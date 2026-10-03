@@ -293,13 +293,27 @@ test.describe('舊網址（GitHub Pages）：搬家卡', () => {
     const dl = await clickAndDownload(page, '#mv-backup');
     await expect(page.locator('#mv-backup-msg')).toHaveText(`已存好：${dl.name}`);
     await expect(hint, '備份過但仍沒有紀錄 → 照樣提醒').toBeVisible();
+    /* renderHome 重新判斷（切分頁回來、重開）：備份過（lastBackupAt 有值）但仍沒有紀錄 → 照樣提醒（看 hasNoRecords，不是 isFreshState） */
+    expect((await storedState(page)).meta.lastBackupAt).toBe(NOW_ISO);
+    await gotoTab(page, 's-hist');
+    await gotoTab(page, 's-home');
+    await expect(hint, '切分頁回來').toBeVisible();
+    await page.reload();
+    await waitReady(page);
+    await expect(hint, '重開').toBeVisible();
   });
 
-  for (const [fixture, empty] of [['empty-arrays.json', true], ['v1-minimal.json', false], ['v2-missing-fields.json', false],
-    ['v2-wrong-types.json', false], ['v3.json', false], ['v3-reverted-to-v2.json', false]]) {
+  /* 沒有紀錄但備份過（例如在 Safari 下載過空的備份）：仍是「這裡沒有紀錄」→ 照樣提醒 */
+  const emptyBacked = () => {
+    const s = JSON.parse(readFixture('empty-arrays.json'));
+    s.meta = { lastBackupAt: '2026-10-01T10:00:00+09:00' };
+    return JSON.stringify(s);
+  };
+  for (const [fixture, empty] of [['empty-arrays.json', true], ['empty-arrays.json＋lastBackupAt', true], ['v1-minimal.json', false],
+    ['v2-missing-fields.json', false], ['v2-wrong-types.json', false], ['v3.json', false], ['v3-reverted-to-v2.json', false]]) {
     test(`無紀錄提醒依資料判斷：${fixture} → ${empty ? '顯示' : '不顯示'}（搬家卡都顯示）`, async ({ page, context, guard }) => {
       const legacy = await simulateSite(context, guard, SITE.legacy);
-      await openOn(page, legacy, { seed: readFixture(fixture) });
+      await openOn(page, legacy, { seed: fixture.endsWith('＋lastBackupAt') ? emptyBacked() : readFixture(fixture) });
       await expect(page.locator('#mv-legacy')).toBeVisible();
       await expect(page.locator('#mv-import')).toBeHidden();
       if (empty) await expect(page.locator('#mv-legacy-empty')).toBeVisible();
