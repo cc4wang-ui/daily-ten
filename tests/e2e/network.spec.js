@@ -2,13 +2,18 @@
    1. 走過所有畫面與流程，context 的每個請求都只到 127.0.0.1（data:／blob: 除外）；YouTube 只是 href，不發請求。
       （每個 e2e 測試另外都有自動守門 guard，見 helpers.js）
    2. 靜態掃描 App 檔：沒有 API key 樣式、沒有 AI 端點、外部網址只有 YouTube 搜尋（與 SVG 命名空間），
-      網路 API 只有 sw.js 的 fetch（快取未命中時抓同源檔案）。 */
+      網路 API 只有 sw.js 的 fetch（快取未命中時抓同源檔案）。
+      D24：與 CI 的 check-repo 同規則——另外只允許 js/ui/relocate.js 裡、與該檔 NEW_APP_URL 完全相同的網址
+      （搬家卡的連結，使用者點了才導覽）；網址從檔案讀，不寫死，正式網址換掉時不用改測試。 */
 import { readdirSync } from 'node:fs';
 import {
   test, expect, readFixture, readRepo, ROOT, openApp, seedState, gotoTab, tick, runWorkoutToEnd
 } from './helpers.js';
 
 const YT = 'https://www.youtube.com/results?search_query=';
+/* 與 .github/scripts/check-repo.mjs 相同：檔名與擷取 NEW_APP_URL 的樣式（單引號、https） */
+const MOVE_FILE = 'js/ui/relocate.js';
+const moveUrlOf = (text) => (text.match(/NEW_APP_URL\s*=\s*'(https:\/\/[^']+)'/) || [])[1];
 
 test('走過四個分頁、示範視窗、訓練、Boss、匯出／匯入、備份：所有請求只到 127.0.0.1，YouTube 不發請求', async ({ page, guard }) => {
   await openApp(page, { now: '2026-10-11T08:00:00+09:00', seed: seedState(readFixture('v2-real.json')) });
@@ -77,8 +82,10 @@ test('前端碼掃描：無 API key、無 AI 端點、外部網址只有 YouTube
   for (const f of files) {
     const text = readRepo(f);
     for (const re of SECRET) if (re.test(text)) problems.push(`${f}：${re}`);
+    const moveUrl = f === MOVE_FILE ? moveUrlOf(text) : undefined;
     for (const m of text.matchAll(/https?:\/\/[^\s"'`)<>]+/g)) {
       if (m[0].startsWith(YT) || m[0].startsWith('http://www.w3.org/')) continue;
+      if (moveUrl && m[0] === moveUrl) continue; // D24：只有 relocate.js 的 NEW_APP_URL 本身
       problems.push(`${f}：外部網址 ${m[0]}`);
     }
     const net = text.match(/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts)\s*\(/g) || [];
@@ -88,4 +95,6 @@ test('前端碼掃描：無 API key、無 AI 端點、外部網址只有 YouTube
     for (const m of text.matchAll(/^\s*import\s[^;]*?from\s*(['"])([^'"]+)\1/gm)) if (!m[2].startsWith('.')) problems.push(`${f}：import from ${m[2]}`);
   }
   expect(problems).toEqual([]);
+  /* relocate.js 的 NEW_APP_URL 讀得到、是 https（與 check-repo 的擷取樣式相同） */
+  expect(moveUrlOf(readRepo(MOVE_FILE)), 'js/ui/relocate.js 的 NEW_APP_URL').toMatch(/^https:\/\//);
 });

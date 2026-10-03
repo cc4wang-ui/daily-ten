@@ -2,7 +2,8 @@
    原則：只透過畫面操作 App；localStorage 只在「開 App 之前寫入 fixture 原文」與「讀出來比對」時碰。
    時間一律用 page.clock 注入，並在開 App 前暫停，讓邊界值（剛好 7 天）與動畫相位可重現。 */
 import { test as base, expect } from '@playwright/test';
-import { readFileSync, writeFileSync, copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -44,12 +45,15 @@ export function isLocalUrl(url) {
   if (/^(data|blob|about):/.test(url)) return true;
   try { return new URL(url).hostname === '127.0.0.1'; } catch { return false; }
 }
+const hostnameOf = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
+/* allowHosts：只放 simulateSite() 用 context.route 整個攔下來的模擬網址（D24 的舊網址／新網址）。
+   那些請求全部由 route.fulfill 回 repo 的檔案（沒有 route.continue），不會真的連網。 */
 export function watchContext(context) {
-  const w = { requests: [], external: [], pageErrors: [], consoleErrors: [], allowConsoleErrors: false };
+  const w = { requests: [], external: [], pageErrors: [], consoleErrors: [], allowConsoleErrors: false, allowHosts: new Set() };
   context.on('request', (req) => {
     const url = req.url();
     w.requests.push(url);
-    if (!isLocalUrl(url)) w.external.push(url);
+    if (!isLocalUrl(url) && !w.allowHosts.has(hostnameOf(url))) w.external.push(url);
   });
   const hook = (p) => {
     p.on('pageerror', (e) => w.pageErrors.push(`${p.url()} → ${e.message}`));
@@ -77,6 +81,17 @@ export const test = base.extend({
     const srv = await switchableServer(upgradePort(testInfo));
     await use(srv);
     await srv.close();
+  },
+  /* D24：模擬 https 網址（simulateSite）又要 Service Worker 時用。Playwright 1.56 的 Chromium 預設不攔截、也不回報
+     Service Worker 自己發的請求（sw.js 本身、install 的 addAll、快取未命中的 fetch），模擬網址的 SW 會去連真的網路（註冊失敗）。
+     PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 時 context.route 與 request 事件也涵蓋 SW 的請求（在 SW 連上時讀取）。
+     只在這個測試期間設定（同一個 worker 的測試依序執行），結束後還原，不影響其他 spec。 */
+  swRouting: async ({}, use) => {
+    const KEY = 'PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS';
+    const prev = process.env[KEY];
+    process.env[KEY] = '1';
+    await use(true);
+    if (prev === undefined) delete process.env[KEY]; else process.env[KEY] = prev;
   }
 });
 
@@ -349,3 +364,85 @@ export function countNavigations(page) {
 /* 真實時間等待（給 SW 的 3 秒 ACK 逾時用；頁面的計時器是假時鐘，不受影響） */
 export const realWait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/* ---------- D24 搬家：網址設定、模擬舊網址／新網址 ---------- */
+/* 一律從 js/ui/relocate.js 讀 NEW_APP_URL／LEGACY_HOSTS（正式網址換掉時不用改測試） */
+export function relocateConfig() {
+  const src = readRepo('js/ui/relocate.js');
+  const url = (src.match(/export\s+const\s+NEW_APP_URL\s*=\s*(['"`])([^'"`]+)\1/) || [])[2];
+  const list = (src.match(/export\s+const\s+LEGACY_HOSTS\s*=\s*\[([^\]]*)\]/) || [])[1];
+  if (!url || list === undefined) throw new Error('js/ui/relocate.js 找不到 NEW_APP_URL 或 LEGACY_HOSTS');
+  const legacyHosts = [...list.matchAll(/(['"`])([^'"`]+)\1/g)].map((m) => m[2]);
+  const u = new URL(url);
+  return { NEW_APP_URL: url, NEW_ORIGIN: u.origin, NEW_HOST: u.hostname, NEW_PATH: u.pathname, LEGACY_HOSTS: legacyHosts };
+}
+
+/* Vercel 會上線的檔案：repo 的檔案扣掉 .vercelignore 排除的（用 git 自己的 gitignore 比對：check-ignore --no-index，
+   .vercelignore 當 core.excludesFile；用一個空的暫存 git 目錄，不管 root 是不是 git repo、也不碰 root）。
+   回傳 { excluded:Set<相對路徑>, deployed(rel) }；沒有 .vercelignore → 全部上線；沒有 git → 丟例外（測試會失敗，不會默默略過）。 */
+const WALK_SKIP = new Set(['.git', 'node_modules', 'test-results', 'playwright-report', 'blob-report']);
+function walkFiles(root, dir = '', out = []) {
+  for (const ent of readdirSync(join(root, dir), { withFileTypes: true })) {
+    if (WALK_SKIP.has(ent.name)) continue;
+    const rel = dir ? `${dir}/${ent.name}` : ent.name;
+    if (ent.isDirectory()) walkFiles(root, rel, out);
+    else if (ent.isFile()) out.push(rel);
+  }
+  return out;
+}
+export function vercelDeploySet(root) {
+  const ignoreFile = join(root, '.vercelignore');
+  if (!existsSync(ignoreFile)) return { excluded: new Set(), deployed: () => true };
+  const files = walkFiles(root);
+  const gitDir = mkdtempSync(join(tmpdir(), 'qa-vercelignore-'));
+  try {
+    execFileSync('git', ['init', '-q', '--bare', gitDir]);
+    let out = '';
+    try {
+      out = execFileSync('git', [`--git-dir=${gitDir}`, `--work-tree=${root}`, '-c', `core.excludesFile=${ignoreFile}`,
+        'check-ignore', '--no-index', '--stdin'], { input: files.join('\n') + '\n', encoding: 'utf8' });
+    } catch (e) {
+      if (e.status === 1) out = ''; // exit 1 = 沒有任何檔案被排除
+      else throw e;
+    }
+    const excluded = new Set(out.split('\n').map((l) => l.trim()).filter(Boolean));
+    return { excluded, deployed: (rel) => !excluded.has(rel) };
+  } finally {
+    rmSync(gitDir, { recursive: true, force: true });
+  }
+}
+
+/* 用 context.route 模擬一個網址（不連網）：origin 底下的每個請求都由這裡回應——prefix 之下對應到 root 的檔案
+   （結尾 / 補 index.html），其他一律 404；沒有 route.continue。guard 會把這個 hostname 視為允許。
+   site = { origin, prefix='/', root, vercel=false }：vercel=true 時只回 .vercelignore 沒排除的檔案（模擬 Vercel 上線的內容）。
+   回傳 { origin, host, prefix, url(path), setRoot(dir), hits[], count(path) }。 */
+export async function simulateSite(context, guard, { origin, prefix = '/', root = REPO_DIR, vercel = false }) {
+  const host = new URL(origin).hostname;
+  if (guard) guard.allowHosts.add(host);
+  let rootDir = resolve(root);
+  let filter = vercel ? vercelDeploySet(rootDir) : null;
+  const hits = [];
+  await context.route(`${origin}/**`, async (route) => {
+    const u = new URL(route.request().url());
+    let p = decodeURIComponent(u.pathname);
+    hits.push(p);
+    if (!p.startsWith(prefix)) return route.fulfill({ status: 404, contentType: 'text/plain', body: 'Not found' });
+    let rel = p.slice(prefix.length);
+    if (rel === '' || rel.endsWith('/')) rel += 'index.html';
+    const file = normalize(join(rootDir, rel));
+    if (!file.startsWith(rootDir + sep) || !existsSync(file) || !statSync(file).isFile() || (filter && !filter.deployed(rel))) {
+      return route.fulfill({ status: 404, contentType: 'text/plain', body: 'Not found' });
+    }
+    return route.fulfill({
+      status: 200, path: file,
+      contentType: SERVE_TYPES[extname(file)] || 'application/octet-stream',
+      headers: { 'Cache-Control': 'no-store' }
+    });
+  });
+  return {
+    origin, host, prefix,
+    url: (path = '') => `${origin}${prefix}${path}`,
+    setRoot(dir) { rootDir = resolve(dir); filter = vercel ? vercelDeploySet(rootDir) : null; },
+    hits,
+    count: (path) => hits.filter((h) => h === path).length
+  };
+}
