@@ -1,6 +1,6 @@
 # Daily Ten — Project State
 
-更新：2026-10-02（Asia/Tokyo，M1 地基）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D21 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
+更新：2026-10-03（Asia/Tokyo，D23 自動更新）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D21 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
 
 ## 版本來源與待找回產物
 
@@ -17,7 +17,7 @@
 
 ## Verified facts
 
-- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、計時引擎、課表）、`js/state/*.js`（資料層）。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v6，預快取全部 App 檔（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
+- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、計時引擎、課表）、`js/state/*.js`（資料層）。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v7（D23 自動更新），預快取全部 App 檔（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
 - **動作示範**：53 個線條動畫，涵蓋所有課表步驟（L1–L5 × 有帶／無帶 × 三組伸展 × 三種區塊 × 加練／恢復／保底／雨天）。步驟名稱以 `DT_DEMOS.keyFor()` 的關鍵字表對應，順序敏感（例：「深蹲蹲坐」「靠牆深蹲」要排在「深蹲」前）。計次動作的動畫週期 = tempo 秒；休息／準備／換組播下一個動作。SETUP 保留 YouTube 搜尋連結當「真人」補充。
 - **狀態**：`daily-ten-state` 存在裝置 localStorage；若環境提供 `window.storage`，程式也嘗試讀寫（D14，M3 評估移除）。M1 起為 **state v3**：保留 v2 全部欄位（level、XP、streak、sessions、六種 PR、七種 body、profile、設定），新增 `habits.sleep/explore`（預設探索項目 DJ）、`goals`（身分宣言）、`phase`（P1）、`game`、`meta.lastBackupAt` 與就寢／起床設定，數值留給 M2a。v1／v2 載入時遷移，冪等；`game` 物件存在即視為已遷移（D12）。M1 期間 legacy `xp`、`streak` 仍是真實來源，每次存檔**複製**到 `game`（不累加）。讀不出來或格式異常 → 原始字串另存 `daily-ten-state.bak-v{N}`、首頁錯誤卡可下載，不白屏。備份：「下載備份」存成 `.json`（iPhone 走分享選單），7 天未備份首頁提醒；匯入：驗證 → 差異預覽 → 兩次確認，壞檔不動現有資料，覆蓋前另存 `daily-ten-state.pre-import`。
 - **一週節奏**：週一／四肩推，週二／五下肢，週三拉與加練，週六三組伸展恢復，週日十動作暖身後輪替 HRP／Plank／跑步測驗。A/B/C 伸展組依日輪替。預設有彈力帶；關閉後切回毛巾／徒手替代。
@@ -49,6 +49,7 @@
 | 2026-09-28 | 重建為新功能：`demos.js` 53 個離線示範動畫、訓練畫面同步播放、SETUP 示範視窗、展示頁動畫、`COMPETITORS.md`；SW 快取 v5。 | PR #6、`ec87e03` |
 | 2026-10-02 | 專案指示檔（CLAUDE.md、PLAN.md、`.claude/`）進 repo；README／HANDOFF 改為 `cc4wang-ui` 網址（D10、D11）。 | PR #7、`8261c3f` |
 | 2026-10-02 | **M1 地基**：拆 ES modules＋設計 token（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。 | PR #8、`3feb97c`；驗證見下 |
+| 2026-10-03 | **D23 自動更新**：開啟／回前景檢查新版、閒置才重新載入（訓練、匯入預覽、輸入中不打斷）、舊頁面由 SW 導向、SETUP 顯示 App 版本；D22 低輸入模式與 `docs/ITERATION.md`；`check-repo` 改為比對 main 的 CACHE；SW v7。 | PR #10；`reports/qa-d23-1.md` PASS |
 
 ## Lessons learned / pitfalls
 
@@ -72,6 +73,7 @@
 | M1 上線後 Cross 手機上仍是舊版：SW cache-first，第一次開啟先給快取的舊版；iPhone 從背景切回不算重開，所以一直停在舊版。M1 外觀刻意不變，也很難看出差別。 | D23：開啟／回前景時檢查新版，閒置才自動重新載入（訓練中不打斷）；不認得新協定的舊頁面由 SW 直接導向新版；SETUP 顯示 App 版本。 |
 | `check-repo` 寫死期望的 CACHE 版號，每次改版都要手動同步。 | 改成比對 main：分支改了 App 檔，CACHE 就必須大於 main 的版號。 |
 | 本環境的 git 權限不能刪除遠端分支（403）。 | 已合併的 6 個舊分支保留，不影響功能。 |
+| Vercel 用 MCP 建專案連 GitHub 回 400「需要先安裝 GitHub integration」，但同帳號其他專案已連 GitHub。 | Vercel 的 GitHub App 是「只限選定 repo」，daily-ten 不在清單；要 Cross 在 GitHub 的 App 設定把 daily-ten 加進去（本環境無法代辦）。 |
 | Playwright 截圖比對的雜訊：fake clock 會讓兩個分頁的動畫相位不同、fullPage 截圖固定分頁列會飄、圓角有 ±1 像素差。 | 載入後先對齊時間、逐屏截圖再拼接、Chromium 加 `--disable-partial-raster`；同版本自比 0 px 後才拿來比對。 |
 
 ## Open failures / unverified
@@ -97,7 +99,9 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 ## Last session — 2026-10-03
 
-Cross 回報「網址還是舊版」→ 做 D23 自動更新＋版本顯示（PR 見 GitHub）；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`；部署平台與 Drive 週報待 Cross 單選（A 搬 Vercel＋Drive 週報／B 只搬 Vercel／C 留 Pages＋Drive／D 不變）。
+Cross 回報「網址還是舊版」→ D23 自動更新＋版本顯示；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`。qa-checker D23 第 1 輪 PASS（312 passed ×2、植入 14 個缺陷全抓到，`reports/qa-d23-1.md`）。Cross 選 A：搬 Vercel＋Drive 週報。進度：Vercel 建專案被擋（Vercel 的 GitHub App 沒有 daily-ten 的存取權，需 Cross 在 GitHub 加入）；週報 routine 待 Cross 確認 loop 契約。
+
+**已點名的取捨（v6→v7 一次性）**：v7 上線後第一次冷啟動先看到快取的 v6；v6 不懂新協定，約 6–7 秒後由 SW 強制導向 v7。這幾秒內若已開始訓練，會被刷新一次（訓練剛開始、還沒記錄，其他資料不變；網路慢時這段會拉長）。選擇照現況上線（Cross 明確要求「不要讓我自己修」），真機清單第 1 條提醒先等畫面自己刷新再訓練；v7 起的頁面都會回 ACK，訓練中不再被打斷。另：v6 沒有「回前景檢查」，這一次仍要從多工畫面滑掉再開，之後才全自動。
 
 ## Session — 2026-10-02
 

@@ -37,7 +37,9 @@ flowchart TD
 3. **資料**：App 本身不連網、無帳號（原則 1 不變）。週報分析只讀 Cross 自己存下的備份檔。
 4. **App 內調整優先**：能用 `data/*.json` 的規則讓 App 自己適應的（目標、難度、階段），不改程式；需要改程式的才進 ⑥。
 
-## 待 Cross 決定（2026-10-03 提出）
+## 部署與週報（Cross 2026-10-03 選 A）
 
-步驟 ④ 需要讀得到備份檔。選項：A 搬 Vercel＋Drive 週報（建議）／B 只搬 Vercel／C 留 GitHub Pages＋Drive 週報／D 都不變。
-決定前：④ 改為 Cross 說「繼續」時，由當次 session 依 `HANDOFF.md` 提案。
+- **部署**：搬到 Vercel（每個 PR 有預覽網址、可設 header、獨立網址不和其他 Pages 專案共用儲存）。舊網址留一張搬家卡，引導下載備份 → 新網址匯入。
+- **週報（步驟 ④）**：Cross 每週把備份存到自己的 Google Drive（分享選單 → Drive）；每週日晚上一個排程 session 只讀 Drive 上最新的備份，產出週報＋3 個提案，推播給 Cross。App 本身仍不連網、無帳號。
+- 週報不寫回 repo（repo 是公開的），也不寫 Drive；排程上線前先給 Cross 確認 loop 契約（NAME／TRIGGER／GOAL／STOP／BUDGET／FAIL）。
+- 上線前：④ 改為 Cross 說「繼續」時，由當次 session 依 `HANDOFF.md` 提案。
