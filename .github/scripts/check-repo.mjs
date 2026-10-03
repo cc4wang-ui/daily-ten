@@ -82,6 +82,9 @@ const SECRET_PATTERNS = [
   [/api\.openai\.com|api\.anthropic\.com|typesafe\.ai|generativelanguage\.googleapis\.com/i, 'AI 端點']
 ];
 const frontFiles = [...appFiles, 'sw.js'].filter((f) => f.endsWith('.js') || f.endsWith('.html') || f.endsWith('.css') || f.endsWith('.json') || f.endsWith('.webmanifest'));
+// D24：App 自己的新網址只准出現在 js/ui/move.js 的 NEW_APP_URL（搬家卡的連結，使用者點了才導覽）
+const MOVE_FILE = 'js/ui/move.js';
+const moveUrl = existsSync(join(ROOT, MOVE_FILE)) ? (read(MOVE_FILE).match(/NEW_APP_URL\s*=\s*'(https:\/\/[^']+)'/) || [])[1] : undefined;
 for (const rel of frontFiles) {
   const text = read(rel);
   for (const [re, label] of SECRET_PATTERNS) {
@@ -92,6 +95,7 @@ for (const rel of frontFiles) {
     const url = m[0];
     if (url.startsWith('https://www.youtube.com/results?search_query=')) continue;
     if (url.startsWith('http://www.w3.org/')) continue; // SVG／XML 命名空間，不是網路請求
+    if (rel === MOVE_FILE && moveUrl && url === moveUrl) continue;
     fail('frontend', `${rel}:${lineOf(text, m.index)} 外部網址 ${url}`);
   }
 }

@@ -1,0 +1,14 @@
+# 只上線 App 檔；開發、測試、文件不部署（D24）
+.claude
+.github
+docs
+reports
+tests
+tools
+node_modules
+playwright-report
+test-results
+package.json
+package-lock.json
+playwright.config.js
+*.md
