@@ -1,6 +1,6 @@
 # Daily Ten — Project State
 
-更新：2026-10-03（Asia/Tokyo，D23 自動更新）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D21 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
+更新：2026-10-04（Asia/Tokyo，D24 上線、D26 改版順序）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D26 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
 
 ## 版本來源與待找回產物
 
@@ -17,7 +17,7 @@
 
 ## Verified facts
 
-- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、計時引擎、課表）、`js/state/*.js`（資料層）。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v7（D23 自動更新），預快取全部 App 檔（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
+- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、計時引擎、課表）、`js/state/*.js`（資料層）。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v8（D23 自動更新、D24 搬家卡），預快取全部 App 檔（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
 - **動作示範**：53 個線條動畫，涵蓋所有課表步驟（L1–L5 × 有帶／無帶 × 三組伸展 × 三種區塊 × 加練／恢復／保底／雨天）。步驟名稱以 `DT_DEMOS.keyFor()` 的關鍵字表對應，順序敏感（例：「深蹲蹲坐」「靠牆深蹲」要排在「深蹲」前）。計次動作的動畫週期 = tempo 秒；休息／準備／換組播下一個動作。SETUP 保留 YouTube 搜尋連結當「真人」補充。
 - **狀態**：`daily-ten-state` 存在裝置 localStorage；若環境提供 `window.storage`，程式也嘗試讀寫（D14，M3 評估移除）。M1 起為 **state v3**：保留 v2 全部欄位（level、XP、streak、sessions、六種 PR、七種 body、profile、設定），新增 `habits.sleep/explore`（預設探索項目 DJ）、`goals`（身分宣言）、`phase`（P1）、`game`、`meta.lastBackupAt` 與就寢／起床設定，數值留給 M2a。v1／v2 載入時遷移，冪等；`game` 物件存在即視為已遷移（D12）。M1 期間 legacy `xp`、`streak` 仍是真實來源，每次存檔**複製**到 `game`（不累加）。讀不出來或格式異常 → 原始字串另存 `daily-ten-state.bak-v{N}`、首頁錯誤卡可下載，不白屏。備份：「下載備份」存成 `.json`（iPhone 走分享選單），7 天未備份首頁提醒；匯入：驗證 → 差異預覽 → 兩次確認，壞檔不動現有資料，覆蓋前另存 `daily-ten-state.pre-import`。
 - **一週節奏**：週一／四肩推，週二／五下肢，週三拉與加練，週六三組伸展恢復，週日十動作暖身後輪替 HRP／Plank／跑步測驗。A/B/C 伸展組依日輪替。預設有彈力帶；關閉後切回毛巾／徒手替代。
@@ -50,6 +50,7 @@
 | 2026-10-02 | 專案指示檔（CLAUDE.md、PLAN.md、`.claude/`）進 repo；README／HANDOFF 改為 `cc4wang-ui` 網址（D10、D11）。 | PR #7、`8261c3f` |
 | 2026-10-02 | **M1 地基**：拆 ES modules＋設計 token（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。 | PR #8、`3feb97c`；驗證見下 |
 | 2026-10-03 | **D23 自動更新**：開啟／回前景檢查新版、閒置才重新載入（訓練、匯入預覽、輸入中不打斷）、舊頁面由 SW 導向、SETUP 顯示 App 版本；D22 低輸入模式與 `docs/ITERATION.md`；`check-repo` 改為比對 main 的 CACHE；SW v7。 | PR #10；`reports/qa-d23-1.md` PASS |
+| 2026-10-03 | **D24 搬到 Vercel**：正式網址 `daily-ten-app.vercel.app`（轉送 GitHub Pages）、舊網址搬家卡、新網址匯入卡、`check-repo` 的新網址與 `.vercelignore` 規則；D25 週報排程；SW v8。 | PR #11；`reports/qa-d24-1.md` PASS |
 
 ## Lessons learned / pitfalls
 
@@ -101,7 +102,11 @@ Playwright＋Chromium 1194、375×667 視窗、本機 HTTP：v1 舊資料遷移�
 
 資料層單元測試 200 項（fixture：v1、v2 真實、v2 缺欄位、v2 型別錯、空陣列、v3、被改回 v2、壞 JSON、四種壞匯入檔）；拆 module 前後與 `ec87e03` 截圖比對（ui-engineer 自測 233＋237 張，除 SETUP 資料備份卡外 0 px）；用語表 self-test 108 項、新增違規 0；`check-repo`（失效網址、SW v6 預快取、前端掃描）通過。qa-checker 獨立驗收：第 1 輪 PASS（266 passed／0 failed，含 e2e 66 項：遷移、訓練全流程、匯入壞檔、備份與提醒邊界、載入失敗、離線、main SW v5→v6 升級路徑、與 `ec87e03` 像素比對 0 px；植入 15 個缺陷全部抓到），GitHub Actions 第 4 次執行同一套全綠；第 2 輪驗收連點保護，見 `reports/qa-m1-*.md`。**未驗證**：iPhone 真機全部項目。
 
-## Last session — 2026-10-03
+## Last session — 2026-10-04
+
+Cross 放棄搬舊資料（舊網址紀錄很少），直接在新網址從頭開始。Cross 問「為什麼上線版和 mockup 差這麼多」→ qa-checker 差異報告：mockup 之後的 5 個 PR 都是地基，M1 明文畫面零變更、CI 逐像素比對 9/28 版；mockup 55 項中現況有 5、部分 11、沒有 39；計畫缺口（mockup 未進 repo、成就與 5 分頁未排、BODY／PR／設定在 mockup 沒位置、Google Fonts 衝突、探索分鐘數不在 state）。ui-engineer 排程評估三方案；**Cross 選 B（D26）**：外觀、三環、早安打卡一起先上，Milestone 改為 V1–V5。mockup 原始檔與截圖放進 `docs/vnext-mockup/`。V1 開工：game-designer（engine 第一刀）、data-guardian（habits 寫入 API）、ui-engineer（亮色外殼、分頁、三環、打卡）平行。
+
+## Session — 2026-10-03
 
 Cross 回報「網址還是舊版」→ D23 自動更新＋版本顯示；定 D22 低輸入模式（QA PASS＋CI 綠燈即 merge）與每週迭代迴圈 `docs/ITERATION.md`。qa-checker D23 第 1 輪 PASS（312 passed ×2、植入 14 個缺陷全抓到，`reports/qa-d23-1.md`）。PR #10 merge，GitHub Pages 部署 v7。Cross 選 A：搬 Vercel＋Drive 週報。搬家 PR（D24，SW v8）：舊網址搬家卡、新網址匯入卡、Vercel 設定、check-repo 新增「`.vercelignore` 不得排除預快取檔」與「新網址只准出現在 relocate.js」。Vercel 連不到 cc4wang-ui 的 repo（Vercel 的 GitHub 連線在另一個 GitHub 帳號；GitHub App 授權、公開 repo 部署都失敗）→ Cross：「直接新建一個」：Vercel 專案 `daily-ten` 不連 GitHub，只部署轉送設定（`tools/deploy/vercel-proxy.json`）：正式網址 `daily-ten-app.vercel.app` 轉送 GitHub Pages，merge 後自動同步（`docs/DEPLOY.md`）。週報契約 Cross 確認（「全部授權ok」）；用工具建的排程帶不進連接器，改綁本 session。
 

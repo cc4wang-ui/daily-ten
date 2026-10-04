@@ -66,6 +66,7 @@
 | `COMPETITORS.md` | 競品對標與取捨 |
 | `CLAUDE.md`、`PLAN.md`、`.claude/` | 開發指示、本版計畫、subagent 與流程定義 |
 | `docs/ITERATION.md` | 每週迭代迴圈、Cross 的輸入點、週報契約（D22、D25） |
+| `docs/vnext-mockup/` | v-next 設計目標（mockup 原始檔與截圖，D26） |
 | `PROJECT_STATE.md` | 進度、架構、決策、踩坑與待辦的單一專案紀錄 |
 | `HANDOFF.md` | 下一個對話的精簡接手指令 |
 | `package.json`、`playwright.config.js`、`tests/` | 自動測試（僅開發用；App 執行不需要） |

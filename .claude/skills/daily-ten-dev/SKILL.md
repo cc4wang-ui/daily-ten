@@ -28,12 +28,14 @@ Subagents 不能再派 subagent，所有派工都由主 session 發出。
 ## Phase 1 — 派工
 同一列可平行，跨列依序。每個任務 prompt 必附：目標、擁有檔案、完成條件、禁止事項。
 
-| Milestone | 第 1 波（平行） | 第 2 波 | 第 3 波 |
+| Milestone（D26） | 第 1 波（平行） | 第 2 波 | 第 3 波 |
 |---|---|---|---|
 | M1 | data-guardian（v3 schema、遷移、備份/匯入）＋ ui-engineer（ES module 拆分、tokens，行為零變更）＋ jev-compiler（用語表檢查腳本） | Orchestrator：指示檔、網址、`package.json`、CI、`sw.js` | qa-checker |
-| M2a | game-designer（engine、sleep、階段、目標、sim）＋ data-guardian（欄位補強） | ui-engineer（早安打卡、週回顧、季度目標、D6 卡、`.ics`） | qa-checker |
-| M2b | game-designer（explore、學習專案升級、時間預算） | ui-engineer（探索打卡、探索清單） | qa-checker |
-| M3 | jev-compiler（coach-table、文案合規）＋ ui-engineer（今日首頁、三環、圖表、動畫、離線字型、修正既有陸式用語） | ui-engineer 接入 coach-table | qa-checker |
+| V1 | game-designer（engine 第一刀、`data/game.json`）＋ data-guardian（habits 寫入 API、匯入驗證）＋ ui-engineer（亮色外殼、分頁重組、三環與打卡版面） | ui-engineer（三環、早安打卡接 engine） | qa-checker |
+| V2 | game-designer（freeze、Perfect Day、D6、D19、目標、sim）＋ data-guardian（D12 反向雙寫、欄位補強） | ui-engineer（目標分頁、慶祝、升級卡、D6／回歸卡、`.ics`） | qa-checker |
+| V3 | game-designer（成就條件資料化）＋ ui-engineer（SVG 圖表元件） | ui-engineer（統計、成就分頁） | qa-checker |
+| V4 | game-designer（explore、學習專案升級、時間預算）＋ data-guardian（探索分鐘數欄位） | ui-engineer（探索打卡、探索清單） | qa-checker |
+| V5 | jev-compiler（coach-table、文案合規）＋ ui-engineer（暗色、訓練畫面新風格、字型定案） | ui-engineer 接入 coach-table | qa-checker |
 
 ## Phase 2 — 驗證迴圈
 - qa-checker 回 `PASS` → Phase 3。
