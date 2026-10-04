@@ -39,7 +39,7 @@
     {"date":"2026-09-29","type":"full","xp":10},
     {"date":"2026-09-30","type":"cycle","xp":15},
     {"date":"2026-10-01","type":"full","xp":10},
-    {"date":"2026-10-02","type":"full","xp":10},
+    {"date":"2026-10-02","type":"full","xp":10,"plus":true},
     {"date":"2026-10-03","type":"rest","xp":5},
     {"date":"2026-10-04","type":"minimal","xp":3}
   ],
@@ -120,7 +120,7 @@
     "voice": true,
     "beep": false,
     "band": false,
-    "bedtime": "23:00",
+    "bedtime": "23:30",
     "wakeTime": "07:00",
     "windowMin": 30,
     "phoneDownMin": 30
@@ -128,9 +128,9 @@
   "habits": {
     "sleep": {
       "log": [
-        {"date":"2026-10-02","lightsOut":"2026-10-01T23:00:00+09:00","wake":"2026-10-02T06:51:40+09:00","lightsOutEdited":false},
-        {"date":"2026-10-03","lightsOut":"2026-10-03T00:40:00+09:00","wake":"2026-10-03T07:25:05+09:00","lightsOutEdited":true},
-        {"date":"2026-10-04","lightsOut":"2026-10-03T23:00:00+09:00","wake":"2026-10-04T06:58:12+09:00","lightsOutEdited":false}
+        {"date":"2026-10-02","lightsOut":"2026-10-01T23:00:00+09:00","wake":"2026-10-02T06:51:40+09:00","lightsOutEdited":false,"target":{"bedtime":"23:00","wakeTime":"07:00","windowMin":30}},
+        {"date":"2026-10-03","lightsOut":"2026-10-03T00:40:00+09:00","wake":"2026-10-03T07:25:05+09:00","lightsOutEdited":true,"target":{"bedtime":"23:00","wakeTime":"07:00","windowMin":30}},
+        {"date":"2026-10-04","lightsOut":"2026-10-03T23:30:00+09:00","wake":"2026-10-04T06:45:00+09:00","lightsOutEdited":false,"wakeEdited":true,"target":{"bedtime":"23:30","wakeTime":"07:00","windowMin":30}}
       ]
     },
     "explore": {

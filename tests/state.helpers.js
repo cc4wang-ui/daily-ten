@@ -14,11 +14,14 @@ export const GOOD_FIXTURES = ['v1-minimal.json', 'v2-real.json', 'v2-missing-fie
   'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json',
   'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json'];
 
-/* B1 早安打卡 fixture 的 sleep log（v3-checkin.json 與 v3-checkin-reverted-to-v2.json 相同） */
+/* B1 早安打卡 fixture 的 sleep log（v3-checkin.json 與 v3-checkin-reverted-to-v2.json 相同）
+   10-03 晚上就寢目標從 23:00 改成 23:30：前兩筆的 target 仍是 23:00（改設定不重算過去） */
+export const TARGET_2300 = Object.freeze({ bedtime: '23:00', wakeTime: '07:00', windowMin: 30 });
+export const TARGET_2330 = Object.freeze({ bedtime: '23:30', wakeTime: '07:00', windowMin: 30 });
 export const CHECKIN_LOG = [
-  { date: '2026-10-02', lightsOut: '2026-10-01T23:00:00+09:00', wake: '2026-10-02T06:51:40+09:00', lightsOutEdited: false },
-  { date: '2026-10-03', lightsOut: '2026-10-03T00:40:00+09:00', wake: '2026-10-03T07:25:05+09:00', lightsOutEdited: true },
-  { date: '2026-10-04', lightsOut: '2026-10-03T23:00:00+09:00', wake: '2026-10-04T06:58:12+09:00', lightsOutEdited: false }
+  { date: '2026-10-02', lightsOut: '2026-10-01T23:00:00+09:00', wake: '2026-10-02T06:51:40+09:00', lightsOutEdited: false, target: { ...TARGET_2300 } },
+  { date: '2026-10-03', lightsOut: '2026-10-03T00:40:00+09:00', wake: '2026-10-03T07:25:05+09:00', lightsOutEdited: true, target: { ...TARGET_2300 } },
+  { date: '2026-10-04', lightsOut: '2026-10-03T23:30:00+09:00', wake: '2026-10-04T06:45:00+09:00', lightsOutEdited: false, wakeEdited: true, target: { ...TARGET_2330 } }
 ];
 export const CHECKIN_STARTED_AT = '2026-10-02T06:50:10+09:00';
 

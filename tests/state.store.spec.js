@@ -2,7 +2,11 @@
 import { test, expect } from '@playwright/test';
 import { STORAGE_KEY, BACKUP_KEY_PREFIX, loadState, getState, setState, saveState, migrateState } from '../js/state/store.js';
 import { defaultState } from '../js/state/schema.js';
+import { isoLocal } from '../js/state/time.js';
 import { readFixture, loadFixture, NOW, MemoryStorage, WindowStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords } from './state.helpers.js';
+
+/* 載入後 phase.startedAt 沒有就補 isoLocal(now)（只在記憶體，B1） */
+const started = (s) => { s.phase.startedAt = isoLocal(NOW); return s; };
 
 useTokyoTime(test);
 test.afterEach(() => clearGlobals());
@@ -22,13 +26,13 @@ test.describe('loadState：狀態', () => {
     clearGlobals();
     const r = await loadState({ now: NOW });
     expect(r).toStrictEqual({ status: 'fresh', error: null });
-    expect(getState()).toStrictEqual(defaultState(NOW));
+    expect(getState()).toStrictEqual(started(defaultState(NOW)));
   });
 
   test('沒有資料 → fresh（不寫入任何 key）', async () => {
     const local = withLocal();
     expect(await loadState({ now: NOW })).toStrictEqual({ status: 'fresh', error: null });
-    expect(getState()).toStrictEqual(defaultState(NOW));
+    expect(getState()).toStrictEqual(started(defaultState(NOW)));
     expect(local.keys()).toEqual([]);
   });
 
@@ -36,7 +40,7 @@ test.describe('loadState：狀態', () => {
     const raw = readFixture('v3.json');
     const local = withLocal(raw);
     expect(await loadState({ now: NOW })).toStrictEqual({ status: 'ok', error: null });
-    expect(getState()).toStrictEqual(loadFixture('v3.json'));
+    expect(getState()).toStrictEqual(started(loadFixture('v3.json')));
     expect(local.keys()).toEqual([STORAGE_KEY]);
   });
 
@@ -79,8 +83,8 @@ test.describe('loadState：狀態', () => {
     expect(r).toStrictEqual({ status: 'repaired', error: { code: 'repaired', message: MSG_REPAIRED, backupKey: 'daily-ten-state.bak-v3' } });
     expect(local.getItem('daily-ten-state.bak-v3')).toBe(raw);
     expect(local.getItem(STORAGE_KEY)).toBe(raw);
-    expect(getState().habits.sleep.log.map((e) => e.date)).toEqual(['2026-10-02', '2026-10-04', '2026-10-05', '2026-10-02', '2026-10-10']);
-    expect(getState().phase.startedAt).toBe(null);
+    expect(getState().habits.sleep.log.map((e) => e.date)).toEqual(['2026-10-02', '2026-10-04', '2026-10-05', '2026-10-02', '2026-10-10', '2026-10-11']);
+    expect(getState().phase.startedAt).toBe(isoLocal(NOW)); // 'yesterday' 修補成 null，載入後再補上
     expect(getState().xp).toBe(411);
   });
 
@@ -102,7 +106,7 @@ test.describe('loadState：狀態', () => {
     expect(r).toStrictEqual({ status: 'recovered', error: { code: 'parse', message: MSG_RECOVERED, backupKey: BAK2 } });
     expect(local.getItem(BAK2)).toBe(raw);
     expect(local.getItem(STORAGE_KEY)).toBe(raw);
-    expect(getState()).toStrictEqual(defaultState(NOW));
+    expect(getState()).toStrictEqual(started(defaultState(NOW)));
   });
 
   test('JSON 但不是物件（null、陣列、字串、數字）→ recovered（migrate）', async () => {
@@ -113,7 +117,7 @@ test.describe('loadState：狀態', () => {
       expect(r.error.code).toBe('migrate');
       expect(local.getItem(r.error.backupKey)).toBe(raw);
       expect(local.getItem(STORAGE_KEY)).toBe(raw);
-      expect(getState()).toStrictEqual(defaultState(NOW));
+      expect(getState()).toStrictEqual(started(defaultState(NOW)));
     }
   });
 

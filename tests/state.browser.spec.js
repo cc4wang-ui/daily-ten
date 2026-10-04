@@ -139,7 +139,7 @@ test('壞 state → recovered：原字串存在 bak-v2，downloadRawBackup 下�
   expect(await readFile(await download.path(), 'utf8')).toBe(corrupt);
 });
 
-test('早安打卡（habits.js）：寫入 localStorage、重新整理後還在、復原後消失；ensurePhaseStarted 不寫主 key', async ({ page }) => {
+test('早安打卡（habits.js）：寫入 localStorage、重新整理後還在、復原後消失；載入補 startedAt 不寫主 key', async ({ page }) => {
   const raw = readFixture('v3.json');
   const ENTRY = { date: '2026-10-05', lightsOut: '2026-10-04T23:00:00+09:00', wake: '2026-10-05T06:58:00+09:00', lightsOutEdited: false };
   const first = await page.evaluate(async ({ raw, entry }) => {
@@ -156,7 +156,7 @@ test('早安打卡（habits.js）：寫入 localStorage、重新整理後還在�
     return { load, phase, untouched, add: { ok: add.ok, entry: add.entry }, saved, dup: { ok: dup.ok, code: dup.code, message: dup.message } };
   }, { raw, entry: ENTRY });
   expect(first.load).toStrictEqual({ status: 'ok', error: null });
-  expect(first.phase).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-05T06:55:00+09:00' });
+  expect(first.phase).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-05T06:55:00+09:00' }); // loadState 已補上
   expect(first.untouched).toBe(true);
   expect(first.add).toStrictEqual({ ok: true, entry: ENTRY });
   expect(first.saved).toBe(true);
@@ -206,7 +206,7 @@ test('壞打卡紀錄 → repaired：原字串存在 bak-v3、App 資料可用�
   });
   expect(out.bak).toBe(true);
   expect(out.main).toBe(true);
-  expect(out.dates).toEqual(['2026-10-02', '2026-10-04', '2026-10-05', '2026-10-02', '2026-10-10']);
+  expect(out.dates).toEqual(['2026-10-02', '2026-10-04', '2026-10-05', '2026-10-02', '2026-10-10', '2026-10-11']);
   expect(out.importOk).toBe(true);
 });
 

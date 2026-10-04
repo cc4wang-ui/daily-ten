@@ -9,13 +9,15 @@
                           repaired／recovered 會先把「原始字串」存到 backupKey（daily-ten-state.bak-v{N}），
                           message 是給使用者看的繁中；UI 可用 backup.js 的 downloadRawBackup(backupKey) 下載。
                           loadState 不覆寫主 key：遷移結果在下次 saveState 才寫入。
+                          B1：載入後（任何 status）phase.startedAt 若沒有就填入 isoLocal(now)（fillPhaseStartedAt）——
+                          同樣只改記憶體、下次 saveState 才寫入；已有值不覆寫。
      getState()         → 目前的 state 物件。每次用到都重新呼叫，不要快取參照（匯入會換成新物件）
      setState(next)     → 換掉記憶體中的 state
      saveState()        → Promise<boolean>：先 mirrorLegacyToGame，再寫入 window.storage（若有）與 localStorage
      migrateState(raw)  → 遷移後的 state（新物件，不改動 raw），失敗回 null（不丟例外）
    另外提供：BACKUP_KEY_PREFIX（'daily-ten-state.bak-v'） */
 import { SCHEMA_VERSION, defaultState, isPlainObject } from './schema.js';
-import { migrate, mirrorLegacyToGame } from './migrate.js';
+import { migrate, mirrorLegacyToGame, fillPhaseStartedAt } from './migrate.js';
 import { compactStamp } from './time.js';
 
 export const STORAGE_KEY = 'daily-ten-state';
@@ -124,6 +126,12 @@ function backupError(code, kind, candidate, key) {
 }
 
 export async function loadState({ now = new Date() } = {}) {
+  const result = await loadInto(now);
+  try { fillPhaseStartedAt(state, now); } catch (e) { /* 補不上就維持 null：engine 會改用第一次打卡當第 1 天 */ }
+  return result;
+}
+
+async function loadInto(now) {
   const candidates = await readCandidates();
   if (!candidates.length) {
     state = defaultState(now);

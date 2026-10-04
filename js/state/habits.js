@@ -4,14 +4,17 @@
    對外：
      validateSleepEntry(entry) → {ok:true, entry} | {ok:false, field, message}
                                  純函式、不碰 state（game-designer 的 buildCheckIn 產物可先用它自我檢查）。
-                                 entry = {date, lightsOut, wake, lightsOutEdited}，四個欄位都必填：
-                                   date             'YYYY-MM-DD'（遊戲日；必須是真實存在的日期）
-                                   lightsOut、wake  含時區的 ISO 時間（建議用 time.js 的 isoLocal；也接受 Z 結尾）
-                                   lightsOutEdited  true／false
+                                 entry = {date, lightsOut, wake, lightsOutEdited, wakeEdited?, target?}
+                                   date             必填 'YYYY-MM-DD'（遊戲日，04:00 換日；只檢查格式，不和 wake 的日曆日比）
+                                   lightsOut、wake  必填，含時區的 ISO 時間（建議用 time.js 的 isoLocal；也接受 Z 結尾）
+                                   lightsOutEdited  必填 true／false
+                                   wakeEdited       選填 true／false（起床時間被往前改時 game-designer 寫 true）
+                                   target           選填 {bedtime:'HH:MM', wakeTime:'HH:MM', windowMin:0–1440 整數} 或 null
+                                                    （打卡當時的目標；只保留這三個欄位，存成複本）
                                    熄燈必須早於起床，且相隔不超過 24 小時
-                                 回傳的 entry 只有這四個欄位、依此順序（其他欄位不寫入；要加欄位請經 data-guardian）。
+                                 回傳的 entry 依此順序；有給 wakeEdited／target 才會有。其他欄位不寫入（要加欄位請經 data-guardian）。
      addSleepEntry(entry)      → {ok:true, entry, saved} | {ok:false, code, field?, message}
-                                 code：invalid（形狀不對，field = 'entry'|'date'|'lightsOut'|'wake'|'lightsOutEdited'）
+                                 code：invalid（形狀不對，field = 'entry'|'date'|'lightsOut'|'wake'|'lightsOutEdited'|'wakeEdited'|'target'）
                                        duplicate（同一個 date 已有紀錄）| full（筆數達上限）
                                        not_loaded（還沒 loadState）| corrupt（記憶體中的 habits.sleep.log 不是陣列）| error
                                  依 date 排序插入（打卡一定是最新的一天 → 加在最後）。
@@ -22,13 +25,15 @@
                                  找不到 → {ok:true, removed:0}，不寫入（連按兩次復原不會出錯）。
      ensurePhaseStarted(now)   → {ok:true, changed, startedAt} | {ok:false, code, message}
                                  phase.startedAt 是 null（或不是含時區的時間）才寫入 isoLocal(now)；已有值不覆寫（冪等）。
+                                 loadState 載入後已經自動補上（同一個 fillPhaseStartedAt），所以 UI 只需要在
+                                 applyImport() 成功之後呼叫（匯入的舊備份沒有 startedAt）。
                                  只改記憶體、不呼叫 saveState：維持「loadState 不覆寫主 key」的規則
                                  （recovered 且另存失敗時，主 key 是原始資料唯一的副本），下一次任何 saveState 會一併寫入。
-                                 UI 在 loadState() 之後、applyImport() 成功之後各呼叫一次。
      SLEEP_MAX_GAP_HOURS = 24 */
 import { getState, saveState } from './store.js';
-import { LIMITS, isPlainObject } from './schema.js';
-import { isoLocal, isValidDateStr, isIsoWithOffset } from './time.js';
+import { LIMITS, TIME_RE, isPlainObject } from './schema.js';
+import { fillPhaseStartedAt } from './migrate.js';
+import { isValidDateStr, isIsoWithOffset } from './time.js';
 
 export const SLEEP_MAX_GAP_HOURS = 24;
 const HOUR_MS = 3600000;
@@ -40,6 +45,8 @@ const MSG = {
   lightsOut: '熄燈時間（lightsOut）應為含時區的時間，例如 2026-10-03T23:00:00+09:00',
   wake: '起床時間（wake）應為含時區的時間，例如 2026-10-04T06:58:00+09:00',
   edited: '熄燈時間是否修改過（lightsOutEdited）應為 true 或 false',
+  wakeEdited: '起床時間是否修改過（wakeEdited）應為 true 或 false',
+  target: '打卡當時的目標（target）格式不正確：bedtime、wakeTime 應為 HH:MM，windowMin 應為 0–1440 的整數',
   order: '熄燈時間要早於起床時間',
   gap: `熄燈到起床超過 ${SLEEP_MAX_GAP_HOURS} 小時，請確認熄燈時間`,
   full: `睡眠紀錄已達上限（${fmt(LIMITS.arrayLength)} 筆）`,
@@ -74,6 +81,16 @@ function insertIndex(log, date) {
   return i;
 }
 
+/* target：null → null；物件 → 只取三個欄位的複本（不和 settings 共用參照）；格式錯 → undefined */
+function checkTarget(t) {
+  if (t === null) return null;
+  if (!isPlainObject(t)) return undefined;
+  const { bedtime, wakeTime, windowMin } = t;
+  const okTime = (v) => typeof v === 'string' && TIME_RE.test(v);
+  const okMin = Number.isInteger(windowMin) && windowMin >= 0 && windowMin <= LIMITS.minutesPerDay;
+  return okTime(bedtime) && okTime(wakeTime) && okMin ? { bedtime, wakeTime, windowMin } : undefined;
+}
+
 function persist() {
   try {
     return Promise.resolve(saveState()).catch(() => false);
@@ -85,15 +102,21 @@ function persist() {
 export function validateSleepEntry(entry) {
   try {
     if (!isPlainObject(entry)) return invalid('entry', MSG.entry);
-    const { date, lightsOut, wake, lightsOutEdited } = entry;
+    const { date, lightsOut, wake, lightsOutEdited, wakeEdited, target } = entry;
     if (!isValidDateStr(date)) return invalid('date', MSG.date);
     if (!isIsoWithOffset(lightsOut)) return invalid('lightsOut', MSG.lightsOut);
     if (!isIsoWithOffset(wake)) return invalid('wake', MSG.wake);
     if (typeof lightsOutEdited !== 'boolean') return invalid('lightsOutEdited', MSG.edited);
+    if (wakeEdited !== undefined && typeof wakeEdited !== 'boolean') return invalid('wakeEdited', MSG.wakeEdited);
+    const t = target === undefined ? undefined : checkTarget(target);
+    if (target !== undefined && t === undefined) return invalid('target', MSG.target);
     const gap = Date.parse(wake) - Date.parse(lightsOut);
     if (!(gap > 0)) return invalid('lightsOut', MSG.order);
     if (gap > SLEEP_MAX_GAP_HOURS * HOUR_MS) return invalid('lightsOut', MSG.gap);
-    return { ok: true, entry: { date, lightsOut, wake, lightsOutEdited } };
+    const out = { date, lightsOut, wake, lightsOutEdited };
+    if (wakeEdited !== undefined) out.wakeEdited = wakeEdited;
+    if (target !== undefined) out.target = t;
+    return { ok: true, entry: out };
   } catch (e) {
     return invalid('entry', MSG.entry); // 例如讀取欄位時丟例外的物件
   }
@@ -111,7 +134,7 @@ export function addSleepEntry(entry) {
     if (log.some((x) => isPlainObject(x) && x.date === e.date)) return fail('duplicate', duplicateMsg(e.date));
     if (log.length >= LIMITS.arrayLength) return fail('full', MSG.full);
     log.splice(insertIndex(log, e.date), 0, e);
-    return { ok: true, entry: { ...e }, saved: persist() };
+    return { ok: true, entry: JSON.parse(JSON.stringify(e)), saved: persist() }; // 複本（含 target）
   } catch (err) {
     return fail('error', MSG.addError);
   }
@@ -141,11 +164,9 @@ export function ensurePhaseStarted(now = new Date()) {
   try {
     const state = getState();
     if (!isPlainObject(state)) return fail('not_loaded', MSG.notLoaded);
-    const phase = state.phase;
-    if (!isPlainObject(phase)) return fail('corrupt', MSG.corruptPhase);
-    if (isIsoWithOffset(phase.startedAt)) return { ok: true, changed: false, startedAt: phase.startedAt };
-    phase.startedAt = isoLocal(now);
-    return { ok: true, changed: true, startedAt: phase.startedAt };
+    if (!isPlainObject(state.phase)) return fail('corrupt', MSG.corruptPhase);
+    const changed = fillPhaseStartedAt(state, now);
+    return { ok: true, changed, startedAt: state.phase.startedAt };
   } catch (err) {
     return fail('error', MSG.phaseError);
   }

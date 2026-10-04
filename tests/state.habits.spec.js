@@ -8,8 +8,9 @@ import { buildBackup, parseImport } from '../js/state/backup.js';
 import { validateSleepEntry, addSleepEntry, removeSleepEntry, ensurePhaseStarted, SLEEP_MAX_GAP_HOURS } from '../js/state/habits.js';
 import {
   readFixture, loadFixture, NOW, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords,
-  CHECKIN_LOG, CHECKIN_STARTED_AT, legacyRecordSession, legacyV2Migrate
+  CHECKIN_LOG, CHECKIN_STARTED_AT, TARGET_2300, TARGET_2330, legacyRecordSession, legacyV2Migrate
 } from './state.helpers.js';
+import { isoLocal } from '../js/state/time.js';
 
 useTokyoTime(test);
 test.afterEach(() => clearGlobals());
@@ -41,6 +42,22 @@ test.describe('validateSleepEntry（純函式）', () => {
     expect(r.entry).toStrictEqual({ date: ENTRY.date, lightsOut: ENTRY.lightsOut, wake: ENTRY.wake, lightsOutEdited: true });
     expect(r.entry).not.toBe(input);
     expect(JSON.stringify(input)).toBe(before);
+  });
+
+  test('game-designer 的完整形狀：wakeEdited、target 原樣保留（target 存成只含三個欄位的複本）', () => {
+    const settings = { voice: true, beep: false, band: true, bedtime: '23:30', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 };
+    const input = { ...entry({ wake: '2026-10-05T06:45:00+09:00' }), wakeEdited: true, target: settings };
+    const r = validateSleepEntry(input);
+    expect(r.ok).toBe(true);
+    expect(Object.keys(r.entry)).toEqual(['date', 'lightsOut', 'wake', 'lightsOutEdited', 'wakeEdited', 'target']);
+    expect(r.entry).toStrictEqual({ ...ENTRY, wake: '2026-10-05T06:45:00+09:00', wakeEdited: true, target: { ...TARGET_2330 } });
+    expect(r.entry.target).not.toBe(settings);
+    settings.bedtime = '22:00'; // 之後改設定不影響已建立的紀錄
+    expect(r.entry.target.bedtime).toBe('23:30');
+    expect(validateSleepEntry({ ...ENTRY, wakeEdited: false }).entry).toStrictEqual({ ...ENTRY, wakeEdited: false });
+    expect(validateSleepEntry({ ...ENTRY, target: null }).entry).toStrictEqual({ ...ENTRY, target: null });
+    expect(validateSleepEntry({ ...ENTRY, target: { bedtime: '00:30', wakeTime: '08:15', windowMin: 0 } }).ok).toBe(true);
+    expect(validateSleepEntry({ ...ENTRY, target: { bedtime: '23:00', wakeTime: '07:00', windowMin: 1440 } }).ok).toBe(true);
   });
 
   test('接受的時間寫法：秒可省略、毫秒 3 位、Z 結尾（toISOString）、其他時區', () => {
@@ -90,6 +107,19 @@ test.describe('validateSleepEntry（純函式）', () => {
     ['lightsOutEdited 字串', entry({ lightsOutEdited: 'true' }), 'lightsOutEdited'],
     ['lightsOutEdited 數字', entry({ lightsOutEdited: 1 }), 'lightsOutEdited'],
     ['lightsOutEdited null', entry({ lightsOutEdited: null }), 'lightsOutEdited'],
+    ['wakeEdited 字串', entry({ wakeEdited: 'true' }), 'wakeEdited'],
+    ['wakeEdited null', entry({ wakeEdited: null }), 'wakeEdited'],
+    ['wakeEdited 數字', entry({ wakeEdited: 1 }), 'wakeEdited'],
+    ['target 是字串', entry({ target: '23:00' }), 'target'],
+    ['target 是陣列', entry({ target: ['23:00', '07:00', 30] }), 'target'],
+    ['target 缺 windowMin', entry({ target: { bedtime: '23:00', wakeTime: '07:00' } }), 'target'],
+    ['target.bedtime 空白（時間欄位被清空）', entry({ target: { ...TARGET_2300, bedtime: '' } }), 'target'],
+    ['target.bedtime 未補零', entry({ target: { ...TARGET_2300, bedtime: '7:00' } }), 'target'],
+    ['target.wakeTime 24:00', entry({ target: { ...TARGET_2300, wakeTime: '24:00' } }), 'target'],
+    ['target.windowMin 字串', entry({ target: { ...TARGET_2300, windowMin: '30' } }), 'target'],
+    ['target.windowMin 小數', entry({ target: { ...TARGET_2300, windowMin: 30.5 } }), 'target'],
+    ['target.windowMin 超過 1440', entry({ target: { ...TARGET_2300, windowMin: 1441 } }), 'target'],
+    ['target.windowMin 負數', entry({ target: { ...TARGET_2300, windowMin: -1 } }), 'target'],
     ['熄燈 = 起床', entry({ lightsOut: ENTRY.wake }), 'lightsOut'],
     ['熄燈晚於起床（熄燈寫成起床當天 23:00）', entry({ lightsOut: '2026-10-05T23:00:00+09:00' }), 'lightsOut'],
     ['熄燈到起床超過 24 小時（熄燈多減了一天）', entry({ lightsOut: '2026-10-04T00:40:00+09:00' }), 'lightsOut']
@@ -145,11 +175,30 @@ test.describe('addSleepEntry', () => {
     expect(JSON.stringify(again.state)).toBe(JSON.stringify(getState()));
   });
 
-  test('其他欄位不寫入（只存四個欄位）', async () => {
+  test('其他欄位不寫入（score、xp 等不存）', async () => {
     await loadWith('v3.json');
     const r = addSleepEntry({ ...entry(), score: { total: 60 }, xp: 60 });
     expect(r.ok).toBe(true);
     expect(sleepLog()).toStrictEqual([ENTRY]);
+  });
+
+  test('wakeEdited、target 寫入並保留（記憶體、storage、重新開 App 後都在；可再匯入）', async () => {
+    const { local } = await loadWith('v3-checkin.json');
+    const full = { ...entry({ wake: '2026-10-05T06:40:00+09:00', lightsOut: '2026-10-04T23:30:00+09:00' }), wakeEdited: true, target: getState().settings };
+    const r = addSleepEntry(full);
+    expect(r.ok).toBe(true);
+    const expected = { date: '2026-10-05', lightsOut: '2026-10-04T23:30:00+09:00', wake: '2026-10-05T06:40:00+09:00', lightsOutEdited: false, wakeEdited: true, target: { ...TARGET_2330 } };
+    expect(r.entry).toStrictEqual(expected);
+    expect(await r.saved).toBe(true);
+    expect(sleepLog().at(-1)).toStrictEqual(expected);
+    expect(sleepLog().at(-1).target).not.toBe(getState().settings); // 不和 settings 共用參照
+    r.entry.target.bedtime = '20:00';
+    expect(sleepLog().at(-1).target.bedtime).toBe('23:30'); // 回傳的是複本
+    expect(stored(local).habits.sleep.log.at(-1)).toStrictEqual(expected);
+    installGlobals({ local });
+    expect(await loadState({ now: NOW })).toStrictEqual({ status: 'ok', error: null });
+    expect(sleepLog().at(-1)).toStrictEqual(expected);
+    expect(validateImport(getState())).toEqual({ ok: true });
   });
 
   test('同一天已有紀錄 → duplicate；state 與 storage 都不變', async () => {
@@ -290,7 +339,7 @@ test.describe('removeSleepEntry（復原）', () => {
     expect(sleepLog().filter((e) => e.date === '2026-10-02')).toHaveLength(2);
     const r = removeSleepEntry('2026-10-02');
     expect(r.removed).toBe(2);
-    expect(sleepLog().map((e) => e.date)).toEqual(['2026-10-04', '2026-10-05', '2026-10-10']);
+    expect(sleepLog().map((e) => e.date)).toEqual(['2026-10-04', '2026-10-05', '2026-10-10', '2026-10-11']);
   });
 
   test('打卡 → 復原 → 再打卡：state 回到打卡前、storage 一致、再打卡不算重複', async () => {
@@ -311,49 +360,65 @@ test.describe('removeSleepEntry（復原）', () => {
   });
 });
 
-test.describe('ensurePhaseStarted', () => {
-  test('startedAt 是 null → 寫入 isoLocal(now)（只改記憶體，不寫 storage）；下一次 saveState 才一併寫入', async () => {
-    const { local } = await loadWith('v3.json');
-    const r = ensurePhaseStarted(NOW);
-    expect(r).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-02T15:30:00+09:00' });
+test.describe('phase.startedAt：載入時補上（store.loadState）與 ensurePhaseStarted', () => {
+  test('載入後 startedAt 是 null → 補上 isoLocal(now)（只改記憶體、不寫 storage）；下一次 saveState 才寫入', async () => {
+    const { local, load } = await loadWith('v3.json');
+    expect(load).toStrictEqual({ status: 'ok', error: null });
     expect(getState().phase).toStrictEqual({ current: 'P1', startedAt: '2026-10-02T15:30:00+09:00', history: [] });
     expect(local.writes).toEqual([]);
     expect(local.getItem(STORAGE_KEY)).toBe(readFixture('v3.json')); // 載入不寫主 key 的規則不變
+    expect(ensurePhaseStarted(new Date('2026-10-09T07:00:00+09:00'))).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-02T15:30:00+09:00' });
     await saveState();
     expect(stored(local).phase.startedAt).toBe('2026-10-02T15:30:00+09:00');
   });
 
-  test('冪等：已有值不覆寫（換一個 now 再呼叫、重新開 App 後再呼叫）', async () => {
+  test('每一種 status 都補：fresh、migrated（v1／v2）、repaired、recovered；已有值（v3-checkin）不覆寫', async () => {
+    const iso = isoLocal(NOW);
+    for (const [name, status, expected] of [
+      [null, 'fresh', iso], ['v1-minimal.json', 'migrated', iso], ['v2-real.json', 'migrated', iso],
+      ['v2-wrong-types.json', 'repaired', iso], ['corrupt-state.txt', 'recovered', iso], ['v3-bad-sleep.json', 'repaired', iso],
+      ['v3-checkin.json', 'ok', CHECKIN_STARTED_AT], ['v3-checkin-reverted-to-v2.json', 'migrated', CHECKIN_STARTED_AT]
+    ]) {
+      const { local, load } = await loadWith(name);
+      expect(load.status, String(name)).toBe(status);
+      expect(getState().phase.startedAt, String(name)).toBe(expected);
+      expect(local.writes.filter((k) => k === STORAGE_KEY), String(name)).toEqual([]);
+    }
+  });
+
+  test('冪等：存檔後再開 App 不覆寫；沒存檔就重開，會改用那次開啟的時間（第一次存檔才固定）', async () => {
     const { local } = await loadWith('v3.json');
-    ensurePhaseStarted(NOW);
     const later = new Date('2026-10-09T07:00:00+09:00');
-    expect(ensurePhaseStarted(later)).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-02T15:30:00+09:00' });
+    installGlobals({ local });
+    await loadState({ now: later }); // 沒存過檔：storage 仍是 null
+    expect(getState().phase.startedAt).toBe('2026-10-09T07:00:00+09:00');
     await saveState();
     installGlobals({ local });
-    expect(await loadState({ now: later })).toStrictEqual({ status: 'ok', error: null });
-    expect(ensurePhaseStarted(later)).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-02T15:30:00+09:00' });
-    await loadWith('v3-checkin.json');
-    expect(ensurePhaseStarted(later)).toStrictEqual({ ok: true, changed: false, startedAt: CHECKIN_STARTED_AT });
+    expect(await loadState({ now: new Date('2026-10-20T07:00:00+09:00') })).toStrictEqual({ status: 'ok', error: null });
+    expect(getState().phase.startedAt).toBe('2026-10-09T07:00:00+09:00');
+    expect(ensurePhaseStarted(new Date('2026-10-21T07:00:00+09:00')).changed).toBe(false);
   });
 
-  test('記憶體中的值不是含時區的時間 → 視為沒有，重新寫入', async () => {
-    await loadWith('v3.json');
-    for (const bad of ['garbage', '2026-10-02', '2026-10-02T06:50:10', '', 0]) {
+  test('ensurePhaseStarted：null 或不是含時區的時間 → 寫入（只改記憶體）；Z 結尾視為已有值', async () => {
+    const { local } = await loadWith('v3.json');
+    for (const bad of [null, 'garbage', '2026-10-02', '2026-10-02T06:50:10', '', 0]) {
       getState().phase.startedAt = bad;
-      expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-02T15:30:00+09:00' });
+      expect(ensurePhaseStarted(new Date('2026-10-05T06:00:00+09:00')), String(bad)).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-05T06:00:00+09:00' });
     }
     getState().phase.startedAt = '2026-10-01T22:00:00Z';
-    expect(ensurePhaseStarted(NOW).changed).toBe(false);
+    expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-01T22:00:00Z' });
+    expect(local.writes).toEqual([]);
   });
 
-  test('now 省略或無效 → 用現在時間（仍含 +09:00）', async () => {
+  test('ensurePhaseStarted：now 省略或無效 → 用現在時間（仍含 +09:00）', async () => {
     await loadWith('v3.json');
+    getState().phase.startedAt = null;
     expect(ensurePhaseStarted().startedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
     getState().phase.startedAt = null;
     expect(ensurePhaseStarted('garbage').startedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
   });
 
-  test('還沒載入 → not_loaded；phase 不是物件 → corrupt（不建立）', async () => {
+  test('ensurePhaseStarted：還沒載入 → not_loaded；phase 不是物件 → corrupt（不建立）', async () => {
     await loadWith('v3.json');
     setState(null);
     expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: false, code: 'not_loaded', message: '資料還沒載入完成，請重新開啟 App 再試一次' });
@@ -364,42 +429,52 @@ test.describe('ensurePhaseStarted', () => {
     expect(s.phase).toBe('P1');
   });
 
-  test('recovered 且另存失敗（主 key 是原始資料唯一的副本）：開機呼叫不會覆寫主 key', async () => {
+  test('recovered 且另存失敗（主 key 是原始資料唯一的副本）：載入時補 startedAt 不會寫主 key', async () => {
     const raw = readFixture('corrupt-state.txt');
     const local = new MemoryStorage({ [STORAGE_KEY]: raw });
-    local.failWrites = true;
+    const mainWrites = [];
+    const setItem = local.setItem.bind(local);
+    local.setItem = (k, v) => {
+      if (String(k).startsWith('daily-ten-state.bak')) { const e = new Error('quota'); e.name = 'QuotaExceededError'; throw e; }
+      if (k === STORAGE_KEY) mainWrites.push(v);
+      setItem(k, v);
+    };
     installGlobals({ local });
     const load = await loadState({ now: NOW });
     expect(load.status).toBe('recovered');
     expect(load.error.backupKey).toBe(STORAGE_KEY);
-    local.failWrites = false;
-    let writes = 0;
-    const setItem = local.setItem.bind(local);
-    local.setItem = (k, v) => { writes++; setItem(k, v); };
-    expect(ensurePhaseStarted(NOW).changed).toBe(true);
-    expect(writes).toBe(0);
+    expect(getState().phase.startedAt).toBe('2026-10-02T15:30:00+09:00');
+    expect(ensurePhaseStarted(NOW).changed).toBe(false);
+    expect(mainWrites).toEqual([]);
     expect(local.getItem(STORAGE_KEY)).toBe(raw);
   });
 });
 
 test.describe('fixture 重播（v3-checkin 是 B1 寫入流程的實際結果）', () => {
-  test('v3.json → 3 天早安打卡＋訓練＋備份 = v3-checkin.json（逐字、含欄位順序）', async () => {
+  test('v3.json → 3 天打卡＋訓練（含加一輪）＋改就寢目標＋備份 = v3-checkin.json（逐字、含欄位順序）', async () => {
     const local = new MemoryStorage({ [STORAGE_KEY]: readFixture('v3.json') });
     installGlobals({ local });
-    const day = async (bootIso, sleep, session, backupIso) => {
-      const boot = new Date(bootIso);
-      expect((await loadState({ now: boot })).status).toBe('ok');
-      ensurePhaseStarted(boot);
-      const r = addSleepEntry(sleep);
+    /* 開 App（loadState 補 startedAt）→ 打卡；target 跟 game-designer 一樣直接給當下的 settings，寫入端只存三個欄位的複本 */
+    const checkIn = async (bootIso, { target, ...sleep }) => {
+      expect((await loadState({ now: new Date(bootIso) })).status).toBe('ok');
+      const r = addSleepEntry({ ...sleep, target: getState().settings });
       expect(r.ok).toBe(true);
       expect(await r.saved).toBe(true);
-      if (session) { legacyRecordSession(getState(), ...session); await saveState(); }
-      if (backupIso) { setState(buildBackup(getState(), new Date(backupIso)).stamped); await saveState(); }
     };
-    await day('2026-10-02T06:50:10+09:00', CHECKIN_LOG[0], ['2026-10-02', 'full', 10]);
-    await day('2026-10-03T07:24:30+09:00', CHECKIN_LOG[1], ['2026-10-03', 'rest', 5], '2026-10-03T21:05:00+09:00');
-    await day('2026-10-04T06:57:50+09:00', CHECKIN_LOG[2], null);
+    await checkIn('2026-10-02T06:50:10+09:00', CHECKIN_LOG[0]);
+    legacyRecordSession(getState(), '2026-10-02', 'full', 10);
+    getState().sessions.at(-1).plus = true; // 主課表後加一輪
+    await saveState();
+    await checkIn('2026-10-03T07:24:30+09:00', CHECKIN_LOG[1]);
+    legacyRecordSession(getState(), '2026-10-03', 'rest', 5);
+    await saveState();
+    getState().settings.bedtime = '23:30'; // 晚上改就寢目標：前兩天的 target 不受影響
+    await saveState();
+    setState(buildBackup(getState(), new Date('2026-10-03T21:05:00+09:00')).stamped);
+    await saveState();
+    await checkIn('2026-10-04T07:20:00+09:00', CHECKIN_LOG[2]); // 起床時間往前改成 06:45（wakeEdited）
     expect(JSON.stringify(stored(local))).toBe(JSON.stringify(loadFixture('v3-checkin.json')));
+    expect(stored(local).habits.sleep.log.map((e) => e.target.bedtime)).toEqual(['23:00', '23:00', '23:30']);
   });
 
   test('v3-checkin-reverted-to-v2.json = 舊版 App 開啟 v3-checkin 後做一次保底（version 改回 2、只動 legacy 欄位）', () => {

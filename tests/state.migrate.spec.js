@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 import { migrate, mirrorLegacyToGame, streakFromSessions, MigrationError } from '../js/state/migrate.js';
 import { defaultState, validateImport } from '../js/state/schema.js';
 import { isoLocal } from '../js/state/time.js';
-import { loadFixture, NOW, GOOD_FIXTURES, useTokyoTime, deepFreeze, rng, CHECKIN_LOG, CHECKIN_STARTED_AT } from './state.helpers.js';
+import { loadFixture, NOW, GOOD_FIXTURES, useTokyoTime, deepFreeze, rng, CHECKIN_LOG, CHECKIN_STARTED_AT, TARGET_2300, TARGET_2330 } from './state.helpers.js';
 
 useTokyoTime(test);
 
@@ -229,6 +229,9 @@ test.describe('B1 早安打卡 fixture', () => {
     expect(r.state.game.xp).toStrictEqual({ move: 411, sleep: 0, explore: 0, total: 411 });
     expect(r.state.game.streaks.life).toStrictEqual({ current: 14, best: 14, lastDate: '2026-10-03' });
     expect(r.state.meta.lastBackupAt).toBe('2026-10-03T21:05:00+09:00');
+    expect(r.state.sessions.slice(-2)).toStrictEqual([{ date: '2026-10-02', type: 'full', xp: 10, plus: true }, { date: '2026-10-03', type: 'rest', xp: 5 }]);
+    expect(r.state.settings.bedtime).toBe('23:30'); // 已改設定；過去的 target 仍是 23:00
+    expect(r.state.habits.sleep.log.map((e) => e.target)).toStrictEqual([TARGET_2300, TARGET_2300, TARGET_2330]);
   });
 
   test('v3-checkin-reverted-to-v2（D12）：sleep log 不遺失、不重複；game 以複製同步、不相加', () => {
@@ -249,6 +252,7 @@ test.describe('B1 早安打卡 fixture', () => {
     const checkin = loadFixture('v3-checkin.json');
     for (const k of ['habits', 'goals', 'phase', 'meta', 'settings', 'prs', 'body', 'profile']) expect(r.state[k]).toStrictEqual(checkin[k]);
     expect(r.state.sessions).toStrictEqual([...checkin.sessions, { date: '2026-10-04', type: 'minimal', xp: 3 }]);
+    expect(r.state.sessions.find((x) => x.date === '2026-10-02').plus).toBe(true); // 舊版 App 不認得加一輪，但原樣保留
     expect(migrate(r.state, { now: NOW }).state.habits.sleep.log).toStrictEqual(CHECKIN_LOG); // 再跑一次也一樣
   });
 
@@ -256,22 +260,24 @@ test.describe('B1 早安打卡 fixture', () => {
     const r = migrate(loadFixture('v3-bad-sleep.json'), { now: NOW });
     expect(r.repaired).toBe(true);
     expect(r.issues).toStrictEqual([
-      { path: 'habits.sleep.log[1]', action: 'dropped' },               // wake 沒有時區
+      { path: 'habits.sleep.log[1]', action: 'dropped' },                // wake 沒有時區
       { path: 'habits.sleep.log[2].lightsOutEdited', action: 'coerced' }, // "true" → true
-      { path: 'habits.sleep.log[4]', action: 'dropped' },               // 字串
-      { path: 'habits.sleep.log[5]', action: 'dropped' },               // null
-      { path: 'habits.sleep.log[6]', action: 'dropped' },               // lightsOut 只有 HH:MM
-      { path: 'habits.sleep.log[7]', action: 'dropped' },               // 缺 wake
-      { path: 'habits.sleep.log[8]', action: 'dropped' },               // lightsOut null
+      { path: 'habits.sleep.log[4]', action: 'dropped' },                // 字串
+      { path: 'habits.sleep.log[5]', action: 'dropped' },                // lightsOut 只有 HH:MM
+      { path: 'habits.sleep.log[6]', action: 'dropped' },                // 缺 wake
+      { path: 'habits.sleep.log[7]', action: 'dropped' },                // lightsOut null
+      { path: 'habits.sleep.log[10].wakeEdited', action: 'reset' },      // "yes" → false
+      { path: 'habits.sleep.log[10].target', action: 'reset' },          // bedtime "late" → 整個 target 改成 null
       { path: 'phase.startedAt', action: 'reset' }
     ]);
     expect(r.state.habits.sleep.log).toStrictEqual([
       CHECKIN_LOG[0],
-      { ...CHECKIN_LOG[2], lightsOutEdited: true },
-      { date: '2026-10-05', lightsOut: '2026-10-04T14:20:00Z', wake: '2026-10-04T22:05:00.000Z', lightsOutEdited: false }, // Z 保留原樣；缺的補 false
+      { ...CHECKIN_LOG[2], wake: '2026-10-04T06:45:00+09:00', lightsOutEdited: true, wakeEdited: undefined, target: TARGET_2330 },
+      { date: '2026-10-05', lightsOut: '2026-10-04T14:20:00Z', wake: '2026-10-04T22:05:00.000Z', lightsOutEdited: false }, // Z 保留原樣；缺的補 false；沒有 target 也可以
       { date: '2026-10-02', lightsOut: '2026-10-01T23:30:00+09:00', wake: '2026-10-02T07:00:00+09:00', lightsOutEdited: true }, // 同一天第二筆：保留
-      { date: '2026-10-10', lightsOut: '2026-10-09T23:00:00+09:00', wake: '2026-10-10T06:55:00+09:00', lightsOutEdited: false, note: '出差' }
-    ]);
+      { date: '2026-10-10', lightsOut: '2026-10-09T23:00:00+09:00', wake: '2026-10-10T06:55:00+09:00', lightsOutEdited: false, note: '出差' },
+      { date: '2026-10-11', lightsOut: '2026-10-10T23:00:00+09:00', wake: '2026-10-11T06:50:00+09:00', lightsOutEdited: false, wakeEdited: false, target: null }
+    ].map((e) => JSON.parse(JSON.stringify(e))));
     expect(r.state.phase).toStrictEqual({ current: 'P1', startedAt: null, history: [] });
     expect(validateImport(r.state)).toEqual({ ok: true });
     const other = loadFixture('v3-checkin.json');
@@ -345,6 +351,75 @@ test.describe('B1 修補規則：sleep 項目與 phase', () => {
       expect(r.state.phase.startedAt, String(input)).toBe(out);
       expect(r.issues).toStrictEqual(issue ? [{ path: 'phase.startedAt', action: 'reset' }] : []);
     }
+  });
+
+  test('wakeEdited：缺少維持缺少；true／false 保留；"true"／1 → true（coerced）；其他 → false（reset）', () => {
+    for (const [input, out, action] of [[undefined, undefined, null], [true, true, null], [false, false, null], ['true', true, 'coerced'],
+      [1, true, 'coerced'], ['yes', false, 'reset'], [null, false, 'reset']]) {
+      const raw = base();
+      raw.habits.sleep.log = [item({ wakeEdited: input })];
+      if (input === undefined) delete raw.habits.sleep.log[0].wakeEdited;
+      const r = migrate(raw, { now: NOW });
+      const e = r.state.habits.sleep.log[0];
+      if (out === undefined) expect('wakeEdited' in e, String(input)).toBe(false);
+      else expect(e.wakeEdited, String(input)).toBe(out);
+      expect(r.issues).toStrictEqual(action ? [{ path: 'habits.sleep.log[0].wakeEdited', action }] : []);
+    }
+  });
+
+  test('target：缺少維持缺少、null 保留；"7:00" → "07:00"、"30" → 30（coerced）；缺欄位或格式錯 → 整個改成 null（不捏造）；多的欄位保留', () => {
+    const run = (target) => {
+      const raw = base();
+      raw.habits.sleep.log = [item({ target })];
+      if (target === undefined) delete raw.habits.sleep.log[0].target;
+      return migrate(raw, { now: NOW });
+    };
+    let r = run(undefined);
+    expect('target' in r.state.habits.sleep.log[0]).toBe(false);
+    expect(r.issues).toEqual([]);
+    r = run(null);
+    expect(r.state.habits.sleep.log[0].target).toBe(null);
+    expect(r.issues).toEqual([]);
+    r = run({ bedtime: '7:00', wakeTime: '07:00', windowMin: '30', phoneDownMin: 30 });
+    expect(r.state.habits.sleep.log[0].target).toStrictEqual({ bedtime: '07:00', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 });
+    expect(r.issues).toStrictEqual([{ path: 'habits.sleep.log[0].target.bedtime', action: 'coerced' }, { path: 'habits.sleep.log[0].target.windowMin', action: 'coerced' }]);
+    for (const bad of ['23:00', [], 5, { bedtime: '23:00', wakeTime: '07:00' }, { ...TARGET_2300, bedtime: '' }, { ...TARGET_2300, wakeTime: '24:00' },
+      { ...TARGET_2300, windowMin: 30.5 }, { ...TARGET_2300, windowMin: 1441 }, { ...TARGET_2300, windowMin: null }]) {
+      r = run(bad);
+      expect(r.state.habits.sleep.log[0].target, JSON.stringify(bad)).toBe(null);
+      expect(r.state.habits.sleep.log[0].wake).toBe(CHECKIN_LOG[0].wake); // 打卡本身保留
+      expect(r.issues).toStrictEqual([{ path: 'habits.sleep.log[0].target', action: 'reset' }]);
+      expect(validateImport(r.state)).toEqual({ ok: true });
+    }
+  });
+
+  test('sessions：plus 缺少維持缺少；true／false 保留；"true"／1 → true（coerced）；其他 → false（reset）；type "plus" 照收', () => {
+    for (const [input, out, action] of [[undefined, undefined, null], [true, true, null], [false, false, null], ['true', true, 'coerced'],
+      [1, true, 'coerced'], ['yes', false, 'reset'], [null, false, 'reset']]) {
+      const raw = base();
+      raw.sessions.push({ date: '2026-10-04', type: 'boss', xp: 20, plus: input });
+      if (input === undefined) delete raw.sessions.at(-1).plus;
+      const r = migrate(raw, { now: NOW });
+      const s = r.state.sessions.at(-1);
+      if (out === undefined) expect('plus' in s, String(input)).toBe(false);
+      else expect(s.plus, String(input)).toBe(out);
+      expect(r.issues).toStrictEqual(action ? [{ path: `sessions[${raw.sessions.length - 1}].plus`, action }] : []);
+    }
+    const raw = base();
+    raw.sessions.push({ date: '2026-10-04', type: 'plus', xp: 0 }, { date: '2026-10-05', type: 'plus', plus: true });
+    const r = migrate(raw, { now: NOW });
+    expect(r.issues).toEqual([]);
+    expect(r.state.sessions.slice(-2)).toStrictEqual([{ date: '2026-10-04', type: 'plus', xp: 0 }, { date: '2026-10-05', type: 'plus', plus: true }]);
+    expect(r.state.xp).toBe(411); // legacy xp 不變（XP 由 engine 從紀錄推導）
+  });
+
+  test('session 日期是遊戲日（04:00 換日）：只檢查格式，凌晨的紀錄記在前一天也照收', () => {
+    const raw = base();
+    raw.sessions.push({ date: '2026-10-04', type: 'full', xp: 10 }); // 10-05 02:30 練完，算 10-04
+    raw.habits.sleep.log.push({ date: '2026-10-05', lightsOut: '2026-10-05T01:30:00+09:00', wake: '2026-10-05T03:50:00+09:00', lightsOutEdited: true, target: TARGET_2330 });
+    const r = migrate(raw, { now: NOW });
+    expect(r.issues).toEqual([]);
+    expect(r.state.habits.sleep.log.at(-1).date).toBe('2026-10-05');
   });
 });
 
@@ -673,6 +748,12 @@ test.describe('fuzz：隨機破壞資料，載入永遠不丟例外', () => {
         expect(typeof e.lightsOut).toBe('string');
         expect(typeof e.wake).toBe('string');
         expect(typeof e.lightsOutEdited).toBe('boolean');
+        if ('wakeEdited' in e) expect(typeof e.wakeEdited).toBe('boolean');
+        if ('target' in e && e.target !== null) {
+          expect(e.target.bedtime).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
+          expect(e.target.wakeTime).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
+          expect(Number.isInteger(e.target.windowMin)).toBe(true);
+        }
       }
       expect(['P1', 'P2', 'P3']).toContain(r.state.phase.current);
       expect(r.state.phase.startedAt === null || typeof r.state.phase.startedAt === 'string').toBe(true);

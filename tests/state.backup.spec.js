@@ -191,7 +191,7 @@ test.describe('parseImport：壞檔', () => {
     expect(r.errors).toStrictEqual([{ code: 'out_of_range', path: 'version', message: '這份資料來自較新版本的 App（v4），請先更新 App 再匯入' }]);
   });
 
-  test('v3-bad-sleep.json（手動改壞的打卡紀錄）→ 8 筆錯誤，getState() 與 storage 都不變', async () => {
+  test('v3-bad-sleep.json（手動改壞的打卡紀錄）→ 9 筆錯誤，getState() 與 storage 都不變', async () => {
     const local = await loadCurrent('v3-checkin.json');
     const ref = getState();
     const before = JSON.stringify(ref);
@@ -202,15 +202,17 @@ test.describe('parseImport：壞檔', () => {
       ['out_of_range', 'habits.sleep.log[1].wake'],
       ['invalid_type', 'habits.sleep.log[2].lightsOutEdited'],
       ['invalid_type', 'habits.sleep.log[4]'],
-      ['invalid_type', 'habits.sleep.log[5]'],
-      ['out_of_range', 'habits.sleep.log[6].lightsOut'],
-      ['invalid_type', 'habits.sleep.log[7].wake'],
-      ['invalid_type', 'habits.sleep.log[8].lightsOut'],
+      ['out_of_range', 'habits.sleep.log[5].lightsOut'],
+      ['invalid_type', 'habits.sleep.log[6].wake'],
+      ['invalid_type', 'habits.sleep.log[7].lightsOut'],
+      ['invalid_type', 'habits.sleep.log[10].wakeEdited'],
+      ['out_of_range', 'habits.sleep.log[10].target.bedtime'],
       ['out_of_range', 'phase.startedAt']
     ]);
     expect(r.errors[0].message).toBe('睡眠紀錄（habits.sleep.log[1].wake）應為含時區的時間（例 2026-10-04T06:58:00+09:00）');
     expect(r.errors[2].message).toBe('睡眠紀錄（habits.sleep.log[4]）應為物件');
-    expect(r.errors[5].message).toBe('睡眠紀錄（habits.sleep.log[7].wake）缺少必要的值，應為含時區的時間（例 2026-10-04T06:58:00+09:00）');
+    expect(r.errors[4].message).toBe('睡眠紀錄（habits.sleep.log[6].wake）缺少必要的值，應為含時區的時間（例 2026-10-04T06:58:00+09:00）');
+    expect(r.errors[7].message).toBe('睡眠紀錄（habits.sleep.log[10].target.bedtime）應為 HH:MM 格式的時間');
     for (const e of r.errors) {
       expect(e.message).toMatch(/[一-鿿]/);
       expect(e.message).toContain(e.path);

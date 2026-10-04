@@ -283,6 +283,22 @@ test.describe('validateImport：邊界值', () => {
     ['sleep lightsOutEdited 字串', (s) => { s.habits.sleep.log = [sleepItem({ lightsOutEdited: 'true' })]; }, ['invalid_type', 'habits.sleep.log[0].lightsOutEdited']],
     ['sleep lightsOutEdited null', (s) => { s.habits.sleep.log = [sleepItem({ lightsOutEdited: null })]; }, ['invalid_type', 'habits.sleep.log[0].lightsOutEdited']],
     ['sleep.log 不是陣列', (s) => { s.habits.sleep.log = {}; }, ['invalid_type', 'habits.sleep.log']],
+    ['sleep 完整形狀（wakeEdited＋target）', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: true, target: { bedtime: '23:30', wakeTime: '07:00', windowMin: 30 } })]; }, null],
+    ['sleep wakeEdited false', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: false })]; }, null],
+    ['sleep target null', (s) => { s.habits.sleep.log = [sleepItem({ target: null })]; }, null],
+    ['sleep target 多出欄位', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 } })]; }, null],
+    ['sleep wakeEdited 字串', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: 'true' })]; }, ['invalid_type', 'habits.sleep.log[0].wakeEdited']],
+    ['sleep target 是字串', (s) => { s.habits.sleep.log = [sleepItem({ target: '23:00' })]; }, ['invalid_type', 'habits.sleep.log[0].target']],
+    ['sleep target 缺 windowMin', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00' } })]; }, ['invalid_type', 'habits.sleep.log[0].target.windowMin']],
+    ['sleep target.bedtime 格式錯', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: 'late', wakeTime: '07:00', windowMin: 30 } })]; }, ['out_of_range', 'habits.sleep.log[0].target.bedtime']],
+    ['sleep target.windowMin 超過 1440', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00', windowMin: 1441 } })]; }, ['out_of_range', 'habits.sleep.log[0].target.windowMin']],
+    /* B1：加一輪（sessions[].plus 選填 boolean；type 'plus' 照收） */
+    ['session plus true', (s) => { s.sessions[0].plus = true; }, null],
+    ['session plus false', (s) => { s.sessions[0].plus = false; }, null],
+    ['session type plus', (s) => { s.sessions.push({ date: '2026-10-02', type: 'plus', xp: 0 }); }, null],
+    ['session type plus、沒有 xp', (s) => { s.sessions.push({ date: '2026-10-02', type: 'plus', plus: true }); }, null],
+    ['session plus 字串', (s) => { s.sessions[0].plus = 'yes'; }, ['invalid_type', 'sessions[0].plus']],
+    ['session plus null', (s) => { s.sessions[0].plus = null; }, ['invalid_type', 'sessions[0].plus']],
     /* B1：階段 */
     ['phase.startedAt 含時區', (s) => { s.phase.startedAt = '2026-10-02T06:50:10+09:00'; }, null],
     ['phase.startedAt Z 結尾', (s) => { s.phase.startedAt = '2026-10-01T21:50:10.000Z'; }, null],
@@ -319,7 +335,7 @@ test.describe('validateImport：邊界值', () => {
 test.describe('錯誤訊息', () => {
   test('B1 欄位：睡眠紀錄、探索紀錄、階段的訊息', () => {
     const s = loadFixture('v3.json');
-    s.habits.sleep.log = [sleepItem({ wake: '06:58' }), sleepItem({ lightsOut: null }), sleepItem({ lightsOutEdited: 'yes' })];
+    s.habits.sleep.log = [sleepItem({ wake: '06:58' }), sleepItem({ lightsOut: null }), sleepItem({ lightsOutEdited: 'yes', target: { bedtime: '23:00', wakeTime: '7:00', windowMin: 30 } })];
     delete s.habits.explore.items[0].name;
     s.phase.current = 'P9';
     s.phase.startedAt = 'yesterday';
@@ -327,6 +343,7 @@ test.describe('錯誤訊息', () => {
       { code: 'out_of_range', path: 'habits.sleep.log[0].wake', message: '睡眠紀錄（habits.sleep.log[0].wake）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' },
       { code: 'invalid_type', path: 'habits.sleep.log[1].lightsOut', message: '睡眠紀錄（habits.sleep.log[1].lightsOut）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' },
       { code: 'invalid_type', path: 'habits.sleep.log[2].lightsOutEdited', message: '睡眠紀錄（habits.sleep.log[2].lightsOutEdited）應為 true 或 false' },
+      { code: 'out_of_range', path: 'habits.sleep.log[2].target.wakeTime', message: '睡眠紀錄（habits.sleep.log[2].target.wakeTime）應為 HH:MM 格式的時間' },
       { code: 'invalid_type', path: 'habits.explore.items[0].name', message: '探索紀錄（habits.explore.items[0].name）缺少必要的值，應為文字' },
       { code: 'out_of_range', path: 'phase.current', message: '階段（phase.current）應為 P1、P2、P3 其中之一' },
       { code: 'out_of_range', path: 'phase.startedAt', message: '階段（phase.startedAt）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' }

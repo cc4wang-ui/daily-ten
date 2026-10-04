@@ -13,13 +13,16 @@
 
    B1（早安打卡）收緊的欄位（仍是 v3：欄位形狀不變，只把 CLAUDE.md §5 已寫明的格式落實成檢查；
    上線版本從沒寫過這些欄位——sleep log 一直是空的、startedAt 一直是 null、current 一直是 P1——所以不需要升版）：
-     habits.sleep.log[]  {date, lightsOut, wake, lightsOutEdited}
+     habits.sleep.log[]  {date, lightsOut, wake, lightsOutEdited, wakeEdited?, target?}
                          date／lightsOut／wake 是識別欄位：缺少或格式錯 → 載入時整筆丟掉、匯入時報錯；
                          lightsOut、wake 必須是含時區的 ISO 時間（time.js isIsoWithOffset）；
-                         lightsOutEdited 缺少補 false，'true'／1 轉成 true，其他無效值改回 false。
+                         lightsOutEdited 缺少補 false，'true'／1 轉成 true，其他無效值改回 false；
+                         wakeEdited 選填 boolean（無效 → false）；
+                         target 選填 {bedtime:'HH:MM', wakeTime:'HH:MM', windowMin:0–1440 整數} 或 null（無效 → null）。
                          同一天重複的紀錄載入與匯入都保留（怪資料不擋），寫入端（habits.js）保證不會新增重複。
+     sessions[].plus     選填 boolean（加一輪；無效 → false）；type 'plus' 本來就接受（任意 1–20 字）
      phase.current       只能是 P1／P2／P3（無效 → P1）
-     phase.startedAt     null 或含時區的 ISO 時間（無效 → null） */
+     phase.startedAt     null 或含時區的 ISO 時間（無效 → null；載入後由 store.loadState 補上，見 migrate.js fillPhaseStartedAt） */
 import { isoLocal, isValidDateStr, isIsoWithOffset } from './time.js';
 
 export const SCHEMA_VERSION = 3;
@@ -133,17 +136,29 @@ const streakSpec = (o) => obj({
 
 const prEntry = (key) => obj({ date: date({ key: true }), [PR_VALUE_FIELD[key]]: num({ min: 0, max: PR_MAX[key], key: true }) });
 const bodyEntry = obj({ date: date({ key: true }), v: num({ gt: 0, max: LIMITS.body, key: true }) });
+/* B1：date 從此以遊戲日記錄（04:00 換日，00:00–03:59 算前一天）——日期欄位只檢查格式，不假設午夜換日；
+   type 是任意短文字（含新的 'plus'）；plus = 加一輪（選填 boolean，舊版 App 不認得但會原樣保留） */
 const sessionEntry = obj({
   date: date({ key: true }),
   type: text({ key: true, minLen: 1, maxLen: LIMITS.shortText }),
-  xp: num({ min: 0, max: LIMITS.xp, fill: false, def: 0 })
+  xp: num({ min: 0, max: LIMITS.xp, fill: false, def: 0 }),
+  plus: bool({ fill: false, def: false })
 });
-/* 早安打卡（D17）：date = 遊戲日；lightsOut = 昨晚熄燈；wake = 起床（打卡）時間 */
+/* 打卡當時的目標（之後改設定不會重算過去）；三個欄位缺一或格式錯 → 整個 target 改成 null（不捏造歷史） */
+const sleepTarget = obj({
+  bedtime: clock({ key: true }),
+  wakeTime: clock({ key: true }),
+  windowMin: int({ min: 0, max: LIMITS.minutesPerDay, key: true })
+}, { nullable: true, fill: false, def: null });
+/* 早安打卡（D17）：date = 遊戲日；lightsOut = 昨晚熄燈；wake = 起床時間（只能比點擊時間早）
+   wakeEdited 只在起床時間被往前改時寫入（選填）；target 由 game-designer 每次寫入（選填，舊紀錄沒有） */
 const sleepEntry = obj({
   date: date({ key: true }),
   lightsOut: iso({ key: true }),
   wake: iso({ key: true }),
-  lightsOutEdited: bool({ def: false })
+  lightsOutEdited: bool({ def: false }),
+  wakeEdited: bool({ fill: false, def: false }),
+  target: sleepTarget
 });
 const exploreItem = obj({
   id: text({ key: true, minLen: 1, maxLen: LIMITS.text }),
