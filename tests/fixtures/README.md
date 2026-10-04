@@ -32,6 +32,17 @@ qa-checker 依這份寫 e2e。所有預期值都已由 `tests/state.*.spec.js` �
 - 訊息：`repaired` =「部分資料格式異常，已自動修復。原始資料已另存，可下載保存。」；`recovered` =「讀取資料時發生問題，已改用空白資料。原始資料已另存，可下載保存。」
 - 其他 recovered：JSON 合法但不是物件（`null`、`[]`、`"字串"`、`42`）→ `error.code = migrate`。`version` 大於 3 → `repaired`（存到 `bak-v4`）。
 
+### B1 早安打卡 fixture（V1）
+v3 欄位形狀不變（沒有升版）：`habits.sleep.log[]` 每筆 `{date, lightsOut, wake, lightsOutEdited}`，選填 `wakeEdited`（boolean）與 `target:{bedtime, wakeTime, windowMin}`（打卡當下的目標）；`sessions[].plus`（boolean，加一輪）。`loadState()` 在 `phase.startedAt` 缺少時以載入時間補上（只改記憶體，下次存檔才寫入，已有值不覆寫）。
+
+| Fixture | 內容 | 載入結果 |
+|---|---|---|
+| `v3-checkin.json` | 從 `v3.json` 接續 10-02～10-04 三天打卡（每筆都有 `target`；10-03 晚上就寢目標改成 23:30，所以前兩筆 23:00、第三筆 23:30，`settings.bedtime` 也是 23:30；10-04 起床往前改成 06:45，`wakeEdited: true`）；10-02 的訓練有 `plus: true`；`startedAt` 2026-10-02T06:50:10+09:00。內容逐字等於重播 B1 寫入流程的結果 | `ok`（遷移不改內容）；xp 411，streak 14 / 14 |
+| `v3-checkin-reverted-to-v2.json` | D12：上一個檔案被舊版 App 改回 `version:2`，舊版又做一次保底 | `migrated`；xp 414，`game.xp.move` 414（不是 411＋414）；3 筆打卡與 `plus` 都保留 |
+| `v3-bad-sleep.json` | 11 筆壞掉的睡眠項目＋`startedAt: "yesterday"` | `repaired`（存到 `bak-v3`）：修補 9 處、留下 6 筆（10-02、10-04、10-05、10-02、10-10、10-11）；匯入回 9 筆錯誤 |
+
+e2e 可用的時間點：2026-10-04T07:30+09:00（今天已打卡）、2026-10-05T06:50+09:00（今天還沒打卡）。
+
 ## 2. 匯入（`parseImport(text)`）
 
 壞檔一律 `{ok:false, errors:[{code, path, message}]}`（最多 10 筆），**`getState()` 與 localStorage 都不變**。
