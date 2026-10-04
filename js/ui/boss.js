@@ -1,4 +1,5 @@
-/* Daily Ten — Boss Day：十動作暖身 → HRP／Plank／2 英里測驗 → 成績輸入。M1 自 index.html 原樣搬出。 */
+/* Daily Ten — Boss Day：十動作暖身 → HRP／Plank／2 英里測驗 → 成績輸入。M1 自 index.html 原樣搬出。
+   B1：測驗計時（#train）與完成畫面保持 M1；只有成績輸入畫面（#s-boss）換亮色樣式（class 取代 inline 琥珀色）。 */
 import { getState, saveState } from '../state/store.js';
 import { $, showScreen } from './dom.js';
 import { todayStr } from './dates.js';
@@ -65,7 +66,7 @@ function bossPlank(){
 function bossRun(){ bossInput('run2mi'); }
 function bossInput(item,presetSec){
   showScreen('s-boss');
-  const titles={hrp:'HRP 成績輸入',plank:'Plank 成績確認',run2mi:'2 Mile Run 成績輸入'};
+  const titles={hrp:'HRP 成績輸入',plank:'Plank 成績確認',run2mi:'2 英里跑 成績輸入'};
   $('b-title').textContent=titles[item];
   const c=$('b-card');
   if(item==='hrp'){
@@ -74,7 +75,7 @@ function bossInput(item,presetSec){
       if(isNaN(v)||v<0){alert('請輸入次數');return;}
       getState().prs.hrp.push({date:todayStr(),reps:v});finishBoss();};
   }else if(item==='plank'){
-    c.innerHTML='<h3>本次成績</h3><p style="font-family:var(--mono);font-size:28px;color:var(--amber)">'+Math.floor(presetSec/60)+':'+String(presetSec%60).padStart(2,'0')+'</p><button class="btn-main" id="bi-save" style="margin-top:12px">儲存 PR</button>';
+    c.innerHTML='<h3>本次成績</h3><p class="boss-result num">'+Math.floor(presetSec/60)+':'+String(presetSec%60).padStart(2,'0')+'</p><button class="btn-main" id="bi-save">儲存 PR</button>';
     $('bi-save').onclick=()=>{getState().prs.plank.push({date:todayStr(),sec:presetSec});finishBoss();};
   }else{
     c.innerHTML='<h3>戶外跑 2 英里（3.2 km），回來輸入時間</h3><div class="inputrow"><input type="number" id="bi-m" min="0" max="59" placeholder="分" inputmode="numeric"><span>分</span><input type="number" id="bi-s" min="0" max="59" placeholder="秒" inputmode="numeric"><span>秒</span></div><p>雨天可改跑步機或延後至下午，當日輸入即可。</p><button class="btn-main" id="bi-save">儲存 PR</button>';

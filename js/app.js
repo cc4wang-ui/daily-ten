@@ -2,7 +2,10 @@
    M1 自 index.html 原樣搬出（行為零變更）；state 一律經由 js/state/store.js。
    1b：loadState() 回 repaired／recovered 時顯示 HOME 錯誤卡；整個開機流程包在 try/catch，
    module 改成在 boot() 裡動態 import——任何一個檔案載入或執行失敗，都會落到 showFatal()，不會白屏。
-   D23：自動更新的頁面端（SW 通知 → 回 ACK → 閒置才重新載入；回到前景／恢復連線時檢查新版），見下方「自動更新」。 */
+   D23：自動更新的頁面端（SW 通知 → 回 ACK → 閒置才重新載入；回到前景／恢復連線時檢查新版），見下方「自動更新」。
+   B1：分頁「今日／訓練／統計」＋今日右上齒輪＝設定；畫面切換一律走 js/ui/nav.js 的 goTo()（同步）。
+   遊戲層（engine、規則檔、早安打卡寫入）另外載入（loadGame），失敗只隱藏遊戲卡片，App 其他功能照常。
+   開機全部畫完後設 html[data-ready]（給測試等待用）。 */
 
 /* ===== 啟動失敗保護：純 DOM，不依賴任何其他 module ===== */
 const RAW_KEY='daily-ten-state'; // 與 store.js 的 STORAGE_KEY 相同；store 載入失敗時也要能下載
@@ -48,8 +51,8 @@ function showFatal(err){
 /* ===== 自動更新（D23）：純 DOM，不依賴其他 module；不支援 SW 或 SW 被封鎖時全部安靜略過 =====
    新版 SW 啟用後會送 {type:'DT_UPDATE_READY', version}，附一個 MessagePort：
    1. 立刻從 port 回 {type:'DT_UPDATE_ACK'}（3 秒內沒回，SW 會直接重新導向，那是給舊版頁面用的）。
-   2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入、沒有正在輸入；
-      否則每 2 秒再看一次。
+   2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入、沒有正在輸入、
+      復原 toast 沒在顯示（打卡後 10 秒內可復原）、早安打卡的熄燈時間編輯沒開著；否則每 2 秒再看一次。
    3. 重新載入前把版本名存進 sessionStorage，開機後在 HOME 提示一次（畫面在 js/ui/update.js）。
    另外：回到前景（visibilitychange → visible）與恢復連線（online）時請瀏覽器檢查新版，60 秒內最多一次——
    iPhone 從背景切回 App 不算重開，不檢查就會一直停在舊版。 */
@@ -61,25 +64,34 @@ let pendingVersion=null,idleTimer=null,lastUpdateCheck=null;
 /* 文字輸入框：textarea 與可打字的 input（勾選框、檔案等不算——勾選框的值固定是 "on"，點過也會留著焦點） */
 const NON_TEXT_INPUT=/^(checkbox|radio|file|hidden|button|submit|reset|image|range|color)$/i;
 const isTextField=el=>!!el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!NON_TEXT_INPUT.test(el.type)));
-/* 正在輸入：焦點在看得到的文字輸入框；或前景畫面有填了字的輸入框（BODY 填到一半、SETUP 貼上的 JSON）。
-   數字欄位打到一半（例「68.」）時 value 是空的，用 validity.badInput 補判。 */
+/* 正在輸入：焦點在看得到的文字輸入框；或前景畫面有填了字的輸入框（身體指標填到一半、設定貼上的 JSON）。
+   數字欄位打到一半（例「68.」）時 value 是空的，用 validity.badInput 補判。
+   時間欄位（設定的就寢／起床、早安打卡的熄燈）一定有值：只在有焦點或打到一半時算正在輸入。
+   統計的兩段（訓練紀錄／身體指標）只看選中的那一段。 */
 function typing(){
   const a=document.activeElement;
   if(isTextField(a)&&a.getClientRects().length>0)return true;
   const scr=document.querySelector('.screen.active');
   if(!scr)return false;
   for(const el of scr.querySelectorAll('input,textarea')){
-    if(isTextField(el)&&(el.value.trim()!==''||(el.validity&&el.validity.badInput)))return true;
+    if(!isTextField(el)||el.getClientRects().length===0)continue;
+    const bad=!!(el.validity&&el.validity.badInput);
+    if(el.type==='time'?bad:(el.value.trim()!==''||bad))return true;
   }
   return false;
 }
+/* 看得到（沒有 hidden、所在畫面在前景） */
+const shown=id=>{const el=document.getElementById(id);return !!el&&!el.hidden&&el.getClientRects().length>0;};
 function isIdle(){
   if(trainingNow&&trainingNow())return false;
   const active=id=>{const el=document.getElementById(id);return !!el&&el.classList.contains('active');};
   if(active('train')||active('done')||active('demo-modal')||active('s-boss'))return false;
-  /* 匯入預覽：hidden 屬性關掉，或所在的 SETUP 不在前景（離開 SETUP 再回來時預覽本來就會被收起）都算沒開 */
-  const pv=document.getElementById('imp-preview');
-  if(pv&&!pv.hidden&&pv.getClientRects().length>0)return false;
+  /* 匯入預覽：hidden 屬性關掉，或所在的設定不在前景（離開設定再回來時預覽本來就會被收起）都算沒開 */
+  if(shown('imp-preview'))return false;
+  /* 復原 toast 顯示中（10 秒內可復原）；早安打卡的熄燈時間編輯開著 */
+  const toast=document.getElementById('toast');
+  if(toast&&!toast.hidden)return false;
+  if(shown('ci-edit-row'))return false;
   return !typing();
 }
 function reloadWhenIdle(){
@@ -116,7 +128,7 @@ try{
     window.addEventListener('online',checkForUpdate);
   }
 }catch(e){}
-/* 「已更新」提示與 SETUP 版本行：非必要畫面，另外載入，失敗也不影響 App */
+/* 「已更新」提示與設定最下方的版本行：非必要畫面，另外載入，失敗也不影響 App */
 let updateUi=null;
 function loadUpdateUi(){
   import('./ui/update.js').then(m=>{
@@ -126,33 +138,58 @@ function loadUpdateUi(){
   }).catch(e=>console.warn('更新提示載入失敗',e));
 }
 
+/* 遊戲層：engine（game-designer）、早安打卡寫入（data-guardian）、規則檔 data/game.json。
+   全部載入成功且 loadRules() 回規則物件才交給 js/ui/game.js；任何一步失敗 → 未就緒（隱藏三環、階段、早安打卡入口），不丟錯。 */
+async function loadGame(game){
+  try{
+    const [rules,engine,sleep,habits]=await Promise.all([
+      import('./game/rules.js'),import('./game/engine.js'),import('./habits/sleep.js'),import('./state/habits.js')]);
+    const r=await rules.loadRules();
+    if(!r){console.warn('遊戲規則讀取失敗：隱藏遊戲卡片');return false;}
+    return game.setGame({rules:r,engine,sleep,habits});
+  }catch(e){
+    console.warn('遊戲層載入失敗：隱藏遊戲卡片',e);
+    return false;
+  }
+}
+
 async function boot(){
-  const [store,dom,program,demo,train,home,history,body,setup,backupUi]=await Promise.all([
-    import('./state/store.js'),import('./ui/dom.js'),import('./ui/program.js'),import('./ui/demo.js'),
-    import('./ui/train.js'),import('./ui/home.js'),import('./ui/history.js'),import('./ui/body.js'),
-    import('./ui/setup.js'),import('./ui/backup.js')]);
-  const {loadState,getState}=store, {$,showScreen}=dom, {minimalSeq,rainSeq}=program, {closeDemo}=demo,
-        {startWorkout,isTraining}=train, {renderHome}=home, {renderHist}=history, {renderBody,wireBody}=body,
-        {renderSetup}=setup, {showLoadError}=backupUi;
+  const [store,dom,nav,program,demo,train,home,stats,body,setup,backupUi,trainhub,checkin,game]=await Promise.all([
+    import('./state/store.js'),import('./ui/dom.js'),import('./ui/nav.js'),import('./ui/program.js'),import('./ui/demo.js'),
+    import('./ui/train.js'),import('./ui/home.js'),import('./ui/stats.js'),import('./ui/body.js'),
+    import('./ui/setup.js'),import('./ui/backup.js'),import('./ui/trainhub.js'),import('./ui/checkin.js'),import('./ui/game.js')]);
+  const {loadState,getState}=store, {$}=dom, {goTo,onScreen,setNavGuard}=nav, {minimalSeq,rainSeq}=program, {closeDemo}=demo,
+        {startWorkout,isTraining}=train, {renderHome}=home, {renderStats}=stats, {renderBody,wireBody}=body,
+        {renderSetup}=setup, {showLoadError}=backupUi, {renderTrain,renderVideos}=trainhub, {renderCheckIn,wireCheckIn}=checkin;
   trainingNow=isTraining;
   /* ================= WIRE ================= */
-  document.querySelectorAll('#tabs button').forEach(b=>{
-    b.onclick=()=>{ if(isTraining())return; showScreen(b.dataset.s);
-      if(b.dataset.s==='s-hist')renderHist();
-      if(b.dataset.s==='s-body')renderBody();
-      if(b.dataset.s==='s-setup'){renderSetup();if(updateUi)updateUi.renderAppVersion();}
-      if(b.dataset.s==='s-home')renderHome(); };
-  });
-  $('h-minimal').onclick=()=>startWorkout(minimalSeq(getState().level),'minimal');
+  setNavGuard(isTraining);
+  onScreen('s-home',renderHome);
+  onScreen('s-train',renderTrain);
+  onScreen('s-stats',renderStats);
+  onScreen('s-hist',renderStats);
+  onScreen('s-body',renderStats);
+  onScreen('s-checkin',renderCheckIn);
+  onScreen('s-setup',()=>{renderSetup();if(updateUi)updateUi.renderAppVersion();});
+  /* 分頁列、今日右上齒輪、統計的兩段：data-s＝要去的畫面；「‹ 今日」回今日 */
+  document.querySelectorAll('[data-s]').forEach(b=>{b.onclick=()=>goTo(b.dataset.s);});
+  document.querySelectorAll('[data-back]').forEach(b=>{b.onclick=()=>goTo('s-home');});
+  const minimal=()=>startWorkout(minimalSeq(getState().level),'minimal');
+  $('h-minimal').onclick=minimal;
+  $('tr-minimal').onclick=minimal;
   $('h-rain').onclick=()=>startWorkout(rainSeq(),'rain');
-  $('d-ok').onclick=()=>{$('done').classList.remove('active');renderHome();showScreen('s-home');};
+  $('d-ok').onclick=()=>{$('done').classList.remove('active');if(!goTo('s-home'))renderHome();};
   $('dm-close').onclick=closeDemo;
   $('demo-modal').onclick=e=>{if(e.target===$('demo-modal'))closeDemo();};
+  wireCheckIn();
   /* ================= INIT ================= */
   const loaded=await loadState();
+  await loadGame(game);
   wireBody();
-  renderHome();renderSetup();renderBody();
+  renderVideos();
+  renderHome();renderSetup();renderStats();
   if(loaded&&(loaded.status==='repaired'||loaded.status==='recovered'))showLoadError(loaded.error);
+  document.documentElement.dataset.ready='1';
   loadUpdateUi();
 }
 boot().catch(showFatal);

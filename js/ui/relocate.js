@@ -3,6 +3,7 @@
 import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { runBackup, renderBackupReminder, renderBackupStatus } from './backup.js';
+import { goTo } from './nav.js';
 
 export const NEW_APP_URL = 'https://daily-ten-app.vercel.app/';
 export const LEGACY_HOSTS = ['cc4wang-ui.github.io'];
@@ -12,7 +13,7 @@ export const LEGACY_HOSTS = ['cc4wang-ui.github.io'];
      ① 下載備份（同 HOME 提醒卡，走 runBackup）：成功顯示檔名、取消不顯示、失敗顯示訊息　② 打開新網址（新分頁）　③ 加入主畫面與匯入的說明。
      這裡沒有任何紀錄時（hasNoRecords，例如用 Safari 打開、紀錄其實在主畫面的舊圖示裡）多一行提醒，避免下載到空的備份。
    - 新網址（hostname = NEW_APP_URL 的 hostname）且 isFreshState：「從舊網址搬資料」卡。
-     「選擇備份檔」在同一個點擊手勢內切到 SETUP、捲到資料備份卡、打開既有的 #imp-file，之後是既有的驗證 → 差異預覽 → 兩次確認。
+     「選擇備份檔」在同一個點擊手勢內切到設定、捲到資料備份卡、打開既有的 #imp-file，之後是既有的驗證 → 差異預覽 → 兩次確認。
      匯入成功（備份檔一定有 meta.lastBackupAt）或有第一筆訓練後，資料不再是全新的，卡片自然消失。
    - 其他網址（localhost、127.0.0.1、Vercel 預覽網址…）：兩張卡都維持 hidden，畫面與先前完全相同。
    不新增 localStorage key、不改 state 結構；判斷只讀 getState()。 */
@@ -96,7 +97,7 @@ function renderLegacy() {
 }
 
 /* ---------- 新網址：從舊網址搬資料 ---------- */
-/* 資料備份卡的頂端對齊 SETUP 標題的位置：安全區（#app 的 padding-top）＋畫面上方留白（.screen 的 padding-top）。直接跳過去，不捲動動畫 */
+/* 資料備份卡的頂端對齊設定畫面標題的位置：安全區（#app 的 padding-top）＋畫面上方留白（.screen 的 padding-top）。直接跳過去，不捲動動畫 */
 function scrollToBackupCard() {
   const btn = $('bk-download');
   const card = btn && btn.closest('.card');
@@ -107,12 +108,12 @@ function scrollToBackupCard() {
 }
 
 /* 全部同步完成、不能有 await：iOS 只在使用者手勢的同一個流程裡允許程式打開檔案選擇。
-   切分頁用分頁列的 SETUP 按鈕（與使用者自己點相同：重畫 SETUP、收起舊的匯入預覽、接上 #imp-file 的處理）。 */
+   B1 設定移出分頁列（今日右上齒輪）：用 nav.js 的 goTo('s-setup') 同步切過去——與使用者點齒輪相同：
+   重畫設定、收起舊的匯入預覽、接上 #imp-file 的處理；訓練中 goTo 回 false，不切畫面也不打開。 */
 function chooseBackupFile() {
-  const tab = document.querySelector('#tabs button[data-s="s-setup"]');
-  if (tab) tab.click();
+  if (!goTo('s-setup')) return;
   const setup = $('s-setup');
-  if (!setup || !setup.classList.contains('active')) return; // 沒切過去（例如訓練中）就不打開
+  if (!setup || !setup.classList.contains('active')) return; // 沒切過去就不打開
   scrollToBackupCard();
   $('imp-file').click();
 }
