@@ -138,15 +138,15 @@ function loadUpdateUi(){
   }).catch(e=>console.warn('更新提示載入失敗',e));
 }
 
-/* 遊戲層：engine（game-designer）、早安打卡寫入（data-guardian）、規則檔 data/game.json。
+/* 遊戲層：engine 與遊戲日（game-designer）、早安打卡寫入（data-guardian）、規則檔 data/game.json。
    全部載入成功且 loadRules() 回規則物件才交給 js/ui/game.js；任何一步失敗 → 未就緒（隱藏三環、階段、早安打卡入口），不丟錯。 */
 async function loadGame(game){
   try{
-    const [rules,engine,sleep,habits]=await Promise.all([
-      import('./game/rules.js'),import('./game/engine.js'),import('./habits/sleep.js'),import('./state/habits.js')]);
+    const [rules,day,engine,sleep,habits]=await Promise.all([
+      import('./game/rules.js'),import('./game/day.js'),import('./game/engine.js'),import('./habits/sleep.js'),import('./state/habits.js')]);
     const r=await rules.loadRules();
     if(!r){console.warn('遊戲規則讀取失敗：隱藏遊戲卡片');return false;}
-    return game.setGame({rules:r,engine,sleep,habits});
+    return game.setGame({rules:r,day,engine,sleep,habits});
   }catch(e){
     console.warn('遊戲層載入失敗：隱藏遊戲卡片',e);
     return false;

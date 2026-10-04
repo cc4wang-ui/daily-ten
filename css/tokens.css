@@ -21,7 +21,7 @@
   --c-on-ink-2:#C9CCC4;              /* 深墨主按鈕上的小字（「下一步」） */
   --c-on-ink-3:#E4E6E0;              /* 深墨主按鈕上的數字（強度、分鐘） */
   --c-done:#3A3D38;                  /* 「今天都完成了」圖示底 */
-  --c-scrim-tab:rgba(255,255,255,.96); /* 分頁列底 */
+  --shadow-tab:0 -1px 6px rgba(27,29,26,.04); /* 分頁列上緣（底色不透明，用 --c-card） */
 
   /* ---- 支柱色：只用在環、圖表、色塊；文字一律用加深版（WCAG AA） ---- */
   --move:#FF6B4A;    --move-ink:#B8401F;    --move-soft:#FFF1EC;    --move-track:rgba(255,107,74,.16);
@@ -64,7 +64,7 @@
   --shadow-wake:0 6px 16px rgba(84,70,214,.28);
   --shadow-toast:0 10px 24px rgba(27,29,26,.25);
   --touch:44px;                      /* 觸控最小尺寸 */
-  --tabbar-h:64px;                   /* 底部分頁列高度（不含安全區） */
+  --tabbar-h:64px;                   /* 底部分頁列高度（不含安全區；#app 底部留白也用它） */
   --maxw:520px;                      /* 內容最大寬度 */
 
   /* ---- 動效：只動 transform／opacity；減少動態時改淡入（app.css） ---- */

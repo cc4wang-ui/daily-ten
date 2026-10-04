@@ -8,6 +8,7 @@ import { hasBand } from './program.js';
 import { renderHome } from './home.js';
 import { renderStats } from './stats.js';
 import { wireBackupCard } from './backup.js';
+import { ensurePhaseStarted } from './game.js';
 
 const DEFAULT_TIME = { bedtime: '23:00', wakeTime: '07:00' };
 const timeOf = (key) => {
@@ -25,17 +26,18 @@ function renderSleepNote() {
     + '睡眠建議是一般性參考，不是醫療建議。';
 }
 
-/* 時間欄位：改完（change）才存；格式不對就還原，不寫入 */
+/* 時間欄位：改完（change）才存；空白或格式不對一律不寫入，欄位改回上一個有效值（離開欄位時再檢查一次） */
 function wireTime(id, key) {
   const input = $(id);
   if (document.activeElement !== input) input.value = timeOf(key);
+  const revert = () => {
+    input.value = timeOf(key);
+    $('cfg-sleep-msg').textContent = '時間格式不對，沒有變更。';
+  };
+  input.onblur = () => { if (!TIME_RE.test(input.value)) revert(); };
   input.onchange = () => {
     const v = input.value;
-    if (!TIME_RE.test(v)) {
-      input.value = timeOf(key);
-      $('cfg-sleep-msg').textContent = '時間格式不對，沒有變更。';
-      return;
-    }
+    if (!TIME_RE.test(v)) { revert(); return; }
     if (v === getState().settings[key]) return;
     getState().settings[key] = v;
     saveState();
@@ -58,6 +60,7 @@ export function renderSetup(){
   $('cfg-sleep-msg').textContent='';
   renderSleepNote();
   $('exp-btn').onclick=()=>{$('exp-area').value=JSON.stringify(getState());$('io-msg').textContent='已匯出 — 全選複製保存。';};
-  /* 下載備份、選檔／貼上匯入（驗證 → 差異預覽 → 二次確認）；匯入成功後重繪今日（含訓練分頁）、統計、設定 */
-  wireBackupCard(()=>{renderHome();renderStats();renderSetup();});
+  /* 下載備份、選檔／貼上匯入（驗證 → 差異預覽 → 二次確認）；匯入成功後補階段起點（舊備份沒有 phase.startedAt），
+     再重繪今日（含訓練分頁）、統計、設定 */
+  wireBackupCard(()=>{ensurePhaseStarted(new Date());renderHome();renderStats();renderSetup();});
 }

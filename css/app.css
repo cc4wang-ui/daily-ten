@@ -91,7 +91,8 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #app .card p{font-size:13px;color:var(--c-ink-2);line-height:1.6}
 #app .card p b{color:var(--c-ink)}
 .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-2)}
-#app .card-head h2,#app .card-title{font-size:16px;font-weight:900;color:var(--c-ink)}
+.aft-head{display:flex;flex-direction:column;gap:var(--sp-0h)}
+#app .card-head h2,#app .aft-head h2,#app .card-title{font-size:16px;font-weight:900;color:var(--c-ink)}
 #app .card-title{margin-bottom:var(--sp-2)}
 .card-note{font-size:12px;color:var(--c-ink-2);white-space:nowrap}
 #app .small{font-size:12px;color:var(--c-ink-2);line-height:1.6}
@@ -229,9 +230,9 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .wake-lab{display:flex;align-items:center;gap:var(--sp-1h);font-size:14px;font-weight:700}
 .wake-time{font-size:34px;font-weight:800;line-height:1.1}
 .wake-sub{font-size:12px;color:var(--sleep-on-2)}
-.ci-edit-row{display:flex;align-items:center;gap:var(--sp-2h);flex-wrap:wrap;padding:var(--sp-1h) 0}
-.ci-edit-row label{font-size:14px;font-weight:700;color:var(--c-ink)}
-.ci-edit-row .link-btn{width:auto;color:var(--sleep-ink);font-weight:700}
+.ci-edit-row{display:flex;flex-direction:column;gap:var(--sp-1h);padding:var(--sp-1) 0}
+.ci-field{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);min-height:52px;font-size:14px;font-weight:700;color:var(--c-ink)}
+.ci-edit-row .link-btn{width:auto;align-self:flex-start;padding:0;color:var(--sleep-ink);font-weight:700}
 #app .ci-msg:empty{display:none}
 .score{list-style:none;border-radius:var(--r-md);background:var(--sleep-soft);padding:var(--sp-1h) var(--sp-3h)}
 .sc-line{display:flex;align-items:center;gap:var(--sp-2h);min-height:var(--touch);font-size:14px;color:var(--c-ink)}
@@ -272,8 +273,8 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #app .wk-min{font-size:13px;white-space:nowrap}
 #week-tbl{margin-bottom:var(--sp-2)}
 .steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:var(--sp-1h);margin:var(--sp-2) 0}
-.steps li{counter-increment:step;display:flex;gap:var(--sp-2h);font-size:13px;line-height:1.6;color:var(--c-ink-2)}
-.steps li::before{content:counter(step);flex:none;width:22px;height:22px;margin-top:var(--sp-hair);border-radius:50%;background:var(--move-soft);
+.steps li{counter-increment:step;position:relative;padding-left:var(--sp-7);font-size:13px;line-height:1.6;color:var(--c-ink-2)}
+.steps li::before{content:counter(step);position:absolute;left:0;top:var(--sp-hair);width:22px;height:22px;border-radius:50%;background:var(--move-soft);
   color:var(--move-ink);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .steps li b{color:var(--c-ink)}
 #vids{margin-top:var(--sp-1h)}
@@ -392,8 +393,10 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
   max-width:calc(var(--maxw) - 2 * var(--toast-side));margin:0 auto;z-index:45;text-align:center;pointer-events:none}
 
 /* ---------- 13. 分頁列、復原 toast ---------- */
-#tabs{position:fixed;bottom:0;left:0;right:0;max-width:var(--maxw);margin:0 auto;display:flex;
-  padding:var(--sp-1h) var(--sp-2) calc(var(--sp-1h) + env(safe-area-inset-bottom));background:var(--c-scrim-tab);border-top:1px solid var(--c-line);z-index:40}
+/* 分頁列不透明（內容不會透出來）；高度固定＝--tabbar-h＋安全區，#app 底部留同樣的高度，最後一張卡片捲得到分頁列上方 */
+#tabs{position:fixed;bottom:0;left:0;right:0;max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;
+  height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));padding:0 var(--sp-2) env(safe-area-inset-bottom);
+  background:var(--c-card);border-top:1px solid var(--c-line);box-shadow:var(--shadow-tab);z-index:40}
 #tabs button{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-1);padding:0;
   background:none;color:var(--c-ink-3);font-family:var(--font);font-size:11px;font-weight:500;letter-spacing:0}
 #tabs button.on{color:var(--c-ink);font-weight:700}

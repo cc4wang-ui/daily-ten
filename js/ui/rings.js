@@ -18,6 +18,7 @@ const SUB = { move: '訓練', sleep: '睡眠', explore: '探索' };
 
 const seen = {}; // 上次在前景畫的比例（支柱 → 0..1；未解鎖記 'locked'）
 
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clamp01 = (n) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0);
 const num = (n) => (Number.isFinite(n) ? Math.round(n) : 0);
 export const fracOf = (p) => (p && p.max > 0 ? clamp01(p.xp / p.max) : 0);
@@ -89,7 +90,9 @@ export function legendMarkup(d) {
   if (!ex || ex.locked) {
     const u = (ex && ex.unlock) || {};
     const prog = Number.isFinite(u.need) ? ` ${num(u.have)}/${num(u.need)}` : '';
-    exVal = `<span class="lg-lock">${icon('lock', { size: 13 })}解鎖${prog}</span>`;
+    /* engine 的短文案（解鎖 7/10、條件達成後「下一版開放」）優先 */
+    const short = typeof u.short === 'string' && u.short.trim() ? esc(u.short.trim()) : `解鎖${prog}`;
+    exVal = `<span class="lg-lock">${icon('lock', { size: 13 })}${short}</span>`;
   } else exVal = val(ex);
   return item('move', 's-train', val(d.move)) + item('sleep', 's-checkin', val(d.sleep)) + item('explore', 's-checkin', exVal);
 }

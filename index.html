@@ -78,9 +78,9 @@
     </div>
     <button type="button" class="levelup" id="h-levelup" hidden></button>
     <section class="card aft-card" id="h-aft" aria-labelledby="h-aft-title">
-      <div class="card-head"><h2 id="h-aft-title">AFT 自選目標差距</h2><span class="card-note" id="h-aft-note"></span></div>
+      <div class="aft-head"><h2 id="h-aft-title">AFT 自選目標差距</h2><p class="small" id="h-aft-note"></p></div>
       <div class="aft-rows" id="h-aft-rows"></div>
-      <p class="small">以最近一次 Boss Day 成績計算。</p>
+      <p class="small">以歷來最佳成績計算。</p>
     </section>
     <div id="bk-reminder" class="banner">
       <span class="bn-ic" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></span>
@@ -106,9 +106,10 @@
         </button>
         <button type="button" class="link-btn sleep" id="ci-edit"></button>
         <div class="ci-edit-row" id="ci-edit-row" hidden>
-          <label for="ci-lights">昨晚熄燈</label>
-          <input type="time" id="ci-lights">
-          <button type="button" class="link-btn" id="ci-edit-reset">用就寢時間</button>
+          <label class="ci-field"><span>昨晚熄燈</span><input type="time" id="ci-lights"></label>
+          <label class="ci-field"><span>今天起床</span><input type="time" id="ci-wake-time"></label>
+          <p class="small">起床時間只能往前改，預設是按下的時間。</p>
+          <button type="button" class="link-btn" id="ci-edit-reset">恢復預設</button>
         </div>
         <p class="small ci-msg" id="ci-msg" role="status"></p>
       </div>

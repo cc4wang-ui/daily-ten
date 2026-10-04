@@ -1,4 +1,6 @@
-/* Daily Ten — 訓練計時引擎（startWorkout）。M1 自 index.html 原樣搬出；原全域 runner 改為模組內部，對外以 isTraining() 查詢。 */
+/* Daily Ten — 訓練計時引擎（startWorkout）。M1 自 index.html 原樣搬出；原全域 runner 改為模組內部，對外以 isTraining() 查詢。
+   B1：畫面與計時不變；完成畫面的 XP 改顯示新尺度（記錄前後 summary.xp.total 的增加量，不會是負數；遊戲層未就緒時照 M1 的 XP 表），
+   「STREAK N」改「連續 N 天」。opts.plus：加一輪（記成當天 type＋plus:true）。 */
 import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { initAudio, beep, speak } from './audio.js';
@@ -6,6 +8,7 @@ import { lockScreen, unlockScreen } from './wakelock.js';
 import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
 import { recordSession } from './session.js';
+import { totalXp, summary } from './game.js';
 import { HAS_DEMO, demoCtl, stopDemo, setTrainDemo } from './demo.js';
 import { renderHome } from './home.js';
 
@@ -13,7 +16,19 @@ import { renderHome } from './home.js';
 let runner=null;
 /* 訓練進行中（startWorkout 開始到 cleanup 之間）為 true；分頁切換用它擋住 */
 export function isTraining(){return !!runner;}
-export function startWorkout(seq,type,after){
+/* 完成畫面的連續天數：遊戲層的連續天數（與今日 chip 相同），未就緒時用舊欄位 */
+export function streakDays(){
+  const s=summary();
+  return s&&s.streak&&Number.isFinite(s.streak.days)?s.streak.days:getState().streak.current;
+}
+/* 記錄並回傳這次增加的 XP（新尺度）；遊戲層未就緒時回 M1 XP 表的值 */
+export function recordAndGain(type,opts){
+  const before=totalXp();
+  recordSession(type,opts);
+  const after=totalXp();
+  return before!==null&&after!==null?Math.max(0,after-before):XP[type];
+}
+export function startWorkout(seq,type,after,opts){
   seq=addTransitions(seq);
   initAudio(); lockScreen();
   $('train').classList.add('active');
@@ -54,10 +69,11 @@ export function startWorkout(seq,type,after){
   function finish(){
     cleanup();
     if(after){after();return;}
-    recordSession(type);
+    const gain=recordAndGain(type,{plus:!!(opts&&opts.plus)});
+    const days=streakDays();
     $('d-identity').textContent=IDENTITY[Math.floor(Math.random()*IDENTITY.length)];
-    $('d-xp').textContent='+'+XP[type]+' XP　·　STREAK '+getState().streak.current;
-    speak('完成。'+'目前連續'+getState().streak.current+'天。');
+    $('d-xp').textContent='+'+gain+' XP　·　連續 '+days+' 天';
+    speak('完成。'+'目前連續'+days+'天。');
     $('done').classList.add('active');
   }
   function cleanup(){

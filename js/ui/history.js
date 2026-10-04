@@ -1,7 +1,8 @@
 /* Daily Ten — 統計 › 訓練紀錄：8 週熱力圖與 AFT 三項 PR。M1 自 index.html 搬出；B1 換亮色、門檻線改稱「自選目標」（原則 4）。 */
 import { getState } from '../state/store.js';
 import { $ } from './dom.js';
-import { todayStr, dateOffset } from './dates.js';
+import { dateOffset } from './dates.js';
+import { todayKey } from './game.js';
 import { sessionOn } from './session.js';
 import { aftTargets, passText } from './aft.js';
 
@@ -9,7 +10,7 @@ const TYPE_NAME = { full: '完整', cycle: '加練', boss: 'Boss Day', rest: '�
 
 export function renderHist(){
   const heat=$('hist-heat');heat.innerHTML='';
-  const t=todayStr();
+  const t=todayKey(); // 遊戲日：右下＝今天（04:00 前仍是前一天）
   let days=0;
   for(let i=55;i>=0;i--){
     const d=dateOffset(t,-i),s=sessionOn(d);
@@ -27,5 +28,5 @@ export function renderHist(){
   fill('pr-run',getState().prs.run2mi,p=>fmtT(p.sec));
   /* 門檻線與今日 AFT 卡同一組數字 */
   const pass={hrp:'pass-hrp',plank:'pass-plank',run2mi:'pass-run'};
-  for(const it of aftTargets().items){const el=pass[it.pr]&&$(pass[it.pr]);if(el)el.textContent=passText(it);}
+  for(const it of aftTargets()){const el=pass[it.key]&&$(pass[it.key]);if(el)el.textContent=passText(it);}
 }

@@ -6,14 +6,14 @@
    D24：最上方的搬家引導卡（舊網址搬家、新網址匯入）在 relocate.js，每次 renderHome 重新判斷。 */
 import { getState, saveState } from '../state/store.js';
 import { $ } from './dom.js';
-import { todayStr, dayGap } from './dates.js';
+import { dayGap } from './dates.js';
 import { DOW, estMin, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, levelUpEligible } from './session.js';
 import { renderBackupReminder } from './backup.js';
 import { renderMoveCard } from './relocate.js';
 import { goTo } from './nav.js';
 import { icon } from './icons.js';
-import { summary } from './game.js';
+import { summary, todayKey, keyToDate } from './game.js';
 import { renderRings, legendMarkup } from './rings.js';
 import { renderAft } from './aft.js';
 import { renderTrain, runPlan } from './trainhub.js';
@@ -126,9 +126,10 @@ function renderLevelUp() {
 }
 
 export function renderHome(){
-  const st=getState(),t=todayStr(),plan=todayPlan(),d=new Date();
-  $('h-date').textContent='週'+DOW[d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate();
-  const sum=summary(d);
+  const st=getState(),now=new Date(),t=todayKey(now),plan=todayPlan(),day=keyToDate(t);
+  /* 日期標題用遊戲日（04:00 前仍是前一天），和下一步、課表、三環同一天 */
+  $('h-date').textContent='週'+DOW[day.getDay()]+' '+(day.getMonth()+1)+'/'+day.getDate();
+  const sum=summary(now);
   const doneToday=!!sessionOn(t);
   renderPhase(sum);
   renderStreak(sum,st);
@@ -142,5 +143,5 @@ export function renderHome(){
   renderBackupReminder();
   renderMoveCard();
   renderTrain();
-  renderKpis();
+  renderKpis(sum);
 }
