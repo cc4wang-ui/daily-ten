@@ -5,7 +5,10 @@
      BACKUP_REMINDER_DAYS = 7、IMPORT_MAX_CHARS = 5,000,000、PRE_IMPORT_KEY
      backupFilename(now)                          → 'daily-ten-backup-YYYY-MM-DD.json'
      buildBackup(state, now)                      → {filename, text, stamped}
-                                                    stamped = 複製 → mirrorLegacyToGame → meta.lastBackupAt = isoLocal(now)
+                                                    stamped = migrate(state)（複製＋正規化＋mirrorLegacyToGame）→ meta.lastBackupAt = isoLocal(now)
+                                                    正規化 = 下次載入時的修補結果；正常資料完全不變（遷移冪等）。
+                                                    畫面若在記憶體寫進格式不對的值（例如清空的就寢時間 ''），
+                                                    備份檔仍一定能通過 parseImport 的嚴格驗證。
                                                     text = JSON.stringify(stamped, null, 2)；備份檔內容 = 儲存後的 state
      downloadBackup({now}={})                     → Promise<{ok:true, method:'download'|'share', filename}
                                                     | {ok:false, reason:'cancelled'|'error', message}>
@@ -22,8 +25,8 @@
      downloadRawBackup(backupKey, {now}={})       → {ok, filename?, message?}：把 localStorage 該 key 的原始字串
                                                     下載成 'daily-ten-raw-YYYY-MM-DD.txt'（原資料可能不是合法 JSON） */
 import { getState, setState, saveState, STORAGE_KEY } from './store.js';
-import { isPlainObject, deepClone, validateImport } from './schema.js';
-import { migrate, mirrorLegacyToGame } from './migrate.js';
+import { isPlainObject, validateImport } from './schema.js';
+import { migrate } from './migrate.js';
 import { isoLocal, localDateStr, isValidDateStr } from './time.js';
 
 export { isoLocal, localDateStr };
@@ -53,8 +56,7 @@ export function backupFilename(now = new Date()) {
 
 export function buildBackup(state, now = new Date()) {
   if (!isPlainObject(state)) throw new TypeError('buildBackup 需要 state 物件');
-  const stamped = deepClone(state);
-  mirrorLegacyToGame(stamped);
+  const stamped = migrate(state, { now }).state; // 新物件；不改動傳入的 state
   if (!isPlainObject(stamped.meta)) stamped.meta = { lastBackupAt: null };
   stamped.meta.lastBackupAt = isoLocal(now);
   return { filename: backupFilename(now), text: JSON.stringify(stamped, null, 2), stamped };

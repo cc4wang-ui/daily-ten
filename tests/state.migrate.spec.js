@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 import { migrate, mirrorLegacyToGame, streakFromSessions, MigrationError } from '../js/state/migrate.js';
 import { defaultState, validateImport } from '../js/state/schema.js';
 import { isoLocal } from '../js/state/time.js';
-import { loadFixture, NOW, GOOD_FIXTURES, useTokyoTime, deepFreeze, rng } from './state.helpers.js';
+import { loadFixture, NOW, GOOD_FIXTURES, useTokyoTime, deepFreeze, rng, CHECKIN_LOG, CHECKIN_STARTED_AT } from './state.helpers.js';
 
 useTokyoTime(test);
 
@@ -211,6 +211,140 @@ test.describe('v3 與 D12（被舊版改回 version 2）', () => {
     expect(r.alreadyMigrated).toBe(false);
     expect(r.issues).toStrictEqual([{ path: 'game', action: 'reset' }]);
     expect(r.state.game.xp).toStrictEqual({ move: 396, sleep: 0, explore: 0, total: 396 });
+  });
+});
+
+test.describe('B1 早安打卡 fixture', () => {
+  test('v3-checkin：遷移是 no-op（內容與欄位順序完全相同），3 筆打卡、startedAt 都在', () => {
+    const raw = loadFixture('v3-checkin.json');
+    const r = migrate(raw, { now: NOW });
+    expect(r.fromVersion).toBe(3);
+    expect(r.alreadyMigrated).toBe(true);
+    expect(r.issues).toEqual([]);
+    expect(JSON.stringify(r.state)).toBe(JSON.stringify(raw));
+    expect(r.state.habits.sleep.log).toStrictEqual(CHECKIN_LOG);
+    expect(r.state.phase).toStrictEqual({ current: 'P1', startedAt: CHECKIN_STARTED_AT, history: [] });
+    expect(r.state.xp).toBe(411);
+    expect(r.state.streak).toStrictEqual({ current: 14, best: 14, lastDate: '2026-10-03' });
+    expect(r.state.game.xp).toStrictEqual({ move: 411, sleep: 0, explore: 0, total: 411 });
+    expect(r.state.game.streaks.life).toStrictEqual({ current: 14, best: 14, lastDate: '2026-10-03' });
+    expect(r.state.meta.lastBackupAt).toBe('2026-10-03T21:05:00+09:00');
+  });
+
+  test('v3-checkin-reverted-to-v2（D12）：sleep log 不遺失、不重複；game 以複製同步、不相加', () => {
+    const raw = loadFixture('v3-checkin-reverted-to-v2.json');
+    expect(raw.version).toBe(2);
+    expect(raw.xp).toBe(414);
+    expect(raw.game.xp.move).toBe(411); // 舊版沒有動 game
+    const r = migrate(raw, { now: NOW });
+    expect(r.fromVersion).toBe(2);
+    expect(r.alreadyMigrated).toBe(true);
+    expect(r.repaired).toBe(false);
+    expect(r.state.version).toBe(3);
+    expect(r.state.habits.sleep.log).toStrictEqual(CHECKIN_LOG);
+    expect(r.state.xp).toBe(414);
+    expect(r.state.game.xp).toStrictEqual({ move: 414, sleep: 0, explore: 0, total: 414 }); // 不是 411＋414
+    expect(r.state.game.streaks.train).toStrictEqual({ current: 15, best: 15, lastDate: '2026-10-04' });
+    expect(r.state.game.streaks.life).toStrictEqual({ current: 15, best: 15, lastDate: '2026-10-04' });
+    const checkin = loadFixture('v3-checkin.json');
+    for (const k of ['habits', 'goals', 'phase', 'meta', 'settings', 'prs', 'body', 'profile']) expect(r.state[k]).toStrictEqual(checkin[k]);
+    expect(r.state.sessions).toStrictEqual([...checkin.sessions, { date: '2026-10-04', type: 'minimal', xp: 3 }]);
+    expect(migrate(r.state, { now: NOW }).state.habits.sleep.log).toStrictEqual(CHECKIN_LOG); // 再跑一次也一樣
+  });
+
+  test('v3-bad-sleep：形狀錯的打卡丟掉、可修的修好、怪資料保留；startedAt 無效 → null', () => {
+    const r = migrate(loadFixture('v3-bad-sleep.json'), { now: NOW });
+    expect(r.repaired).toBe(true);
+    expect(r.issues).toStrictEqual([
+      { path: 'habits.sleep.log[1]', action: 'dropped' },               // wake 沒有時區
+      { path: 'habits.sleep.log[2].lightsOutEdited', action: 'coerced' }, // "true" → true
+      { path: 'habits.sleep.log[4]', action: 'dropped' },               // 字串
+      { path: 'habits.sleep.log[5]', action: 'dropped' },               // null
+      { path: 'habits.sleep.log[6]', action: 'dropped' },               // lightsOut 只有 HH:MM
+      { path: 'habits.sleep.log[7]', action: 'dropped' },               // 缺 wake
+      { path: 'habits.sleep.log[8]', action: 'dropped' },               // lightsOut null
+      { path: 'phase.startedAt', action: 'reset' }
+    ]);
+    expect(r.state.habits.sleep.log).toStrictEqual([
+      CHECKIN_LOG[0],
+      { ...CHECKIN_LOG[2], lightsOutEdited: true },
+      { date: '2026-10-05', lightsOut: '2026-10-04T14:20:00Z', wake: '2026-10-04T22:05:00.000Z', lightsOutEdited: false }, // Z 保留原樣；缺的補 false
+      { date: '2026-10-02', lightsOut: '2026-10-01T23:30:00+09:00', wake: '2026-10-02T07:00:00+09:00', lightsOutEdited: true }, // 同一天第二筆：保留
+      { date: '2026-10-10', lightsOut: '2026-10-09T23:00:00+09:00', wake: '2026-10-10T06:55:00+09:00', lightsOutEdited: false, note: '出差' }
+    ]);
+    expect(r.state.phase).toStrictEqual({ current: 'P1', startedAt: null, history: [] });
+    expect(validateImport(r.state)).toEqual({ ok: true });
+    const other = loadFixture('v3-checkin.json');
+    for (const k of ['sessions', 'prs', 'body', 'settings', 'game', 'meta']) expect(r.state[k]).toStrictEqual(other[k]); // 其他資料不受影響
+  });
+});
+
+test.describe('B1 修補規則：sleep 項目與 phase', () => {
+  const base = () => loadFixture('v3-checkin.json');
+  const item = (patch) => ({ ...CHECKIN_LOG[0], ...patch });
+
+  test('lightsOutEdited：缺少 → false（不算修補）；"true"／1 → true、"false"／0 → false（coerced）；其他 → false（reset）', () => {
+    const cases = [[undefined, false, null], ['true', true, 'coerced'], [1, true, 'coerced'], ['false', false, 'coerced'], [0, false, 'coerced'],
+      ['yes', false, 'reset'], [null, false, 'reset'], [2, false, 'reset'], [{}, false, 'reset']];
+    for (const [input, out, action] of cases) {
+      const raw = base();
+      const e = item({ lightsOutEdited: input });
+      if (input === undefined) delete e.lightsOutEdited;
+      raw.habits.sleep.log = [e];
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.habits.sleep.log, String(input)).toStrictEqual([item({ lightsOutEdited: out })]);
+      expect(r.issues).toStrictEqual(action ? [{ path: 'habits.sleep.log[0].lightsOutEdited', action }] : []);
+    }
+  });
+
+  test('date／lightsOut／wake 缺少或格式錯 → 整筆丟掉（不猜時區）', () => {
+    const drops = [{ date: undefined }, { date: '2026-10-32' }, { lightsOut: undefined }, { lightsOut: '2026-10-01T23:00:00' },
+      { lightsOut: 1791550800000 }, { wake: undefined }, { wake: '2026-10-02 06:51:40+09:00' }, { wake: null }, { wake: '' }];
+    for (const patch of drops) {
+      const raw = base();
+      const e = item(patch);
+      for (const k of Object.keys(patch)) if (patch[k] === undefined) delete e[k];
+      raw.habits.sleep.log = [CHECKIN_LOG[1], e];
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.habits.sleep.log, JSON.stringify(patch)).toStrictEqual([CHECKIN_LOG[1]]);
+      expect(r.issues).toStrictEqual([{ path: 'habits.sleep.log[1]', action: 'dropped' }]);
+    }
+  });
+
+  test('sleep.log 不是陣列 → []（reset）；sleep 不是物件 → 預設', () => {
+    const raw = base();
+    raw.habits.sleep.log = { 0: CHECKIN_LOG[0] };
+    let r = migrate(raw, { now: NOW });
+    expect(r.state.habits.sleep).toStrictEqual({ log: [] });
+    expect(r.issues).toStrictEqual([{ path: 'habits.sleep.log', action: 'reset' }]);
+    raw.habits.sleep = 'x';
+    r = migrate(raw, { now: NOW });
+    expect(r.state.habits.sleep).toStrictEqual({ log: [] });
+    expect(r.issues).toStrictEqual([{ path: 'habits.sleep', action: 'reset' }]);
+  });
+
+  test('phase.current 不是 P1–P3 → P1（reset）；P2、P3 保留', () => {
+    for (const [input, out, issue] of [['P2', 'P2', false], ['P3', 'P3', false], ['P4', 'P1', true], ['p1', 'P1', true], ['', 'P1', true], [2, 'P1', true], [null, 'P1', true]]) {
+      const raw = base();
+      raw.phase.current = input;
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.phase.current, String(input)).toBe(out);
+      expect(r.issues).toStrictEqual(issue ? [{ path: 'phase.current', action: 'reset' }] : []);
+    }
+  });
+
+  test('phase.startedAt 不是含時區的時間 → null（reset）；Z 結尾、null 保留；缺少 → null（不算修補）', () => {
+    for (const [input, out, issue] of [
+      ['2026-10-01T21:50:10.000Z', '2026-10-01T21:50:10.000Z', false], [null, null, false], [undefined, null, false],
+      ['yesterday', null, true], ['2026-10-02', null, true], ['2026-10-02T06:50:10', null, true], [1791583080000, null, true], [{}, null, true]
+    ]) {
+      const raw = base();
+      if (input === undefined) delete raw.phase.startedAt;
+      else raw.phase.startedAt = input;
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.phase.startedAt, String(input)).toBe(out);
+      expect(r.issues).toStrictEqual(issue ? [{ path: 'phase.startedAt', action: 'reset' }] : []);
+    }
   });
 });
 
@@ -505,6 +639,43 @@ test.describe('fuzz：隨機破壞資料，載入永遠不丟例外', () => {
         throw new Error(`#${i} 不冪等：${JSON.stringify(again.issues)}\n輸入：${before}`);
       }
       expect(r.state.game.xp.move).toBe(r.state.xp);
+    }
+  });
+
+  test('300 次隨機破壞打卡與階段資料：遷移成功、輸出可匯入、冪等；留下的打卡一定是完整形狀', () => {
+    const rand = rng(20261004);
+    const ISO_JUNK = ['2026-10-04T06:58:00', '06:58', '2026-10-04', '2026-10-04T06:58:00+0900', '2026-10-03T21:58:00.000Z', 'P2', 'P4', 'true'];
+    const sources = ['v3-checkin.json', 'v3-bad-sleep.json', 'v3-checkin-reverted-to-v2.json'].map(loadFixture);
+    for (let i = 0; i < 300; i++) {
+      const raw = JSON.parse(JSON.stringify(sources[i % sources.length]));
+      const all = [...paths(raw.habits.sleep.log, ['habits', 'sleep', 'log']), ...paths(raw.phase, ['phase'])];
+      const edits = 1 + Math.floor(rand() * 4);
+      for (let j = 0; j < edits; j++) {
+        const p = all[Math.floor(rand() * all.length)];
+        let parent = raw;
+        for (const k of p.slice(0, -1)) parent = parent && typeof parent === 'object' ? parent[k] : undefined;
+        if (!parent || typeof parent !== 'object') continue;
+        const pool = rand() < 0.5 ? JUNK : ISO_JUNK;
+        if (rand() < 0.2) delete parent[p[p.length - 1]];
+        else parent[p[p.length - 1]] = JSON.parse(JSON.stringify(pool[Math.floor(rand() * pool.length)]));
+      }
+      const before = JSON.stringify(raw);
+      const r = migrate(raw, { now: NOW });
+      expect(JSON.stringify(raw)).toBe(before);
+      const v = validateImport(r.state);
+      if (!v.ok) throw new Error(`#${i} 輸出無法匯入：${JSON.stringify(v.errors)}\n輸入：${before}`);
+      const again = migrate(r.state, { now: NOW });
+      if (again.repaired || JSON.stringify(again.state) !== JSON.stringify(r.state)) {
+        throw new Error(`#${i} 不冪等：${JSON.stringify(again.issues)}\n輸入：${before}`);
+      }
+      for (const e of r.state.habits.sleep.log) {
+        expect(typeof e.date).toBe('string');
+        expect(typeof e.lightsOut).toBe('string');
+        expect(typeof e.wake).toBe('string');
+        expect(typeof e.lightsOutEdited).toBe('boolean');
+      }
+      expect(['P1', 'P2', 'P3']).toContain(r.state.phase.current);
+      expect(r.state.phase.startedAt === null || typeof r.state.phase.startedAt === 'string').toBe(true);
     }
   });
 });

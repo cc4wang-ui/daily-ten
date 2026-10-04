@@ -8,6 +8,8 @@
                clamped（level 夾回 1–5）／dropped（陣列內形狀錯的項目丟掉）／truncated（過長截斷）／
                downgraded（version 大於 3）。任何一筆 issue 都讓 repaired = true。
        「缺少」的欄位補預設值不算修補（v1／v2 本來就沒有 v3 欄位）；xp、streak 缺少時由 sessions 推導。
+       B1：habits.sleep.log 的項目缺 date／lightsOut／wake 或格式錯（例如時間沒有時區）→ dropped；
+           phase.current 不是 P1–P3、phase.startedAt 不是含時區的時間 → reset（規格見 schema.js）。
        冪等：同一個 now 下 migrate(migrate(x).state) 與 migrate(x).state 完全相同，第二次 repaired = false。
      mirrorLegacyToGame(state) → 同一個 state（就地更新 game；M1 專用語意，M2a 會改）
      streakFromSessions(sessions) → {current, best, lastDate}（只看出席日期，不依賴「今天」）
@@ -20,7 +22,7 @@ import {
   SCHEMA_VERSION, STATE_SPEC, LIMITS, TIME_RE,
   defaultState, defaultGame, isPlainObject, deepClone, numInRange, isTooLong, truncateText
 } from './schema.js';
-import { isValidDateStr, dayNumber, dayNumberToStr } from './time.js';
+import { isValidDateStr, isIsoWithOffset, dayNumber, dayNumberToStr } from './time.js';
 
 export class MigrationError extends Error {
   constructor(message) {
@@ -127,6 +129,7 @@ function repairNum(spec, v, path, log) {
 function repairText(spec, v, path, log) {
   if (typeof v !== 'string') return BAD;
   if (spec.minLen && v.length < spec.minLen) return BAD;
+  if (spec.oneOf && !spec.oneOf.includes(v)) return BAD;
   if (isTooLong(spec, v)) {
     if (!spec.truncate) return BAD;
     log.add(path, 'truncated');
@@ -205,6 +208,7 @@ function repairNode(spec, v, def, path, log) {
     case 'bool': return repairBool(v, path, log);
     case 'date': return isValidDateStr(v) ? v : BAD;
     case 'time': return repairTime(v, path, log);
+    case 'iso': return isIsoWithOffset(v) ? v : BAD; // 不猜時區：沒有 offset 的時間無法還原成當地時間
     case 'obj': return isPlainObject(v) ? repairObj(spec, v, def, path, log) : BAD;
     case 'arr': return Array.isArray(v) ? repairList(spec, v, path, log) : BAD;
     default: return v;

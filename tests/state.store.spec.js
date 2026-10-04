@@ -57,6 +57,33 @@ test.describe('loadState：狀態', () => {
     });
   }
 
+  test('B1：v3-checkin → ok（內容不變）；v3-checkin-reverted-to-v2 → migrated；主 key 都不被覆寫', async () => {
+    let raw = readFixture('v3-checkin.json');
+    let local = withLocal(raw);
+    expect(await loadState({ now: NOW })).toStrictEqual({ status: 'ok', error: null });
+    expect(getState()).toStrictEqual(loadFixture('v3-checkin.json'));
+    expect(local.keys()).toEqual([STORAGE_KEY]);
+    raw = readFixture('v3-checkin-reverted-to-v2.json');
+    local = withLocal(raw);
+    expect(await loadState({ now: NOW })).toStrictEqual({ status: 'migrated', error: null });
+    expect(getState().habits.sleep.log).toHaveLength(3);
+    expect(getState().game.xp.move).toBe(414);
+    expect(local.getItem(STORAGE_KEY)).toBe(raw);
+    expect(local.keys()).toEqual([STORAGE_KEY]);
+  });
+
+  test('B1：v3-bad-sleep → repaired：原始字串存到 bak-v3，主 key 不變，壞打卡丟掉', async () => {
+    const raw = readFixture('v3-bad-sleep.json');
+    const local = withLocal(raw);
+    const r = await loadState({ now: NOW });
+    expect(r).toStrictEqual({ status: 'repaired', error: { code: 'repaired', message: MSG_REPAIRED, backupKey: 'daily-ten-state.bak-v3' } });
+    expect(local.getItem('daily-ten-state.bak-v3')).toBe(raw);
+    expect(local.getItem(STORAGE_KEY)).toBe(raw);
+    expect(getState().habits.sleep.log.map((e) => e.date)).toEqual(['2026-10-02', '2026-10-04', '2026-10-05', '2026-10-02', '2026-10-10']);
+    expect(getState().phase.startedAt).toBe(null);
+    expect(getState().xp).toBe(411);
+  });
+
   test('v2-wrong-types → repaired：原始字串存到 bak-v2，主 key 不變', async () => {
     const raw = readFixture('v2-wrong-types.json');
     const local = withLocal(raw);
