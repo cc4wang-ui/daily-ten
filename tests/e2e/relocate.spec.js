@@ -8,14 +8,17 @@
    - Service Worker：模擬網址要 SW 時用 swRouting fixture，讓 SW 自己的請求（sw.js、install 的 addAll）也走 route。
      瀏覽器的 SW「更新檢查」（registration.update() 抓 sw.js）不經過 route（Playwright 1.56／Chromium 實測），所以「舊網址 v7 → 目前」
      改用本機 https 伺服器＋--host-resolver-rules 把舊網址的主機名對到 127.0.0.1（自簽憑證、--ignore-certificate-errors）。
-   QA_SHOTS_DIR 有設時存截圖（報告引用的證據）。 */
+   QA_SHOTS_DIR 有設時存截圖（報告引用的證據）。
+   V1：今日最上方是頁首（日期＋右上齒輪），搬家／匯入卡緊接在頁首之後；設定由齒輪進入（分頁列亮「今日」）；
+   匯入卡的「選擇備份檔」必須在同一個點擊（同步）就切到設定並打開檔案選擇（iOS 只在使用者手勢的同步流程允許）。
+   舊版頁面（v7／v8）用 M1 的判斷（waitReadyM1、expectHomeM1）。 */
 import { createServer } from 'node:https';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import {
-  test, expect, readFixture, fixturePath, installClock, seedOnce, seedState, waitReady, openApp, gotoTab, expectHome,
+  test, expect, readFixture, fixturePath, installClock, seedOnce, seedState, waitReady, waitReadyM1, openApp, gotoTab, expectHome, expectHomeM1,
   storageSnapshot, storedState, rawMain, clickAndDownload, IMPORT_ARMED_TEXT, expectGlossaryClean, runWorkoutToEnd, tick,
   swAssets, cacheNumber, readSwCache, REPO_DIR, cacheNames, waitControlled, markDocument, sameDocument, recordSwMessages,
   swMessages, requestSwUpdate, countNavigations, realWait, contextOptions, watchContext, assertWatchClean, simulateSite,
@@ -84,13 +87,18 @@ const SHARE_CONTROL = () => {
 };
 
 /* 在某個（模擬）網址開 App：假時鐘暫停在 now（同一個 context 只裝一次）、寫入 fixture 原文、掛上腳本 */
-async function openOn(page, site, { seed = null, now = NOW_ISO, init = [], clock = true } = {}) {
+async function openOn(page, site, { seed = null, now = NOW_ISO, init = [], clock = true, old = false } = {}) {
   if (clock) await installClock(page, now);
   if (seed !== null) await seedOnce(page, seedState(seed));
   for (const fn of [].concat(init)) await page.addInitScript(fn);
   await page.goto(site.url());
-  await waitReady(page);
+  if (old) await waitReadyM1(page); // V1 以前的版本沒有 html[data-ready]
+  else await waitReady(page);
 }
+/* 今日最上方看得到的區塊（不含固定定位的提示列）：V1＝頁首（.top，含日期）→ 卡片 */
+const homeTopOrder = (page) => page.evaluate(() => [...document.getElementById('s-home').children]
+  .filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).position !== 'fixed')
+  .map((el) => el.id || el.className));
 const cardIds = ['mv-legacy', 'mv-import'];
 /* hidden 屬性在、而且不佔版面 */
 const hiddenNoLayout = (page, id) => page.evaluate((id) => {
@@ -135,11 +143,9 @@ test.describe('舊網址（GitHub Pages）：搬家卡', () => {
     await expect(page.locator('#mv-import')).toBeHidden();
     await expect(page.locator('#mv-legacy-empty')).toBeHidden();
     await expect(page.locator('#mv-legacy-title')).toHaveText('App 搬到新網址了');
-    /* 位置：眉標、日期之後第一個看得到的區塊 */
-    const order = await page.evaluate(() => [...document.getElementById('s-home').children]
-      .filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).position !== 'fixed')
-      .map((el) => el.id || el.className));
-    expect(order.slice(0, 3)).toEqual(['eyebrow', 'h-date', 'mv-legacy']);
+    /* 位置：頁首（日期）之後第一個看得到的區塊 */
+    expect((await homeTopOrder(page)).slice(0, 2)).toEqual(['top', 'mv-legacy']);
+    await expect(page.locator('#s-home > .top #h-date')).toBeVisible();
     /* 不能關閉：卡片裡能操作的只有「下載備份」與「打開新網址」 */
     const controls = await card.evaluate((el) => [...el.querySelectorAll('button, a, input, select, textarea, [role="button"], [tabindex]')].map((c) => c.id));
     expect(controls).toEqual(['mv-backup', 'mv-open']);
@@ -386,11 +392,9 @@ test.describe('新網址（Vercel）：從舊網址搬資料', () => {
     const b = await page.locator('#mv-import-btn').boundingBox();
     expect(b.height).toBeGreaterThanOrEqual(44);
     expect(b.width).toBeGreaterThanOrEqual(44);
-    /* 卡片在眉標、日期之後 */
-    const order = await page.evaluate(() => [...document.getElementById('s-home').children]
-      .filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).position !== 'fixed')
-      .map((el) => el.id || el.className));
-    expect(order.slice(0, 3)).toEqual(['eyebrow', 'h-date', 'mv-import']);
+    /* 卡片在頁首（日期）之後 */
+    expect((await homeTopOrder(page)).slice(0, 2)).toEqual(['top', 'mv-import']);
+    await expect(page.locator('#s-home > .top #h-date')).toBeVisible();
     expectGlossaryClean([await card.innerText()]);
     await shot(page, 'd24-new-fresh-standalone');
   });
@@ -408,6 +412,39 @@ test.describe('新網址（Vercel）：從舊網址搬資料', () => {
     const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('#mv-import-btn')]);
     expect(await chooser.element().evaluate((el) => el.id)).toBe('imp-file');
     await expect(page.locator('#s-setup')).toHaveClass(/active/);
+  });
+
+  test('「選擇備份檔」同一個點擊（同步）就切到設定、捲到資料備份卡、呼叫檔案選擇（iOS 只允許手勢的同步流程打開檔案選擇）', async ({ page, context, guard }) => {
+    const next = await simulateSite(context, guard, SITE.next);
+    await openOn(page, next, { init: STANDALONE });
+    await expect(page.locator('#mv-import')).toBeVisible();
+    /* 在頁面內同步派發點擊：handler 回來的那一刻就檢查（任何 await／setTimeout 之後才切畫面或才呼叫 input.click() 都會被抓到） */
+    const r = await page.evaluate(() => {
+      const calls = [];
+      const orig = HTMLInputElement.prototype.click;
+      let sync = false;
+      HTMLInputElement.prototype.click = function () {
+        calls.push({ id: this.id, sync, setupActive: document.getElementById('s-setup').classList.contains('active') });
+        return orig.call(this);
+      };
+      sync = true;
+      document.getElementById('mv-import-btn').click();
+      sync = false;
+      const out = {
+        setupActive: document.getElementById('s-setup').classList.contains('active'),
+        homeActive: document.getElementById('s-home').classList.contains('active'),
+        calls
+      };
+      HTMLInputElement.prototype.click = orig;
+      return out;
+    });
+    expect(r).toEqual({ setupActive: true, homeActive: false, calls: [{ id: 'imp-file', sync: true, setupActive: true }] });
+    /* 真的點一下（有使用者手勢）：檔案選擇打開 */
+    await gotoTab(page, 's-home');
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('#mv-import-btn')]);
+    expect(await chooser.element().evaluate((el) => el.id)).toBe('imp-file');
+    await expect(page.locator('#s-setup')).toHaveClass(/active/);
+    await chooser.setFiles([]);
   });
 
   test('全新、display-mode: standalone（已安裝的 PWA）：不顯示 Safari 提示', async ({ page, context, guard }) => {
@@ -443,7 +480,9 @@ test.describe('新網址（Vercel）：從舊網址搬資料', () => {
     expect(chooser.isMultiple()).toBe(false);
     await expect(p.locator('#s-setup')).toHaveClass(/active/);
     await expect(p.locator('#s-home')).not.toHaveClass(/active/);
-    await expect(p.locator('#tabs button[data-s="s-setup"]')).toHaveClass(/\bon\b/);
+    /* 設定在「今日」底下（右上齒輪）：分頁列亮「今日」 */
+    await expect(p.locator('#tabs button[data-s="s-home"]')).toHaveClass(/\bon\b/);
+    await expect(p.locator('#tabs button[data-s="s-home"]')).toHaveAttribute('aria-current', 'page');
     const pos = await p.evaluate(() => {
       const card = document.getElementById('bk-download').closest('.card');
       const r = card.getBoundingClientRect();
@@ -603,7 +642,7 @@ test.describe('其他網址：兩張卡都 hidden', () => {
       const shots = [];
       for (let i = 0; i < Math.max(1, Math.ceil(h / vh)); i++) {
         await page.evaluate((y) => window.scrollTo(0, y), i * vh);
-        shots.push(await page.screenshot());
+        shots.push(await page.screenshot({ animations: 'disabled' })); // 三環掃入（CSS 動畫走真實時間）一律截完成後的畫面
       }
       const text = await page.locator('#s-home').innerText();
       await ctx.close();
@@ -851,7 +890,14 @@ async function httpsLegacy(browserType, root) {
   };
 }
 
-test.describe('更新：舊網址的 v7（UPGRADE_BASE_DIR）→ 目前版本（D23 協定）', () => {
+/* 舊版頁面確認：V1 以前的版本沒有三環（#h-rings）；搬家卡要看基準版本有沒有 D24（v7 沒有，v8 起有） */
+const OLD_HAS_MOVE = !!UPGRADE_DIR && existsSync(join(UPGRADE_DIR, 'js/ui/relocate.js'));
+async function expectOldVersion(page) {
+  await expect(page.locator('#h-rings'), `舊版（${UPGRADE_CACHE}）沒有三環`).toHaveCount(0);
+  await expect(page.locator('#mv-legacy'), `舊版（${UPGRADE_CACHE}）${OLD_HAS_MOVE ? '已有' : '沒有'}搬家卡`).toHaveCount(OLD_HAS_MOVE ? 1 : 0);
+}
+
+test.describe('更新：舊網址的舊版（UPGRADE_BASE_DIR，v7／v8）→ 目前版本（D23 協定）', () => {
   test.skip(!UPGRADE_DIR, '未設定 UPGRADE_BASE_DIR（origin/main 的 worktree）');
   test.skip(!!UPGRADE_DIR && UPGRADE_CACHE === CUR, `UPGRADE_BASE_DIR 的 CACHE 與目前相同（${CUR}），沒有可測的更新`);
   test.describe.configure({ timeout: 150_000 });
@@ -862,11 +908,11 @@ test.describe('更新：舊網址的 v7（UPGRADE_BASE_DIR）→ 目前版本（
     try {
       const page = await env.context.newPage();
       const navs = countNavigations(page);
-      await openOn(page, env, { seed: V2() });
+      await openOn(page, env, { seed: V2(), old: true });
       expect(await page.evaluate(() => [location.hostname, isSecureContext])).toEqual([LEGACY_HOST, true]);
       await waitControlled(page, UPGRADE_CACHE);
-      await expect(page.locator('#mv-legacy'), `舊版（${UPGRADE_CACHE}）沒有搬家卡`).toHaveCount(0);
-      await expectHome(page, { level: 3, xp: 361, current: 9, best: 11 });
+      await expectOldVersion(page);
+      await expectHomeM1(page, { level: 3, xp: 361, current: 9, best: 11 });
       const before = await storageSnapshot(page);
       const token = await markDocument(page);
       const navsBefore = navs.length;
@@ -915,9 +961,9 @@ test.describe('更新：舊網址的 v7（UPGRADE_BASE_DIR）→ 目前版本（
     try {
       const page = await env.context.newPage();
       await recordSwMessages(page);
-      await openOn(page, env, { seed: V2() });
+      await openOn(page, env, { seed: V2(), old: true });
       await waitControlled(page, UPGRADE_CACHE);
-      await expect(page.locator('#mv-legacy')).toHaveCount(0);
+      await expectOldVersion(page);
       const before = await storageSnapshot(page);
       await page.click('#h-minimal');
       await expect(page.locator('#train')).toHaveClass(/active/);

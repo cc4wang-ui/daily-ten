@@ -114,19 +114,27 @@ export async function installClock(page, now = NOW_ISO) {
   await page.clock.pauseAt(t);
 }
 
-/* App 開機完成：renderBody 已執行（它在 renderHome、renderSetup 之後；showLoadError 在同一個同步區段緊接著執行） */
+/* App 開機完成：js/app.js 在 renderHome／renderSetup／renderStats、showLoadError 全部畫完後設 html[data-ready="1"]
+   （啟動失敗走 showFatal，不會設；那種情境用 ready:false 自己等 #boot-error） */
 export async function waitReady(page) {
+  await page.waitForFunction(() => document.documentElement.dataset.ready === '1');
+}
+
+/* 舊版（ec87e03、origin/main 等 V1 以前的版本）沒有 html[data-ready]：等 renderBody 畫出營養目標（M1 的判斷） */
+export async function waitReadyM1(page) {
   await page.waitForFunction(() => {
     const m = document.getElementById('bd-macros');
     return !!m && m.innerHTML !== '';
   });
 }
 
+/* ready：true＝V1（html[data-ready]）；'m1'＝舊版；false＝不等（啟動失敗的情境自己等） */
 export async function openApp(page, { now = NOW_ISO, seed = null, url = '/index.html', ready = true } = {}) {
   await installClock(page, now);
   if (seed) await seedOnce(page, seed);
   await page.goto(url);
-  if (ready) await waitReady(page);
+  if (ready === 'm1') await waitReadyM1(page);
+  else if (ready) await waitReady(page);
 }
 
 export const seedState = (raw) => ({ [MAIN_KEY]: raw });
@@ -145,16 +153,99 @@ export async function storedState(page) {
   const raw = await rawMain(page);
   return raw === null ? null : JSON.parse(raw);
 }
+/* 畫面上的四個數字（V1 的位置）：#h-streak＝今日右上連續天數、#h-level＝訓練分頁「強度」、#h-xp／#h-best＝統計的累計 XP／最佳連續 */
 export const homeValues = (page) => page.evaluate(() => {
   const t = (id) => document.getElementById(id).textContent;
   return { streak: t('h-streak'), best: t('h-best'), xp: t('h-xp'), level: t('h-level') };
 });
+/* App 目前的 state（與 App 同一個 module 實例）＋ engine 對它算出的今日摘要。
+   rules 直接讀 data/game.json、engine 直接 import，不經過 UI 的轉接層（js/ui/game.js），所以是獨立的預期值。
+   rules 讀不到時 sum = null。 */
+export const appSummary = (page) => page.evaluate(async () => {
+  const u = (p) => new URL(p, document.baseURI).href;
+  const [{ getState }, { todaySummary }] = await Promise.all([import(u('js/state/store.js')), import(u('js/game/engine.js'))]);
+  let rules = null;
+  try { const r = await fetch(u('data/game.json')); rules = r.ok ? await r.json() : null; } catch (e) { rules = null; }
+  const st = getState();
+  return {
+    legacy: { level: st.level, xp: st.xp, current: st.streak.current, best: st.streak.best },
+    sum: rules ? todaySummary(st, new Date(), rules) : null
+  };
+});
+/* V1：
+   - 資料：App 載入（遷移／修補）後的 level、xp、streak.current／best 等於預期（README 的表）——同 M1 的意圖，改讀 App 的 state，
+     因為 #h-xp／#h-best 在 V1 改顯示 engine 推導值。
+   - 畫面：今日在前景；#h-level＝L＋level（強度）；#h-streak＝engine 的連續天數（train）；
+     #h-xp＝engine 累計 XP、#h-best＝engine 最佳連續（engine 沒載入時退回 legacy 值）。 */
 export async function expectHome(page, { level, xp, current, best }) {
+  await expect(page.locator('#s-home')).toBeVisible();
+  const { legacy, sum } = await appSummary(page);
+  expect(legacy, 'App 載入後的 level／xp／連續天數').toEqual({ level, xp, current, best });
+  const want = {
+    streak: String(sum ? sum.streak.days : current),
+    best: String(sum ? sum.streak.best : best),
+    xp: String(sum ? sum.xp.total : xp),
+    level: `L${level}`
+  };
+  expect(await homeValues(page), '畫面上的數字（強度、連續天數、累計 XP、最佳連續）').toEqual(want);
+}
+/* 舊版（M1 首頁）：四個數字都在 HOME，#h-streak＝streak.current（只用在 V1 以前的版本，例如 upgrade／relocate 的舊版頁面） */
+export async function expectHomeM1(page, { level, xp, current, best }) {
   await expect(page.locator('#s-home')).toBeVisible();
   expect(await homeValues(page)).toEqual({ streak: String(current), best: String(best), xp: String(xp), level: `L${level}` });
 }
-export async function gotoTab(page, screenId) {
+/* 舊版的分頁列：HOME／RECORDS／BODY／SETUP 四顆 */
+export async function gotoTabM1(page, screenId) {
   await page.click(`#tabs button[data-s="${screenId}"]`);
+  await expect(page.locator(`#${screenId}`)).toHaveClass(/active/);
+}
+/* App 記憶體中的 phase.startedAt（loadState 在缺少時以載入當下補上；只改記憶體，下次存檔才寫入） */
+export const liveStartedAt = (page) => page.evaluate(async () => {
+  const { getState } = await import(new URL('js/state/store.js', document.baseURI).href);
+  return getState().phase.startedAt;
+});
+/* fixture（字串或物件）加上 phase.startedAt 後的物件：存檔或匯入前另存（pre-import）的內容會帶著 loadState 補上的起點 */
+export function withStartedAt(raw, startedAt) {
+  const o = typeof raw === 'string' ? JSON.parse(raw) : JSON.parse(JSON.stringify(raw));
+  o.phase = { ...(o.phase || {}), startedAt };
+  return o;
+}
+
+/* engine 在 Node 執行（子行程、TZ=Asia/Tokyo＝瀏覽器 context 的時區）：預期值由 engine 算，不寫死。
+   code：async 函式本體，可用 rules（data/game.json 原文解析）、eng（js/game/engine.js）、sleep（js/habits/sleep.js）、
+   day（js/game/day.js）、args；回傳值要能 JSON 化。 */
+export function nodeEngine(code, args = null) {
+  const root = JSON.stringify(ROOT.href);
+  const script = `
+    const u = (p) => new URL(p, ${root}).href;
+    const [eng, sleep, day, fs] = await Promise.all([import(u('js/game/engine.js')), import(u('js/habits/sleep.js')),
+      import(u('js/game/day.js')), import('node:fs')]);
+    const rules = JSON.parse(fs.readFileSync(new URL('data/game.json', ${root}), 'utf8'));
+    const args = JSON.parse(process.argv[1]);
+    const out = await (async () => { ${code} })();
+    process.stdout.write(JSON.stringify(out === undefined ? null : out));`;
+  const out = execFileSync(process.execPath, ['--input-type=module', '-e', script, JSON.stringify(args)],
+    { env: { ...process.env, TZ: 'Asia/Tokyo' }, encoding: 'utf8' });
+  return JSON.parse(out);
+}
+
+/* 分頁列只有今日／訓練／統計；設定＝今日右上齒輪（#h-settings）；訓練紀錄／身體指標＝統計裡的兩段；早安打卡＝今日圖例的「眠」 */
+const TAB_SCREENS = new Set(['s-home', 's-train', 's-stats']);
+const STATS_PANELS = { 's-hist': '#st-tab-hist', 's-body': '#st-tab-body' };
+export async function gotoTab(page, screenId) {
+  if (TAB_SCREENS.has(screenId)) {
+    await page.click(`#tabs button[data-s="${screenId}"]`);
+  } else if (STATS_PANELS[screenId]) {
+    await page.click('#tabs button[data-s="s-stats"]');
+    await expect(page.locator('#s-stats')).toHaveClass(/active/);
+    await page.click(STATS_PANELS[screenId]);
+  } else if (screenId === 's-setup' || screenId === 's-checkin') {
+    await page.click('#tabs button[data-s="s-home"]');
+    await expect(page.locator('#s-home')).toHaveClass(/active/);
+    await page.click(screenId === 's-setup' ? '#h-settings' : '#h-legend [data-go="s-checkin"] >> nth=0');
+  } else {
+    throw new Error(`gotoTab：不認得的畫面 ${screenId}`);
+  }
   await expect(page.locator(`#${screenId}`)).toHaveClass(/active/);
 }
 /* 觸發一次存檔但不改資料：SETUP 的「語音導引」切換兩次（每次 onchange 都會 saveState） */

@@ -2,10 +2,12 @@
    1. 走過所有畫面與流程，context 的每個請求都只到 127.0.0.1（data:／blob: 除外）；YouTube 只是 href，不發請求。
       （每個 e2e 測試另外都有自動守門 guard，見 helpers.js）
    2. 靜態掃描 App 檔：沒有 API key 樣式、沒有 AI 端點、外部網址只有 YouTube 搜尋（與 SVG 命名空間），
-      網路 API 只有 sw.js 的 fetch（快取未命中時抓同源檔案）。
+      網路 API 只有 sw.js 的 fetch（快取未命中時抓同源檔案）與 js/game/rules.js 讀同源的 data/game.json（V1，離線由 SW 預快取供應）。
+      V1：掃描範圍改成 css／js 底下所有子資料夾（含 js/game、js/habits）與 data/*.json，新資料夾不會漏掃。
       D24：與 CI 的 check-repo 同規則——另外只允許 js/ui/relocate.js 裡、與該檔 NEW_APP_URL 完全相同的網址
       （搬家卡的連結，使用者點了才導覽）；網址從檔案讀，不寫死，正式網址換掉時不用改測試。 */
 import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   test, expect, readFixture, readRepo, ROOT, openApp, seedState, gotoTab, tick, runWorkoutToEnd
 } from './helpers.js';
@@ -15,11 +17,11 @@ const YT = 'https://www.youtube.com/results?search_query=';
 const MOVE_FILE = 'js/ui/relocate.js';
 const moveUrlOf = (text) => (text.match(/NEW_APP_URL\s*=\s*'(https:\/\/[^']+)'/) || [])[1];
 
-test('走過四個分頁、示範視窗、訓練、Boss、匯出／匯入、備份：所有請求只到 127.0.0.1，YouTube 不發請求', async ({ page, guard }) => {
+test('走過所有分頁、早安打卡、示範視窗、訓練、Boss、匯出／匯入、備份：所有請求只到 127.0.0.1，YouTube 不發請求', async ({ page, guard }) => {
   await openApp(page, { now: '2026-10-11T08:00:00+09:00', seed: seedState(readFixture('v2-real.json')) });
-  for (const id of ['s-hist', 's-body', 's-setup', 's-home']) await gotoTab(page, id);
+  for (const id of ['s-train', 's-stats', 's-hist', 's-body', 's-setup', 's-checkin', 's-home']) await gotoTab(page, id);
 
-  await gotoTab(page, 's-setup');
+  await gotoTab(page, 's-train');
   const links = await page.locator('#vids a').evaluateAll((as) => as.map((a) => a.href));
   expect(links.length).toBeGreaterThan(40);
   expect(links.filter((h) => !h.startsWith(YT))).toEqual([]);
@@ -32,6 +34,7 @@ test('走過四個分頁、示範視窗、訓練、Boss、匯出／匯入、備�
     await page.clock.runFor(300);
     await page.click('#dm-close');
   }
+  await gotoTab(page, 's-setup');
   await page.click('#exp-btn');
   await expect(page.locator('#io-msg')).toHaveText('已匯出 — 全選複製保存。');
   await page.click('#imp-btn'); // 貼上區是剛匯出的 JSON → 預覽
@@ -40,8 +43,14 @@ test('走過四個分頁、示範視窗、訓練、Boss、匯出／匯入、備�
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bk-download')]);
   expect(dl.suggestedFilename()).toBe('daily-ten-backup-2026-10-11.json');
 
-  /* Boss Day（2 英里）跑完 */
+  /* 早安打卡 → 下一步變成 Boss Day（2 英里）→ 跑完 */
   await gotoTab(page, 's-home');
+  await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'checkin');
+  await page.click('#h-start');
+  await page.click('#ci-wake');
+  await expect(page.locator('#ci-done')).toBeVisible();
+  await gotoTab(page, 's-home');
+  await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'boss');
   await page.click('#h-start');
   await tick(page, 30);
   await page.click('#t-pause');
@@ -62,17 +71,26 @@ test('走過四個分頁、示範視窗、訓練、Boss、匯出／匯入、備�
 /* ---------- 靜態掃描 ---------- */
 function appFiles() {
   const out = ['index.html', 'demos.js', 'sw.js', 'manifest.webmanifest'];
-  for (const dir of ['css', 'js', 'js/ui', 'js/state']) {
+  const walk = (dir) => {
     for (const ent of readdirSync(new URL(`${dir}/`, ROOT), { withFileTypes: true })) {
-      if (ent.isFile() && /\.(js|css)$/.test(ent.name)) out.push(`${dir}/${ent.name}`);
+      const rel = join(dir, ent.name);
+      if (ent.isDirectory()) walk(rel);
+      else if (ent.isFile() && /\.(js|css)$/.test(ent.name)) out.push(rel);
     }
-  }
+  };
+  walk('css');
+  walk('js');
+  for (const ent of readdirSync(new URL('data/', ROOT), { withFileTypes: true })) if (ent.isFile() && ent.name.endsWith('.json')) out.push(`data/${ent.name}`);
   return out;
 }
+/* V1：遊戲規則檔的讀取（同源 data/game.json；網址以 module 位置推算） */
+const RULES_FILE = 'js/game/rules.js';
+const RULES_URL_RE = /export\s+const\s+RULES_URL\s*=\s*new URL\('\.\.\/\.\.\/data\/game\.json',\s*import\.meta\.url\)\.href;/;
 
 test('前端碼掃描：無 API key、無 AI 端點、外部網址只有 YouTube 搜尋、網路 API 只在 sw.js', () => {
   const files = appFiles();
-  expect(files).toEqual(expect.arrayContaining(['js/app.js', 'js/ui/backup.js', 'js/state/backup.js', 'css/tokens.css']));
+  expect(files).toEqual(expect.arrayContaining(['js/app.js', 'js/ui/backup.js', 'js/state/backup.js', 'css/tokens.css',
+    'js/game/engine.js', 'js/game/rules.js', 'js/habits/sleep.js', 'js/state/habits.js', 'js/ui/checkin.js', 'data/game.json']));
   const problems = [];
   const SECRET = [
     /sk-[A-Za-z0-9_-]{16,}/, /AIza[0-9A-Za-z_-]{35}/, /Bearer\s+[A-Za-z0-9._-]{16,}/,
@@ -89,7 +107,10 @@ test('前端碼掃描：無 API key、無 AI 端點、外部網址只有 YouTube
       problems.push(`${f}：外部網址 ${m[0]}`);
     }
     const net = text.match(/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts)\s*\(/g) || [];
-    if (net.length && !(f === 'sw.js' && net.every((n) => n.startsWith('fetch')))) problems.push(`${f}：網路 API ${net.join(', ')}`);
+    const onlyFetch = net.every((n) => n.startsWith('fetch'));
+    /* rules.js：只准 fetch(RULES_URL) 一次，且 RULES_URL＝同源的 ../../data/game.json */
+    const rulesOk = f === RULES_FILE && onlyFetch && net.length === 1 && /fetch\(RULES_URL\)/.test(text) && RULES_URL_RE.test(text);
+    if (net.length && !(f === 'sw.js' && onlyFetch) && !rulesOk) problems.push(`${f}：網路 API ${net.join(', ')}`);
     /* 動態 import 只能是相對路徑（同源 module） */
     for (const m of text.matchAll(/import\(\s*(['"`])([^'"`]+)\1/g)) if (!m[2].startsWith('./')) problems.push(`${f}：import(${m[2]})`);
     for (const m of text.matchAll(/^\s*import\s[^;]*?from\s*(['"])([^'"]+)\1/gm)) if (!m[2].startsWith('.')) problems.push(`${f}：import from ${m[2]}`);

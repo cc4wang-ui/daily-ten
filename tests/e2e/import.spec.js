@@ -2,10 +2,13 @@
    兩條路：SETUP「選擇備份檔匯入」（file chooser）與「貼上 JSON → 匯入」。
    壞檔：#imp-error 顯示錯誤、所有 localStorage key 與值都不變、不白屏。
    好檔：差異預覽列正確 → 第一次按確認不套用 → 第二次才套用 → pre-import 另存覆蓋前資料；取消 → 不變。
-   預期值取自 tests/fixtures/README.md 第 2 節。 */
+   預期值取自 tests/fixtures/README.md 第 2 節。
+   V1：loadState() 在 phase.startedAt 缺少時以載入當下補上（只改記憶體）→ pre-import（覆蓋前的記憶體內容）帶著補上的起點；
+   匯入成功後 ensurePhaseStarted(new Date())：備份沒有起點時補上（今日顯示「第 1 天」，下次存檔寫入）。 */
 import {
   test, expect, readFixture, fixturePath, openApp, seedState, storageSnapshot, storedState, rawMain,
   expectHome, gotoTab, expectGlossaryClean, identifierPaths, confirmImportTwice, seedOnce, waitReady,
+  appSummary, liveStartedAt, withStartedAt, triggerSave,
   IMPORT_CONFIRM_TEXT as CONFIRM, IMPORT_ARMED_TEXT as ARMED, MAIN_KEY, PRE_IMPORT_KEY, NOW_ISO
 } from './helpers.js';
 
@@ -169,7 +172,7 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     await expect(page.locator('#imp-preview')).toBeHidden();
     const after = await storageSnapshot(page);
     expect(Object.keys(after).sort()).toEqual([MAIN_KEY, PRE_IMPORT_KEY].sort());
-    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(JSON.parse(v3raw)); // 覆蓋前的資料
+    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(v3raw, NOW_ISO)); // 覆蓋前的資料（含載入時補上的起點）
     const s = JSON.parse(after[MAIN_KEY]);
     expect(s.version).toBe(3);
     expect(s.xp).toBe(361);
@@ -180,13 +183,20 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     expect(s.game.streaks.train).toEqual({ current: 9, best: 11, lastDate: '2026-09-28' });
     expect(s.meta.lastBackupAt).toBeNull();
     expect(s.habits.explore.items[0].createdAt).toBe(NOW_ISO);
+    /* 備份沒有階段起點 → 匯入後補上（記憶體）；今日顯示第 1 天；下一次存檔寫入 */
+    expect(JSON.parse(readFixture('v2-real.json')).phase).toBeUndefined();
+    const IMPORTED_AT = '2026-10-02T15:30:01+09:00'; // 匯入當下＝NOW＋1.5 秒（第二次確認前推進的假時間；秒以下捨去）
+    expect(await liveStartedAt(page)).toBe(IMPORTED_AT);
     /* 四個分頁已重繪 */
     await gotoTab(page, 's-home');
+    await expect(page.locator('#h-phase')).toHaveText('P1 睡飽 · 第 1 天');
     await expectHome(page, { level: 3, xp: 361, current: 9, best: 11 });
     await gotoTab(page, 's-hist');
     await expect(page.locator('#pr-hrp .prline')).toHaveCount(2);
     await collectTexts(page);
     expectGlossaryClean(collectedTexts);
+    await triggerSave(page);
+    expect((await storedState(page)).phase).toEqual({ current: 'P1', startedAt: IMPORTED_AT, history: [] });
   });
 
   test('貼上匯入 v1-minimal 與 v3：版本列 v1 → v3、沒有警告時不顯示警告區', async ({ page }) => {
@@ -289,9 +299,12 @@ test.describe('匯入：連點保護（待確認後 1 秒內的點擊忽略）',
     expect(Object.keys(after).sort()).toEqual([MAIN_KEY, PRE_IMPORT_KEY].sort());
     expect(JSON.parse(after[MAIN_KEY]).xp).toBe(xp);
     expect(JSON.parse(after[MAIN_KEY]).version).toBe(3);
-    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(JSON.parse(before[MAIN_KEY]));
+    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(before[MAIN_KEY], NOW_ISO));
     await gotoTab(page, 's-home');
-    await expect(page.locator('#h-xp')).toHaveText(String(xp));
+    /* 統計的累計 XP＝engine 對匯入後資料算的總 XP（legacy xp 另外比對） */
+    const { legacy, sum } = await appSummary(page);
+    expect(legacy.xp).toBe(xp);
+    await expect(page.locator('#h-xp')).toHaveText(String(sum.xp.total));
   }
 
   test('雙擊「確認匯入」不套用、停在待確認；1.5 秒後再按一下才套用', async ({ page }) => {
@@ -410,6 +423,8 @@ test('連點保護（真實時鐘）：真的雙擊不套用；真的等 1.2 秒
   await waitReady(page);
   await gotoTab(page, 's-setup');
   const before = await storageSnapshot(page);
+  const startedAt = await liveStartedAt(page); // 真實時鐘：載入當下的時間（含 +09:00）
+  expect(startedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
   await chooseFile(page, fixturePath('v2-real.json'));
   await page.dblclick('#imp-confirm');
   await expect(page.locator('#imp-confirm')).toHaveText(ARMED);
@@ -419,7 +434,7 @@ test('連點保護（真實時鐘）：真的雙擊不套用；真的等 1.2 秒
   await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
   const after = await storageSnapshot(page);
   expect(JSON.parse(after[MAIN_KEY]).xp).toBe(361);
-  expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(JSON.parse(before[MAIN_KEY]));
+  expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(before[MAIN_KEY], startedAt));
 });
 
 test.afterAll(() => {

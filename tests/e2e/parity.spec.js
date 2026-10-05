@@ -1,19 +1,22 @@
 /* qa-checker：拆 module 前後等價比對（PLAN.md §2 #3、#4、§5 #3；M1 完成條件「功能與 main 等價」）。
    只在 PARITY_BASE_DIR 有設時執行（playwright.config 會在 BASE_PORT 起基準伺服器，基準 = ec87e03）。
-   每個情境用同一套步驟跑三次：基準（A）、新版（B）、新版再一次（B'）。先要求 B 與 B' 0 px（A/A：確認比對工具沒有雜訊），
-   再要求 A 與 B 0 px（A/B）。另外比對各畫面的文字與捲動高度，失敗時診斷較清楚。
+   V1（D26）起今日／統計／設定畫面刻意改變（亮色、三環、分頁重組），畫面層的逐像素比對退役；保留：
+   1. 訓練畫面家族逐像素比對（訓練計時開始、暫停、Boss 測驗計時、動作示範視窗）：V1 不改訓練計時畫面（契約「本版不做」）。
+      每個情境用同一套步驟跑三次：基準（A）、新版（B）、新版再一次（B'）。先要求 B 與 B' 0 px（A/A：確認比對工具沒有雜訊），
+      再要求 A 與 B 0 px（A/B）；另外比對訓練畫面的文字。
+      - 開始按鈕的位置不同：基準在 HOME（#h-start／#h-plus／#h-rain）；新版在訓練分頁（#tr-start／#h-plus／#h-rain）。
+        新版早上的「下一步」是早安打卡，所以一律從訓練分頁開始。
+      - 動作示範：基準從 SETUP 開、新版從訓練分頁開；遮罩是 92% 不透明，背後畫面（刻意改成亮色）會透出 8%，
+        所以只比示範視窗本身（.box 元素截圖：人偶動畫、提示、按鈕），另外比動作名稱與提示文字。
+   2. 統計與身體指標的計算結果（熱力圖每格的種類、PR 清單、BODY 判讀／指標卡／營養目標／圍度／肌力）文字與基準相同。
+   3. 今日課表的時長：基準 HOME 的開始／加一輪／保底版分鐘數＝新版今日「下一步」／訓練分頁加一輪／保底版。
+   4. 新版 DOM 保留基準 index.html 靜態 markup 的每一個 id（UI 改版不刪 id、不改名）。
+   5. 課表資料與規則等價（所有序列、時長、示範對應、XP 表、影片清單、今日計畫、升級條件）。
    - 時間：假時鐘暫停在指定時間；訓練畫面用 runFor（逐影格，示範動畫相位一致）或 1 秒一步的 fastForward。
-   - Math.random 固定為 0（完成畫面的身分句是隨機的）。
-   - 畫面逐屏截圖（不用 fullPage：固定的分頁列會飄）；SETUP 逐張 .card 元素截圖，「資料備份」卡除外（M1 刻意新增控制項）。
-   - v2 資料加 meta.lastBackupAt = 當下（main 會忽略這個欄位；新版就不會出現提醒卡）。
-   - Chromium 加 --disable-partial-raster（圓角邊緣 ±1 像素雜訊）。
-   - 掛上示範動畫前先把假時鐘對齊 16 ms 影格（alignFrame）：重播時鐘紀錄時 ticks 會帶入幾毫秒的真實時間差，
-     影格格點不同會讓 runFor 視窗內的影格數差 1，示範人偶姿勢就差幾百 px（A/A 也會出現，屬於比對工具的雜訊）。
-   - SETUP 卡片截圖時讓「資料備份」卡 display:none（兩版都套用）：新版這張卡較高，後面卡片的頁面座標會差小數像素，
-     文字點陣化位置不同（位置造成的雜訊，不是畫面差異）。資料備份卡裡兩版共有的舊控制項另外比文字。
-   - 空資料情境練完後，新版依條件出現備份提醒卡（刻意差異）：斷言它出現，再遮掉它比對其餘畫面。
+   - Math.random 固定為 0。Chromium 加 --disable-partial-raster（圓角邊緣 ±1 像素雜訊）。
+   - 掛上示範動畫前先把假時鐘對齊 16 ms 影格（alignFrame），避免影格格點不同造成 A/A 雜訊。
    QA_SHOTS_DIR 有設時，所有截圖另存到該目錄（報告引用的證據）。 */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import utilsBundle from 'playwright-core/lib/utilsBundle';
 import {
@@ -26,8 +29,7 @@ const PORT = Number(process.env.PORT || 4173);
 const BASE_PORT = Number(process.env.BASE_PORT || PORT + 1);
 const ORIGIN = { A: `http://127.0.0.1:${BASE_PORT}`, B: `http://127.0.0.1:${PORT}` };
 const SHOTS_DIR = process.env.QA_SHOTS_DIR || '';
-const HIDE_TABS = '#tabs{visibility:hidden !important}';
-const HIDE_BACKUP_CARD = '#s-setup .card:has(#exp-btn){display:none !important}';
+const BASE_DIR = process.env.PARITY_BASE_DIR || '';
 
 /* 讓假時鐘的 ticks 落在 16 ms 格點上（rAF 影格格點），之後 runFor 的影格序列在每次執行都相同 */
 async function alignFrame(page) {
@@ -36,7 +38,7 @@ async function alignFrame(page) {
   if (r) await page.clock.runFor(r);
 }
 
-test.skip(!process.env.PARITY_BASE_DIR, '未設定 PARITY_BASE_DIR（拆 module 前的基準目錄），略過等價比對');
+test.skip(!BASE_DIR, '未設定 PARITY_BASE_DIR（拆 module 前的基準目錄），略過等價比對');
 test.use({
   launchOptions: {
     args: ['--disable-partial-raster'],
@@ -51,103 +53,66 @@ const v2WithBackup = (now) => {
   s.meta = { lastBackupAt: now };
   return JSON.stringify(s);
 };
+/* 開 App：基準沒有 html[data-ready]，用 M1 的判斷 */
+const openFor = (page, which, opts) => openApp(page, { ...opts, ready: which === 'A' ? 'm1' : true });
 
-/* ---------- 截圖工具 ---------- */
+/* ---------- 截圖工具（只有訓練畫面家族） ---------- */
 class Capture {
-  constructor(page) { this.page = page; this.shots = new Map(); this.facts = new Map(); }
-  async screen(name, { maskReminder = false } = {}) {
-    const page = this.page;
-    if (maskReminder && await page.locator('#bk-reminder').count()) {
-      /* 只有新版有提醒卡：斷言依條件出現（有紀錄、從未備份），再暫時隱藏以比對其餘畫面 */
-      await expect(page.locator('#bk-reminder')).toBeVisible();
-      await page.evaluate(() => {
-        const st = document.createElement('style');
-        st.id = 'qa-mask-reminder';
-        st.textContent = '#bk-reminder{display:none !important}';
-        document.head.appendChild(st);
-      });
-    }
-    await page.evaluate(() => window.scrollTo(0, 0));
-    const { h, vh } = await page.evaluate(() => ({ h: document.documentElement.scrollHeight, vh: window.innerHeight }));
-    this.facts.set(`${name}.scrollHeight`, h);
-    const n = Math.max(1, Math.ceil(h / vh));
-    for (let i = 0; i < n; i++) {
-      await page.evaluate((y) => window.scrollTo(0, y), i * vh);
-      this.shots.set(`${name}@${i}`, await page.screenshot());
-    }
-    await page.evaluate(() => { window.scrollTo(0, 0); document.getElementById('qa-mask-reminder')?.remove(); });
-  }
+  constructor(page, which) { this.page = page; this.which = which; this.shots = new Map(); this.facts = new Map(); }
   async viewport(name) { this.shots.set(name, await this.page.screenshot()); }
-  async text(name, selector) {
-    this.facts.set(`${name}.text`, await this.page.locator(selector).evaluate((el) => el.innerText));
-  }
-  /* SETUP：逐張卡片元素截圖，「資料備份」卡除外；另外比第一屏（標題＋第一張卡上半） */
-  async setupCards(name) {
-    const page = this.page;
-    await page.evaluate(() => window.scrollTo(0, 0));
-    this.shots.set(`${name}@0`, await page.screenshot());
-    const cards = page.locator('#s-setup .card');
-    const n = await cards.count();
-    const titles = [];
-    for (let i = 0; i < n; i++) {
-      const card = cards.nth(i);
-      const title = (await card.locator('h3').first().textContent()).trim();
-      titles.push(title);
-      if (title === '資料備份') {
-        /* 兩版共有的舊控制項：文字與 placeholder 相同 */
-        this.facts.set(`${name}-backup-old-controls`, await page.evaluate(() => [
-          document.getElementById('exp-btn').textContent, document.getElementById('imp-btn').textContent,
-          document.getElementById('exp-area').placeholder].join('｜')));
-        continue;
-      }
-      this.shots.set(`${name}-card-${i}-${title}`, await card.screenshot({ style: `${HIDE_TABS}\n${HIDE_BACKUP_CARD}` }));
-      this.facts.set(`${name}-card-${i}.text`, await card.evaluate((el) => el.innerText));
-    }
-    this.facts.set(`${name}.cards`, titles.join('｜'));
-    await page.evaluate(() => window.scrollTo(0, 0));
+  /* 元素內部的截圖：用 clip 裁切視窗截圖（locator.screenshot 會用 rAF 等元素穩定，假時鐘暫停時 rAF 不會跑）。
+     四邊各內縮圓角半徑（≥ 12 px，小於內距 16 px）：圓角外與小數像素的邊緣會透出遮罩後面的畫面（刻意改成亮色），內容全部在內縮範圍內。 */
+  async element(name, selector) {
+    const r = await this.page.locator(selector).evaluate((el) => {
+      const b = el.getBoundingClientRect();
+      const inset = Math.max(12, Math.ceil(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0));
+      return { x: Math.ceil(b.left) + inset, y: Math.ceil(b.top) + inset, width: Math.floor(b.width) - 2 * inset - 1, height: Math.floor(b.height) - 2 * inset - 1 };
+    });
+    this.facts.set(`${name}.rect`, JSON.stringify(r));
+    this.shots.set(name, await this.page.screenshot({ clip: r }));
   }
 }
 
-async function tab(page, id) {
-  await page.click(`#tabs button[data-s="${id}"]`);
+/* 去某個畫面：基準是四顆分頁（HOME／RECORDS／BODY／SETUP）；新版設定在今日右上齒輪、動作庫在訓練分頁 */
+const B_PANEL = { 's-hist': '#st-tab-hist', 's-body': '#st-tab-body' };
+async function go(page, which, id) {
+  if (which === 'A') await page.click(`#tabs button[data-s="${id}"]`);
+  else if (id === 's-setup') { await page.click('#tabs button[data-s="s-home"]'); await page.click('#h-settings'); }
+  else if (B_PANEL[id]) { await page.click('#tabs button[data-s="s-stats"]'); await page.click(B_PANEL[id]); }
+  else await page.click(`#tabs button[data-s="${id}"]`);
   await expect(page.locator(`#${id}`)).toHaveClass(/active/);
 }
-
-/* ---------- 情境（A、B 兩版跑同一套步驟；只用兩版都有的元素） ---------- */
-async function standardScreens(cap, page, prefix) {
-  await cap.screen(`${prefix}-home`);
-  await cap.text(`${prefix}-home`, '#s-home');
-  await tab(page, 's-hist');
-  await cap.screen(`${prefix}-records`);
-  await cap.text(`${prefix}-records`, '#s-hist');
-  await tab(page, 's-body');
-  await cap.screen(`${prefix}-body`);
-  await cap.text(`${prefix}-body`, '#s-body');
-  await tab(page, 's-setup');
-  await cap.setupCards(`${prefix}-setup`);
-  await tab(page, 's-home');
+/* 動作庫所在的畫面 */
+const vidsScreen = (which) => (which === 'A' ? 's-setup' : 's-train');
+/* 開始按鈕：今日課表／加一輪／雨天（基準在 HOME，新版在訓練分頁） */
+async function pressStart(page, which, kind) {
+  const sel = kind === 'start' ? (which === 'A' ? '#h-start' : '#tr-start') : kind === 'plus' ? '#h-plus' : '#h-rain';
+  await go(page, which, which === 'A' ? 's-home' : 's-train');
+  await alignFrame(page);
+  await page.click(sel);
 }
 
+/* ---------- 情境（A、B 兩版跑同一套步驟） ---------- */
 async function demoModal(cap, page, prefix) {
-  await tab(page, 's-setup');
+  await go(page, cap.which, vidsScreen(cap.which));
   await alignFrame(page);
   await page.locator('#vids button[data-demo]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   await page.clock.runFor(1_000); // 動畫跑 1 秒（逐影格）
-  await cap.viewport(`${prefix}-demo-modal`);
+  await cap.element(`${prefix}-demo-modal`, '#demo-modal .box');
+  cap.facts.set(`${prefix}-demo-modal.text`, await page.locator('#demo-modal .box').evaluate((el) => el.innerText));
   await page.click('#dm-close');
   await alignFrame(page);
   await page.locator('#vids button[data-demo]').nth(12).click();
   await page.clock.runFor(700);
-  await cap.viewport(`${prefix}-demo-modal-2`);
+  await cap.element(`${prefix}-demo-modal-2`, '#demo-modal .box');
+  cap.facts.set(`${prefix}-demo-modal-2.text`, await page.locator('#demo-modal .box').evaluate((el) => el.innerText));
   await page.click('#dm-close');
-  await tab(page, 's-home');
 }
 
 /* 開始一段訓練 → 跑 ms 毫秒（逐影格）→ 暫停截圖 → 結束 */
-async function pausedTraining(cap, page, prefix, button, ms = 12_000) {
-  await alignFrame(page);
-  await page.click(button);
+async function pausedTraining(cap, page, prefix, kind, ms = 12_000) {
+  await pressStart(page, cap.which, kind);
   await expect(page.locator('#train')).toHaveClass(/active/);
   await cap.viewport(`${prefix}-train-start`);
   await page.clock.runFor(ms);
@@ -160,137 +125,61 @@ async function pausedTraining(cap, page, prefix, button, ms = 12_000) {
   await expect(page.locator('#train')).not.toHaveClass(/active/);
 }
 
-async function minimalToDone(cap, page, prefix) {
-  await alignFrame(page);
-  await page.click('#h-minimal');
-  await tickUntil(page, () => !document.getElementById('train').classList.contains('active'), { every: 1, maxSeconds: 900 });
-  await expect(page.locator('#done')).toHaveClass(/active/);
-  await cap.viewport(`${prefix}-done`);
-  cap.facts.set(`${prefix}-done.text`, await page.locator('#done').evaluate((el) => el.innerText));
-  await page.click('#d-ok');
-}
-
-async function bossFlow(cap, page, prefix, item, { maskReminder = false } = {}) {
-  await alignFrame(page);
-  await page.click('#h-start');
-  if (item === 'hrp' || item === 'plank') {
-    const phase = item === 'hrp' ? 'BOSS · HRP' : 'BOSS · PLANK';
-    await tickUntil(page, (p) => document.getElementById('t-phase').textContent === p, { arg: phase, every: 1, maxSeconds: 2400 });
-    await tick(page, 20);
-    await cap.viewport(`${prefix}-boss-test`);
-    cap.facts.set(`${prefix}-boss-test.text`, await page.locator('#train').evaluate((el) => el.innerText));
-    if (item === 'plank') await page.click('#t-abort');
-  }
-  await tickUntil(page, () => document.getElementById('s-boss').classList.contains('active'), { every: 1, maxSeconds: 2400 });
-  await cap.screen(`${prefix}-boss-input`);
-  await cap.text(`${prefix}-boss-input`, '#s-boss');
-  if (item === 'hrp') await page.fill('#bi-1', '16');
-  if (item === 'run2mi') { await page.fill('#bi-m', '19'); await page.fill('#bi-s', '42'); }
-  await page.click('#bi-save');
-  await expect(page.locator('#done')).toHaveClass(/active/);
-  await cap.viewport(`${prefix}-boss-done`);
-  cap.facts.set(`${prefix}-boss-done.text`, await page.locator('#done').evaluate((el) => el.innerText));
-  await page.click('#d-ok');
-  await cap.screen(`${prefix}-home-after`, { maskReminder });
-  await tab(page, 's-hist');
-  await cap.screen(`${prefix}-records-after`);
+/* Boss Day：暖身 → 測驗計時畫面（HRP 倒數／Plank 碼表）截圖；成績輸入與完成畫面在 V1 改版（不比） */
+async function bossTest(cap, page, prefix, item) {
+  await pressStart(page, cap.which, 'start');
+  const phase = item === 'hrp' ? 'BOSS · HRP' : 'BOSS · PLANK';
+  await tickUntil(page, (p) => document.getElementById('t-phase').textContent === p, { arg: phase, every: 1, maxSeconds: 2400 });
+  await tick(page, 20);
+  await cap.viewport(`${prefix}-boss-test`);
+  cap.facts.set(`${prefix}-boss-test.text`, await page.locator('#train').evaluate((el) => el.innerText));
 }
 
 const SCENARIOS = [
   {
     name: '週五 空資料', now: NOW_ISO, seed: null,
     async run(cap, page) {
-      await standardScreens(cap, page, 'fri-empty');
       await demoModal(cap, page, 'fri-empty');
-      await pausedTraining(cap, page, 'fri-empty', '#h-start');
-      await minimalToDone(cap, page, 'fri-empty');
-      await cap.screen('fri-empty-home-after', { maskReminder: true });
-      await tab(page, 's-hist');
-      await cap.screen('fri-empty-records-after');
+      await pausedTraining(cap, page, 'fri-empty', 'start');
     }
   },
   {
     name: '週五 v2 資料', now: NOW_ISO, seed: () => v2WithBackup(NOW_ISO),
     async run(cap, page) {
-      await standardScreens(cap, page, 'fri-v2');
       await demoModal(cap, page, 'fri-v2');
-      await pausedTraining(cap, page, 'fri-v2', '#h-start');
-      await pausedTraining(cap, page, 'fri-v2-plus', '#h-plus', 20_000);
-      await pausedTraining(cap, page, 'fri-v2-rain', '#h-rain', 15_000);
-      await minimalToDone(cap, page, 'fri-v2');
-      await cap.screen('fri-v2-home-after');
-      /* BODY 輸入、彈力帶開關（課表與時長重算） */
-      await tab(page, 's-body');
-      await page.fill('#bd-weight', '68.4');
-      await page.fill('#bd-waist', '79.5');
-      await page.click('#bd-save');
-      await page.fill('#bd-pushup', '-3');
-      await page.click('#bd-save3');
-      await cap.screen('fri-v2-body-after');
-      await tab(page, 's-setup');
-      await page.click('#cfg-band');
-      await cap.setupCards('fri-v2-setup-band');
-      await tab(page, 's-home');
-      await cap.screen('fri-v2-home-band');
+      await pausedTraining(cap, page, 'fri-v2', 'start');
+      await pausedTraining(cap, page, 'fri-v2-plus', 'plus', 20_000);
+      await pausedTraining(cap, page, 'fri-v2-rain', 'rain', 15_000);
     }
   },
   {
     name: '週三 v2 資料（加練日）', now: '2026-09-30T07:00:00+09:00', seed: () => v2WithBackup('2026-09-30T07:00:00+09:00'),
     async run(cap, page) {
-      await cap.screen('wed-v2-home');
-      await cap.text('wed-v2-home', '#s-home');
-      await pausedTraining(cap, page, 'wed-v2-plus', '#h-plus', 30_000);
-      await tab(page, 's-setup');
-      await cap.setupCards('wed-v2-setup');
+      await pausedTraining(cap, page, 'wed-v2-plus', 'plus', 30_000);
     }
   },
   {
     name: '週六 v2 資料（恢復日）', now: '2026-10-03T07:00:00+09:00', seed: () => v2WithBackup('2026-10-03T07:00:00+09:00'),
     async run(cap, page) {
-      await cap.screen('sat-v2-home');
-      await cap.text('sat-v2-home', '#s-home');
-      await pausedTraining(cap, page, 'sat-v2', '#h-start', 25_000);
+      await pausedTraining(cap, page, 'sat-v2', 'start', 25_000);
     }
   },
   {
-    name: '週日 v2 資料（2 英里）', now: '2026-10-11T08:00:00+09:00', seed: () => v2WithBackup('2026-10-11T08:00:00+09:00'),
+    name: '週日 v2 資料（2 英里暖身）', now: '2026-10-11T08:00:00+09:00', seed: () => v2WithBackup('2026-10-11T08:00:00+09:00'),
     async run(cap, page) {
-      await standardScreens(cap, page, 'sun-run-v2');
-      await pausedTraining(cap, page, 'sun-run-v2', '#h-start');
-      await bossFlow(cap, page, 'sun-run-v2', 'run2mi');
+      await pausedTraining(cap, page, 'sun-run-v2', 'start');
     }
   },
   {
     name: '週日 空資料（HRP）', now: '2026-10-18T08:00:00+09:00', seed: null,
     async run(cap, page) {
-      await cap.screen('sun-hrp-empty-home');
-      await cap.text('sun-hrp-empty-home', '#s-home');
-      await bossFlow(cap, page, 'sun-hrp-empty', 'hrp', { maskReminder: true });
-    }
-  },
-  {
-    name: '週五 v3 被改回 v2（今日已完成、可升級）', now: NOW_ISO, seed: () => readFixture('v3-reverted-to-v2.json'),
-    async run(cap, page) {
-      await cap.screen('fri-rev-home');
-      await cap.text('fri-rev-home', '#s-home');
-      await page.click('#h-levelup');
-      await expect(page.locator('#h-level')).toHaveText('L4');
-      await cap.screen('fri-rev-home-L4');
-      await cap.text('fri-rev-home-L4', '#s-home');
-      await tab(page, 's-setup');
-      await cap.setupCards('fri-rev-setup-L4');
-      await tab(page, 's-hist');
-      await cap.screen('fri-rev-records');
-      await tab(page, 's-body');
-      await cap.screen('fri-rev-body');
+      await bossTest(cap, page, 'sun-hrp-empty', 'hrp');
     }
   },
   {
     name: '週日 v2 資料（Plank）', now: '2026-10-04T08:00:00+09:00', seed: () => v2WithBackup('2026-10-04T08:00:00+09:00'),
     async run(cap, page) {
-      await cap.screen('sun-plank-v2-home');
-      await cap.text('sun-plank-v2-home', '#s-home');
-      await bossFlow(cap, page, 'sun-plank-v2', 'plank');
+      await bossTest(cap, page, 'sun-plank-v2', 'plank');
     }
   }
 ];
@@ -301,11 +190,11 @@ async function runOnce(browser, which, scenario) {
   const w = watchContext(ctx);
   const page = await ctx.newPage();
   await page.addInitScript(() => { Math.random = () => 0; });
-  const cap = new Capture(page);
+  const cap = new Capture(page, which[0]);
   const dialogs = [];
   page.on('dialog', (d) => { dialogs.push(d.message()); d.accept(); });
   try {
-    await openApp(page, { now: scenario.now, seed: scenario.seed ? seedState(scenario.seed()) : null });
+    await openFor(page, which[0], { now: scenario.now, seed: scenario.seed ? seedState(scenario.seed()) : null });
     await scenario.run(cap, page);
   } finally {
     await ctx.close();
@@ -370,7 +259,7 @@ async function compare(left, right, label, testInfo) {
   return { problems, shots: names.length, facts: left.facts.size };
 }
 
-test.describe('等價比對：基準 ec87e03 vs 新版（A/A 後 A/B）', () => {
+test.describe('等價比對（訓練畫面家族）：基準 ec87e03 vs 新版（A/A 後 A/B）', () => {
   for (const scenario of SCENARIOS) {
     test(scenario.name, async ({ browser }, testInfo) => {
       const B1 = await runOnce(browser, 'B', scenario);
@@ -378,38 +267,114 @@ test.describe('等價比對：基準 ec87e03 vs 新版（A/A 後 A/B）', () => 
       const aa = await compare(B1, B2, 'AA', testInfo);
       const A = await runOnce(browser, 'A', scenario);
       const ab = await compare(A, B1, 'AB', testInfo);
-      console.log(`[qa] 等價比對「${scenario.name}」：截圖 ${ab.shots} 張、文字／高度 ${ab.facts} 項；A/A 不同 ${aa.problems.length}、A/B 不同 ${ab.problems.length}`);
+      console.log(`[qa] 等價比對「${scenario.name}」：截圖 ${ab.shots} 張、文字 ${ab.facts} 項；A/A 不同 ${aa.problems.length}、A/B 不同 ${ab.problems.length}`);
       expect(aa.problems, 'A/A（新版自比）應為 0 px：比對工具本身有雜訊').toEqual([]);
       expect(ab.problems, 'A/B（基準 vs 新版）應為 0 px').toEqual([]);
     });
   }
 });
 
-/* ---------- SETUP 結構（D23）：新版只多最下方一行版本 ----------
-   #s-setup 的直接子元素逐一比對（標籤、id、class、卡片標題／文字）：新版 = 基準的全部子元素（順序相同）＋最後一個
-   <p id="app-version">（不在任何 .card 內）。逐卡截圖比對在上面的情境裡（SW 被封鎖 → 版本行隱藏，不影響卡片）。 */
-test('SETUP 結構：新版 = 基準的子元素（逐卡、順序相同）＋最下方一行版本（#app-version，不在 .card 內）', async ({ browser }) => {
-  const outline = {};
-  for (const which of ['A', 'B']) {
-    const ctx = await browser.newContext(contextOptions({ baseURL: ORIGIN[which] }));
-    const w = watchContext(ctx);
-    try {
-      const page = await ctx.newPage();
-      await openApp(page, { seed: seedState(v2WithBackup(NOW_ISO)) });
-      await tab(page, 's-setup');
-      outline[which] = await page.evaluate(() => [...document.getElementById('s-setup').children].map((el) => ({
-        tag: el.tagName, id: el.id, cls: el.className, hidden: el.hidden,
-        label: el.classList.contains('card') ? (el.querySelector('h3') ? el.querySelector('h3').textContent.trim() : '') : el.textContent.trim().slice(0, 60)
-      })));
-    } finally {
-      await ctx.close();
+/* ---------- 統計／身體指標的計算結果、今日課表時長：與基準文字相同 ----------
+   兩版各自開同一份資料、做同樣的 BODY 輸入，比較 DOM 的文字內容（textContent，與版面無關）。 */
+const norm = (t) => (t || '').replace(/\s+/g, ' ').trim();
+async function recordsAndBody(page, which) {
+  await go(page, which, 's-hist');
+  const out = await page.evaluate(() => {
+    const rows = (id) => [...document.querySelectorAll(`#${id} .prline`)].map((r) => [...r.children].map((c) => c.textContent.trim()));
+    return {
+      heat: [...document.querySelectorAll('#hist-heat i')].map((i) => i.className),
+      heatTitles: [...document.querySelectorAll('#hist-heat i')].map((i) => i.title.slice(0, 10)),
+      prs: { hrp: rows('pr-hrp'), plank: rows('pr-plank'), run: rows('pr-run') },
+      prEmpty: ['pr-hrp', 'pr-plank', 'pr-run'].map((id) => document.getElementById(id).textContent.trim()).filter((t) => t.includes('尚無紀錄'))
+    };
+  });
+  await go(page, which, 's-body');
+  await page.fill('#bd-weight', '68.4');
+  await page.fill('#bd-waist', '79.5');
+  await page.fill('#bd-rhr', '58');
+  await page.fill('#bd-sleep', '7.2');
+  await page.click('#bd-save');
+  await page.fill('#bd-arm', '33.5');
+  await page.click('#bd-save2');
+  await page.fill('#bd-pushup', '31');
+  await page.click('#bd-save3');
+  out.body = await page.evaluate(() => {
+    const t = (id) => document.getElementById(id).textContent;
+    const rows = (id) => [...document.querySelectorAll(`#${id} .prline`)].map((r) => [...r.children].map((c) => c.textContent.trim()));
+    return {
+      msg: t('bd-msg'), verdict: t('bd-verdict'), tiles: [...document.querySelectorAll('#bd-tiles .tile')].map((x) => x.textContent),
+      macros: t('bd-macros'), macroNote: t('bd-macro-note'), girth: rows('bd-girth'), strength: rows('bd-strength')
+    };
+  });
+  out.body = JSON.parse(JSON.stringify(out.body, (k, v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : v)));
+  return out;
+}
+async function planMinutes(page, which) {
+  return page.evaluate((which) => {
+    const num = (sel, re) => {
+      const el = document.querySelector(sel);
+      const m = el && re.exec(el.textContent);
+      const g = m ? m.slice(1).find((x) => x !== undefined) : undefined;
+      return g === undefined ? null : Number(g);
+    };
+    if (which === 'A') {
+      return {
+        start: num('#h-start', /（(?:約 )?(\d+) min）|· (\d+) 分鐘/),
+        plus: document.getElementById('h-plus').style.display === 'none' ? null : num('#h-plus', /· (\d+) 分鐘$/),
+        minimal: num('#h-minimal', /約 (\d+) 分鐘/)
+      };
     }
-    assertWatchClean(w, which);
+    return {
+      start: num('#h-start .nx-meta', /(\d+) 分/),
+      plus: document.getElementById('h-plus').hidden ? null : num('#h-plus .opt-meta', /^(\d+) 分鐘$/),
+      minimal: num('#h-minimal', /只有 (\d+) 分鐘/)
+    };
+  }, which);
+}
+
+test('統計（熱力圖、PR）、身體指標（判讀、指標卡、營養目標、圍度、肌力）的計算結果與基準相同；今日課表時長相同', async ({ browser }) => {
+  const result = {};
+  for (const which of ['A', 'B']) {
+    result[which] = {};
+    for (const [label, now, seed] of [
+      ['週五 v2', NOW_ISO, () => v2WithBackup(NOW_ISO)],
+      ['週三 v2 下午', '2026-09-30T15:30:00+09:00', () => v2WithBackup('2026-09-30T15:30:00+09:00')],
+      ['週六 v3 下午', '2026-10-03T15:30:00+09:00', () => readFixture('v3.json')],
+      ['週日 v3 下午（Boss）', '2026-10-04T15:30:00+09:00', () => readFixture('v3.json')],
+      ['週五 空資料', NOW_ISO, null]
+    ]) {
+      const ctx = await browser.newContext(contextOptions({ baseURL: ORIGIN[which] }));
+      const w = watchContext(ctx);
+      try {
+        const page = await ctx.newPage();
+        page.on('dialog', (d) => d.accept());
+        await openFor(page, which, { now, seed: seed ? seedState(seed()) : null });
+        const minutes = await planMinutes(page, which);
+        result[which][label] = { minutes, ...(await recordsAndBody(page, which)) };
+      } finally {
+        await ctx.close();
+      }
+      assertWatchClean(w, `${label}（${which}）`);
+    }
   }
-  console.log(`[qa] SETUP 子元素：基準 ${outline.A.length} 個、新版 ${outline.B.length} 個；卡片 ${outline.A.filter((e) => e.cls === 'card').length} 張`);
-  expect(outline.B.slice(0, outline.A.length)).toEqual(outline.A);
-  /* SW 被封鎖（等價比對的 context）→ 版本行隱藏、沒有文字 */
-  expect(outline.B.slice(outline.A.length)).toEqual([{ tag: 'P', id: 'app-version', cls: 'small', hidden: true, label: '' }]);
+  const a = result.A['週五 v2'];
+  console.log(`[qa] 計算結果等價：熱力圖 ${a.heat.length} 格（有練 ${a.heat.filter(Boolean).length} 天）、PR ${a.prs.hrp.length + a.prs.plank.length + a.prs.run.length} 筆、BODY 指標卡 ${a.body.tiles.length} 張；時長 ${JSON.stringify(a.minutes)}`);
+  expect(a.heat).toHaveLength(56);
+  expect(a.body.tiles.length).toBeGreaterThan(0);
+  expect(a.minutes.start).toBeGreaterThan(0);
+  expect(result.B).toEqual(result.A);
+});
+
+/* ---------- 新版 DOM 保留基準的每一個 id（不刪、不改名） ----------
+   基準 index.html 去掉 <script> 之後的靜態 markup 裡的 id；新版開機後 document.getElementById 都找得到。 */
+test('新版保留基準 index.html 靜態 markup 的每一個 id', async ({ page }) => {
+  const html = readFileSync(join(BASE_DIR, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+  const ids = [...new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))];
+  expect(ids.length).toBeGreaterThan(60);
+  await openApp(page, { seed: seedState(v2WithBackup(NOW_ISO)) });
+  const missing = await page.evaluate((ids) => ids.filter((id) => !document.getElementById(id)), ids);
+  console.log(`[qa] 基準靜態 id ${ids.length} 個；新版缺 ${missing.length} 個`);
+  expect(missing).toEqual([]);
 });
 
 /* ---------- 課表資料與規則等價（DoD 3：沒有新增或改名動作；行為零變更） ----------
@@ -512,7 +477,7 @@ test('課表資料與規則等價：所有序列、時長、示範對應、XP、
     const w = watchContext(ctx);
     try {
       const page = await ctx.newPage();
-      await openApp(page, { now: '2026-10-04T08:00:00+09:00' });
+      await openFor(page, which, { now: '2026-10-04T08:00:00+09:00' });
       dumps[which] = { program: await programDump(page, which), plans: await todayPlans(page, which, DAYS) };
     } finally {
       await ctx.close();

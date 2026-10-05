@@ -58,7 +58,7 @@ test.describe('下載備份（Asia/Tokyo）', () => {
     await expect(page.locator('#bk-reminder')).toBeHidden();
     /* 重新開 App：仍不提醒、狀態保留 */
     await page.reload();
-    await expect(page.locator('#bd-macros')).not.toBeEmpty();
+    await waitReady(page);
     await expect(page.locator('#bk-reminder')).toBeHidden();
     await gotoTab(page, 's-setup');
     await expect(page.locator('#bk-status')).toHaveText('上次備份：2026-10-02 15:30');
@@ -150,11 +150,11 @@ test.describe('7 天提醒卡的邊界（v3.json：上次備份 2026-09-30 21:15
     await expect(page.locator('#bk-reminder')).toBeHidden();
     await page.evaluate(() => localStorage.clear()); // sessionStorage 旗標還在：reload 不會再寫入 fixture
     await page.reload();
-    await expect(page.locator('#bd-macros')).not.toBeEmpty();
+    await waitReady(page);
     await expect(page.locator('#bk-reminder')).toBeHidden();
     await page.evaluate((raw) => localStorage.setItem('daily-ten-state', raw), readFixture('corrupt-state.txt'));
     await page.reload();
-    await expect(page.locator('#bd-macros')).not.toBeEmpty();
+    await waitReady(page);
     await expect(page.locator('#err-card')).toBeVisible();
     await expect(page.locator('#bk-reminder')).toBeHidden();
   });
