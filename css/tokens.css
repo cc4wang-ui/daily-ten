@@ -1,24 +1,99 @@
-/* Daily Ten — 設計 token。M1 只把既有顏色集中到這裡，數值不變、外觀零變更（亮色主題在 M3）。 */
+/* Daily Ten — 設計 token。app.css 只引用這裡的變數，不寫顏色字面值（CLAUDE.md §7）。
+   B1：亮色外觀，固定亮色（暗色之後再做）。兩組：
+   1. 亮色（今日／訓練／統計／設定／早安打卡／Boss 成績輸入）：--c-*、支柱色、狀態卡、字型、間距、圓角、陰影、動效。
+   2. 訓練畫面家族（#train、#done、#demo-modal、Boss 測驗計時）保持 M1 的暗色：舊名稱 --bg、--ink… 在 :root 的值完全不變；
+      亮色區域（#app、#tabs、#toast）把舊名稱改指向亮色值（見 app.css 開頭），沿用舊變數的 inline style 在亮色畫面也看得清楚。
+   對比（WCAG 2.x，白底）：主文字 16.2:1、次要字 #5F635C 6.13:1、分頁未選 #6B6F68 5.12:1、
+   動／眠／探加深 5.54／6.51／5.40:1、白字在眠加深 6.51:1；虛線鎖定環 #7C7F77 4.07:1（非文字 ≥3:1）。 */
 :root{
+  color-scheme:light;
+
+  /* ---- 亮色：底、卡、字、線 ---- */
+  --c-bg:#FAFAF7;                    /* 畫面背景 */
+  --c-card:#FFFFFF;                  /* 卡片 */
+  --c-ink:#1B1D1A;                   /* 主文字、主按鈕底（深墨） */
+  --c-ink-2:#5F635C;                 /* 次要文字 */
+  --c-ink-3:#6B6F68;                 /* 分頁未選、提示字 */
+  --c-line:#E7E6E0;                  /* 分隔線、卡片描邊 */
+  --c-fill:#EFEDE6;                  /* 次要按鈕底、標籤底、熱力圖空格 */
+  --c-track:#F1EFEA;                 /* 進度條底 */
+  --c-on-ink:#FFFFFF;                /* 深墨主按鈕上的字 */
+  --c-on-ink-2:#C9CCC4;              /* 深墨主按鈕上的小字（「下一步」） */
+  --c-on-ink-3:#E4E6E0;              /* 深墨主按鈕上的數字（強度、分鐘） */
+  --c-done:#3A3D38;                  /* 「今天都完成了」圖示底 */
+  --shadow-tab:0 -1px 6px rgba(27,29,26,.04); /* 分頁列上緣（底色不透明，用 --c-card） */
+
+  /* ---- 支柱色：只用在環、圖表、色塊；文字一律用加深版（WCAG AA） ---- */
+  --move:#FF6B4A;    --move-ink:#B8401F;    --move-soft:#FFF1EC;    --move-track:rgba(255,107,74,.16);
+  --sleep:#6C5CE7;   --sleep-ink:#5446D6;   --sleep-soft:#F5F4FF;   --sleep-track:rgba(108,92,231,.16);
+  --explore:#00B894; --explore-ink:#00795B; --explore-soft:#E3F7F1; --explore-track:rgba(0,184,148,.16);
+  --sleep-on:#FFFFFF;                /* 眠加深色塊上的字（6.51:1） */
+  --sleep-on-2:#E4E1FF;              /* 眠加深色塊上的小字（5.12:1） */
+  --lock:#7C7F77;                    /* 未解鎖：虛線環、鎖頭、虛線框 */
+
+  /* ---- 熱力圖（動支柱的深淺）---- */
+  --heat-empty:#EFEDE6;
+  --heat-full:#FF6B4A;               /* 十動作＋加強區塊 */
+  --heat-cycle:#B8401F;              /* 週三加練 */
+  --heat-boss:#1B1D1A;               /* Boss Day */
+  --heat-rest:#FFB09C;               /* 恢復日 */
+  --heat-light:#FFD9CE;              /* 保底版、雨天替代 */
+
+  /* ---- 狀態卡 ---- */
+  --warn-bg:#FFF4E8;   --warn-ink:#6B4A3A;   --warn-icon:#B8401F;   /* 備份提醒 */
+  --danger-bg:#FDECEA; --danger-ink:#8C2416; --danger-line:#F2C4BC; /* 載入錯誤、匯入錯誤 */
+  --ok-bg:#E3F7F1;     --ok-ink:#00795B;     --ok-line:#A8E6D4;     /* 已更新、判讀良好 */
+  --info-bg:#F1EFEA;   --info-ink:#1B1D1A;                          /* 中斷提示（中性，不懲罰） */
+  --amber-ink:#8A5A00;                                              /* 判讀「持平」 */
+  --toast-bg:#1B1D1A;  --toast-ink:#FFFFFF;  --toast-action:#FFD3C7; /* 復原 toast（12.4:1） */
+
+  /* ---- 字型：系統字，離線可用（不用 Google Fonts） ---- */
+  --font:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;
+  --font-num:ui-rounded,'SF Pro Rounded',-apple-system,'PingFang TC','Noto Sans TC',sans-serif;
+
+  /* ---- 間距、圓角、陰影、觸控 ---- */
+  --sp-hair:1px; --sp-0h:2px; --sp-1:4px; --sp-1h:6px; --sp-2:8px; --sp-2h:10px; --sp-3:12px; --sp-3h:14px;
+  --sp-4:16px; --sp-4h:18px; --sp-5:20px; --sp-5h:22px; --sp-6:24px; --sp-7:28px; /* 間距尺度（亮色畫面的 padding／margin／gap 只用這些） */
+  --gap:14px;                        /* 畫面內區塊間距 */
+  --pad-screen:20px;                 /* 畫面左右留白 */
+  --pad-card:18px;                   /* 卡片內距 */
+  --r-card:20px; --r-btn:18px; --r-md:16px; --r-sm:12px; --r-xs:9px; --r-pill:999px;
+  --shadow-card:0 1px 2px rgba(27,29,26,.04),0 6px 20px rgba(27,29,26,.06);
+  --shadow-chip:0 1px 2px rgba(27,29,26,.06);
+  --shadow-btn:0 8px 20px rgba(27,29,26,.18);
+  --shadow-wake:0 6px 16px rgba(84,70,214,.28);
+  --shadow-toast:0 10px 24px rgba(27,29,26,.25);
+  --touch:44px;                      /* 觸控最小尺寸 */
+  --tabbar-h:64px;                   /* 底部分頁列高度（不含安全區；#app 底部留白也用它） */
+  --maxw:520px;                      /* 內容最大寬度 */
+
+  /* ---- 動效：只動 transform／opacity；減少動態時改淡入（app.css） ---- */
+  --ring-ms:600ms;                   /* 三環掃入 */
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+  --toast-in-ms:200ms;               /* 復原 toast 出現 */
+  --toast-lift:12px;                 /* toast 出現時的位移 */
+  --undo-ms:10000ms;                 /* 復原期限（10 秒） */
+  --undone-ms:2500ms;                /* 「已復原」提示停留 */
+
+  /* ---- M1 暗色（訓練畫面家族沿用；數值不變）---- */
   --bg:#12140F; --panel:#1C1F17; --panel2:#242820; --line:#33382B;
   --ink:#E8E4D8; --ink-dim:#9A9884; --amber:#E8A33D; --red:#D64545;
   --green:#7A9B57; --yellow:#D9C34A;
   --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  /* 以下原為 app.css 規則內的顏色字面值，數值逐字搬來 */
   --on-amber:#12140F;                /* 琥珀主按鈕上的文字 */
   --on-red:#fff;                     /* 紅底按鈕文字（.btn-danger-fill） */
   --red-soft:#F0A0A0;                /* 紅色提示框內文字 */
-  --amber-deep:#C98A2B;              /* 熱力圖：加練日 */
-  --olive:#6B6A50;                   /* 熱力圖：保底版／雨天 */
+  --amber-deep:#C98A2B;              /* 熱力圖：加練日（M1） */
+  --olive:#6B6A50;                   /* 熱力圖：保底版／雨天（M1） */
   --ink-faint:#6B6F5C;               /* 示範動畫的器材線 */
-  --amber-a18:rgba(232,163,61,.18);  /* 連續天數數字光暈 */
-  --yellow-a12:rgba(217,195,74,.12); /* 警告底色 */
-  --red-a14:rgba(214,69,69,.14);     /* 危險底色 */
-  --green-a14:rgba(122,155,87,.14);  /* 判讀「良好」底色 */
-  --green-a15:rgba(122,155,87,.15);  /* 升級按鈕底色 */
+  --amber-a18:rgba(232,163,61,.18);  /* 連續天數數字光暈（M1） */
+  --yellow-a12:rgba(217,195,74,.12); /* 警告底色（M1） */
+  --red-a14:rgba(214,69,69,.14);     /* 危險底色（M1） */
+  --green-a14:rgba(122,155,87,.14);  /* 判讀「良好」底色（M1） */
+  --green-a15:rgba(122,155,87,.15);  /* 升級按鈕底色（M1） */
   --scrim:rgba(10,11,8,.92);         /* 示範視窗遮罩 */
-  /* D23 自動更新：HOME「已更新」提示的位置與淡入淡出時間（只動 opacity） */
+  /* D23 自動更新：「已更新」提示的位置與淡入淡出時間（只動 opacity） */
   --toast-top:12px;                  /* 與安全區頂端的距離 */
-  --toast-side:18px;                 /* 左右留白（同 .screen 左右 padding） */
+  --toast-side:18px;                 /* 左右留白 */
   --fade-ms:200ms;                   /* 淡入／淡出；減少動態時不播 */
 }

@@ -1,7 +1,7 @@
 /* Daily Ten — state v3 schema（擁有者：data-guardian）
    純資料與純函式；import 時不碰 window / localStorage / document，可在 Node 單元測試。
    對外：
-     SCHEMA_VERSION = 3、DEFAULT_IDENTITY、PR_KEYS、BODY_KEYS、PR_VALUE_FIELD、LIMITS
+     SCHEMA_VERSION = 3、DEFAULT_IDENTITY、PR_KEYS、BODY_KEYS、PR_VALUE_FIELD、LIMITS、PHASES
      defaultState(now = new Date()) → 全新的 v3 預設 state（每次都是新物件）
      defaultGame()                  → 全新的 game 物件（M1 只建欄位；game.level = null，由 M2a engine 推導）
      validateImport(obj)            → {ok:true} | {ok:false, errors:[{code, path, message}]}
@@ -9,13 +9,27 @@
                                        code：missing_field | invalid_type | out_of_range；message 為台灣繁中。
      isPlainObject(v)、deepClone(v)
    內部共用：STATE_SPEC 是欄位規格，migrate.js 的寬鬆修補與這裡的嚴格驗證共用同一份，
-   保證「載入（修補）後的 state 一定能通過匯入驗證」——也就是任何備份檔都能再匯入。 */
-import { isoLocal, isValidDateStr } from './time.js';
+   保證「載入（修補）後的 state 一定能通過匯入驗證」——也就是任何備份檔都能再匯入。
+
+   B1（早安打卡）收緊的欄位（仍是 v3：欄位形狀不變，只把 CLAUDE.md §5 已寫明的格式落實成檢查；
+   上線版本從沒寫過這些欄位——sleep log 一直是空的、startedAt 一直是 null、current 一直是 P1——所以不需要升版）：
+     habits.sleep.log[]  {date, lightsOut, wake, lightsOutEdited, wakeEdited?, target?}
+                         date／lightsOut／wake 是識別欄位：缺少或格式錯 → 載入時整筆丟掉、匯入時報錯；
+                         lightsOut、wake 必須是含時區的 ISO 時間（time.js isIsoWithOffset）；
+                         lightsOutEdited 缺少補 false，'true'／1 轉成 true，其他無效值改回 false；
+                         wakeEdited 選填 boolean（無效 → false）；
+                         target 選填 {bedtime:'HH:MM', wakeTime:'HH:MM', windowMin:0–1440 整數} 或 null（無效 → null）。
+                         同一天重複的紀錄載入與匯入都保留（怪資料不擋），寫入端（habits.js）保證不會新增重複。
+     sessions[].plus     選填 boolean（加一輪；無效 → false）；type 'plus' 本來就接受（任意 1–20 字）
+     phase.current       只能是 P1／P2／P3（無效 → P1）
+     phase.startedAt     null 或含時區的 ISO 時間（無效 → null；載入後由 store.loadState 補上，見 migrate.js fillPhaseStartedAt） */
+import { isoLocal, isValidDateStr, isIsoWithOffset } from './time.js';
 
 export const SCHEMA_VERSION = 3;
 export const DEFAULT_IDENTITY = '我是獨立、自律、持續成長的人。';
 export const PR_KEYS = ['hrp', 'plank', 'run2mi', 'pushup', 'pike', 'sideplank'];
 export const BODY_KEYS = ['weight', 'waist', 'arm', 'shoulder', 'thigh', 'rhr', 'sleep'];
+export const PHASES = Object.freeze(['P1', 'P2', 'P3']);
 /* 真實格式（ec87e03）：hrp {date,reps}；plank／run2mi {date,sec}；pushup／pike／sideplank {date,v} */
 export const PR_VALUE_FIELD = Object.freeze({ hrp: 'reps', plank: 'sec', run2mi: 'sec', pushup: 'v', pike: 'v', sideplank: 'v' });
 
@@ -91,7 +105,9 @@ export function defaultState(now = new Date()) {
 }
 
 /* ---------- 欄位規格 ----------
-   k:        num | str | bool | date | time | obj | arr | map | any | numOrObj
+   k:        num | str | bool | date | time | iso | obj | arr | map | any | numOrObj
+             iso = 含時區的 ISO 8601 時間（time.js isIsoWithOffset）
+   oneOf:    str 的允許值清單（列舉）
    req:      匯入時必要（缺少 → top 層為 missing_field，其餘為 invalid_type）
    key:      陣列項目的識別欄位；匯入時必要，載入時無效 → 整筆丟掉
    nullable: 允許 null
@@ -106,6 +122,7 @@ const text = (o) => ({ k: 'str', ...o });
 const bool = (o) => ({ k: 'bool', ...o });
 const date = (o) => ({ k: 'date', ...o });
 const clock = (o) => ({ k: 'time', ...o });
+const iso = (o) => ({ k: 'iso', ...o });
 const obj = (fields, o) => ({ k: 'obj', fields, ...o });
 const list = (item, o) => ({ k: 'arr', item, maxLen: LIMITS.arrayLength, ...o });
 const dict = (o) => ({ k: 'map', ...o });
@@ -119,16 +136,29 @@ const streakSpec = (o) => obj({
 
 const prEntry = (key) => obj({ date: date({ key: true }), [PR_VALUE_FIELD[key]]: num({ min: 0, max: PR_MAX[key], key: true }) });
 const bodyEntry = obj({ date: date({ key: true }), v: num({ gt: 0, max: LIMITS.body, key: true }) });
+/* B1：date 從此以遊戲日記錄（04:00 換日，00:00–03:59 算前一天）——日期欄位只檢查格式，不假設午夜換日；
+   type 是任意短文字（含新的 'plus'）；plus = 加一輪（選填 boolean，舊版 App 不認得但會原樣保留） */
 const sessionEntry = obj({
   date: date({ key: true }),
   type: text({ key: true, minLen: 1, maxLen: LIMITS.shortText }),
-  xp: num({ min: 0, max: LIMITS.xp, fill: false, def: 0 })
+  xp: num({ min: 0, max: LIMITS.xp, fill: false, def: 0 }),
+  plus: bool({ fill: false, def: false })
 });
+/* 打卡當時的目標（之後改設定不會重算過去）；三個欄位缺一或格式錯 → 整個 target 改成 null（不捏造歷史） */
+const sleepTarget = obj({
+  bedtime: clock({ key: true }),
+  wakeTime: clock({ key: true }),
+  windowMin: int({ min: 0, max: LIMITS.minutesPerDay, key: true })
+}, { nullable: true, fill: false, def: null });
+/* 早安打卡（D17）：date = 遊戲日；lightsOut = 昨晚熄燈；wake = 起床時間（只能比點擊時間早）
+   wakeEdited 只在起床時間被往前改時寫入（選填）；target 由 game-designer 每次寫入（選填，舊紀錄沒有） */
 const sleepEntry = obj({
   date: date({ key: true }),
-  lightsOut: text({ nullable: true, maxLen: LIMITS.isoText, fill: false, def: null }),
-  wake: text({ nullable: true, maxLen: LIMITS.isoText, fill: false, def: null }),
-  lightsOutEdited: bool({ fill: false, def: false })
+  lightsOut: iso({ key: true }),
+  wake: iso({ key: true }),
+  lightsOutEdited: bool({ def: false }),
+  wakeEdited: bool({ fill: false, def: false }),
+  target: sleepTarget
 });
 const exploreItem = obj({
   id: text({ key: true, minLen: 1, maxLen: LIMITS.text }),
@@ -171,8 +201,8 @@ export const STATE_SPEC = obj({
     season: list(obj({}))
   }),
   phase: obj({
-    current: text({ minLen: 1, maxLen: LIMITS.shortText }),
-    startedAt: text({ nullable: true, maxLen: LIMITS.isoText }),
+    current: text({ minLen: 1, maxLen: LIMITS.shortText, oneOf: PHASES }),
+    startedAt: iso({ nullable: true }),
     history: list(any())
   }),
   game: obj({
@@ -219,10 +249,15 @@ const LABELS = {
   body: '身體指標', profile: '個人資料', settings: '設定', habits: '習慣紀錄', goals: '目標',
   phase: '階段', game: '遊戲進度', meta: '備份資訊'
 };
+/* 比 top 層更具體的名稱（先比對） */
+const SUB_LABELS = [['habits.sleep', '睡眠紀錄'], ['habits.explore', '探索紀錄']];
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 function where(path) {
   if (!path) return '檔案內容';
+  for (const [prefix, label] of SUB_LABELS) {
+    if (path === prefix || path.startsWith(`${prefix}.`) || path.startsWith(`${prefix}[`)) return `${label}（${path}）`;
+  }
   const top = /^[^.[]+/.exec(path)[0];
   return LABELS[top] ? `${LABELS[top]}（${path}）` : path;
 }
@@ -233,6 +268,7 @@ function typeText(spec) {
     case 'bool': return 'true 或 false';
     case 'date': return 'YYYY-MM-DD 格式的日期';
     case 'time': return 'HH:MM 格式的時間';
+    case 'iso': return '含時區的時間（例 2026-10-04T06:58:00+09:00）';
     case 'arr': return '清單';
     case 'numOrObj': return '數字或物件';
     default: return '物件';
@@ -256,6 +292,7 @@ const emptyText = (path) => err('invalid_type', path, `${where(path)}不可為�
 const badFormat = (spec, path) => err('out_of_range', path, `${where(path)}${shouldBe(spec)}`);
 const outOfRange = (spec, path) => err('out_of_range', path, `${where(path)}數值超出合理範圍（${rangeText(spec)}）`);
 const tooLong = (spec, path) => err('out_of_range', path, `${where(path)}文字過長（上限 ${fmt(spec.maxLen)} 字）`);
+const notOneOf = (spec, path) => err('out_of_range', path, `${where(path)}應為 ${spec.oneOf.join('、')} 其中之一`);
 const tooMany = (spec, path) => err('out_of_range', path, `${where(path)}筆數過多（上限 ${fmt(spec.maxLen)} 筆）`);
 
 const MAX_ERRORS = 100;
@@ -282,6 +319,7 @@ function check(spec, v, path, errors) {
       if (typeof v !== 'string') errors.push(wrongType(spec, path));
       else if (spec.minLen && v.length < spec.minLen) errors.push(emptyText(path));
       else if (isTooLong(spec, v)) errors.push(tooLong(spec, path));
+      else if (spec.oneOf && !spec.oneOf.includes(v)) errors.push(notOneOf(spec, path));
       return;
     case 'bool':
       if (typeof v !== 'boolean') errors.push(wrongType(spec, path));
@@ -293,6 +331,10 @@ function check(spec, v, path, errors) {
     case 'time':
       if (typeof v !== 'string') errors.push(wrongType(spec, path));
       else if (!TIME_RE.test(v)) errors.push(badFormat(spec, path));
+      return;
+    case 'iso':
+      if (typeof v !== 'string') errors.push(wrongType(spec, path));
+      else if (!isIsoWithOffset(v)) errors.push(badFormat(spec, path));
       return;
     case 'map':
       if (!isPlainObject(v)) errors.push(wrongType(spec, path));

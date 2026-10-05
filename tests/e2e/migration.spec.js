@@ -1,10 +1,13 @@
 /* qa-checker：遷移 e2e（PLAN.md §5 #1、#2）。預期值逐字取自 tests/fixtures/README.md 第 1 節。
    流程：fixture 原文寫入 localStorage → 開 App → HOME 數值、錯誤卡、提醒卡 → 主 key 在存檔前未被覆寫
    → 觸發一次存檔（設定切換兩次）→ storage 為 v3 且 game 正確 → reload 再存一次 → 與第一次逐字相同；
-   另開一個全新 context 再跑一次，結果也逐字相同。 */
+   另開一個全新 context 再跑一次，結果也逐字相同。
+   V1：loadState() 在 phase.startedAt 缺少時以載入當下（假時鐘 NOW）補上，第一次存檔時寫入；
+   B1 早安打卡 fixture（v3-checkin、v3-checkin-reverted-to-v2）另一組：打卡紀錄不重複、三環的眠＝engine 算的分數。 */
 import {
   test, expect, readFixture, openApp, seedState, contextOptions, watchContext, assertWatchClean,
-  expectHome, triggerSave, rawMain, storedState, storageSnapshot, gotoTab, MAIN_KEY, BAK_V2, NOW_ISO
+  expectHome, triggerSave, rawMain, storedState, storageSnapshot, gotoTab, waitReady, appSummary, nodeEngine, withStartedAt,
+  MAIN_KEY, BAK_V2, NOW_ISO
 } from './helpers.js';
 
 const MSG_REPAIRED = '部分資料格式異常，已自動修復。原始資料已另存，可下載保存。';
@@ -32,7 +35,7 @@ async function migrateOnce(page, c) {
 
   /* HOME 正常顯示、數值正確 */
   await expectHome(page, { level: c.level, xp: c.xp, current, best });
-  await expect(page.locator('#h-date')).toHaveText('10月2日 · 週五');
+  await expect(page.locator('#h-date')).toHaveText('週五 10/2');
   await expect(page.locator('#h-start')).not.toHaveText('—');
 
   /* 錯誤卡只在 repaired／recovered 出現；備份 key 存了原字串 */
@@ -74,15 +77,16 @@ async function migrateOnce(page, c) {
   expect(s.habits.explore.items[0]).toMatchObject({ id: 'dj', name: 'DJ', minimalAction: '練 1 個 transition', status: 'trying' });
   expect(s.habits.explore.log).toEqual([]);
   expect(s.goals).toEqual({ identity: '我是獨立、自律、持續成長的人。', weekly: [], season: [] });
-  expect(s.phase).toEqual({ current: 'P1', startedAt: null, history: [] });
+  /* V1：載入時補上階段起點（假時鐘的載入當下），第一次存檔寫入 */
+  expect(s.phase).toEqual({ current: 'P1', startedAt: NOW_ISO, history: [] });
   expect(s.settings).toMatchObject({ bedtime: '23:00', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 });
   expect(s.meta).toEqual({ lastBackupAt: c.lastBackupAt });
   /* DJ createdAt：v1／v2（含 recovered 的空白資料）= 載入當下（假時鐘，含 +09:00）；已遷移過的 v3 保留原值 */
   const hadGame = c.file.startsWith('v3');
   expect(s.habits.explore.items[0].createdAt).toBe(hadGame ? '2026-09-28T07:30:00+09:00' : NOW_ISO);
   if (c.file === 'v3.json') {
-    /* v3：遷移是 no-op，存檔後內容與 fixture 相同 */
-    expect(s).toEqual(JSON.parse(raw));
+    /* v3：遷移是 no-op，存檔後內容與 fixture 相同（只多了載入時補上的 phase.startedAt） */
+    expect(s).toEqual(withStartedAt(raw, NOW_ISO));
   }
   if (c.status === 'migrated' || c.status === 'ok') {
     /* 舊資料不能壞：sessions、每一種 PR、每一種身體指標（含 body.sleep，D13 不併入 habits.sleep.log）、profile 原樣保留 */
@@ -99,7 +103,7 @@ async function migrateOnce(page, c) {
 
   /* 存檔後主 key 已是 v3；reload（不再寫入 fixture）→ 數值相同、不再出現錯誤卡 */
   await page.reload();
-  await expect(page.locator('#bd-macros')).not.toBeEmpty();
+  await waitReady(page);
   await expectHome(page, { level: c.level, xp: c.xp, current, best });
   await expect(page.locator('#err-card')).toBeHidden();
 
@@ -154,7 +158,7 @@ test.describe('遷移：fixture 載入後畫面正常、XP 與連續天數正確
     /* 再 reload、存檔兩次都不變 */
     for (let i = 0; i < 2; i++) {
       await page.reload();
-      await expect(page.locator('#bd-macros')).not.toBeEmpty();
+      await waitReady(page);
       await triggerSave(page);
       const again = await storedState(page);
       expect(again.game.xp).toEqual({ move: 406, sleep: 0, explore: 0, total: 406 });
@@ -187,4 +191,64 @@ test.describe('遷移：fixture 載入後畫面正常、XP 與連續天數正確
     expect(s.game.xp.total).toBe(0);
     expect(s.habits.explore.items[0].createdAt).toBe(NOW_ISO);
   });
+});
+
+/* ---------- B1 早安打卡 fixture（README「B1 早安打卡 fixture（V1）」） ----------
+   載入兩次（各自全新 context）結果逐字相同；打卡紀錄 3 筆、日期不重複；今日三環的眠與圖例＝engine 對同一份紀錄算出的分數；
+   被舊版改回 version 2（D12）：xp 414、game.xp.move 414（不是 411＋414），3 筆打卡與 plus 都保留。 */
+const B1_CASES = [
+  { file: 'v3-checkin.json', status: 'ok', xp: 411, streak: { current: 14, best: 14, lastDate: '2026-10-03' } },
+  { file: 'v3-checkin-reverted-to-v2.json', status: 'migrated', xp: 414, streak: { current: 15, best: 15, lastDate: '2026-10-04' } }
+];
+const B1_NOW = '2026-10-04T07:30:00+09:00'; // README：今天已打卡
+
+async function b1Once(page, c) {
+  const raw = readFixture(c.file);
+  await openApp(page, { now: B1_NOW, seed: seedState(raw) });
+  await expect(page.locator('#err-card')).toBeHidden();
+  expect(await rawMain(page), '存檔前主 key 不變').toBe(raw);
+  /* 今日：打卡過了 → 下一步不是早安打卡；三環的眠＝engine 算的今天分數 */
+  const { sum } = await appSummary(page);
+  const want = nodeEngine('return eng.todaySummary(args.state, new Date(args.now), rules).pillars.sleep;', { state: JSON.parse(raw), now: B1_NOW });
+  expect(sum.pillars.sleep.checkedIn).toBe(true);
+  expect(want.checkedIn).toBe(true);
+  await expect(page.locator('#h-start')).not.toHaveAttribute('data-kind', 'checkin');
+  await expect(page.locator('#h-legend [data-go="s-checkin"] .lg-val').first()).toHaveText(`${want.xp} / ${want.max}`);
+  await expect(page.locator('#h-rings-svg')).toHaveAttribute('aria-label', new RegExp(`眠 ${want.xp} / ${want.max} XP`));
+  await triggerSave(page);
+  const saved = await rawMain(page);
+  const s = JSON.parse(saved);
+  expect(s.version).toBe(3);
+  expect(s.xp).toBe(c.xp);
+  expect(s.streak).toEqual(c.streak);
+  expect(s.game.xp).toEqual({ move: c.xp, sleep: 0, explore: 0, total: c.xp });
+  const dates = s.habits.sleep.log.map((e) => e.date);
+  expect(dates).toEqual(['2026-10-02', '2026-10-03', '2026-10-04']);
+  expect(new Set(dates).size, '打卡紀錄的日期不重複').toBe(dates.length);
+  expect(s.habits.sleep.log).toEqual(JSON.parse(raw).habits.sleep.log);
+  expect(s.sessions.find((x) => x.date === '2026-10-02')).toEqual({ date: '2026-10-02', type: 'full', xp: 10, plus: true });
+  expect(s.phase.startedAt, '已有的階段起點不覆寫').toBe('2026-10-02T06:50:10+09:00');
+  /* 再開一次、再存一次：逐字相同（冪等） */
+  await page.reload();
+  await waitReady(page);
+  await triggerSave(page);
+  expect(await rawMain(page)).toBe(saved);
+  return saved;
+}
+
+test.describe('遷移：B1 早安打卡 fixture', () => {
+  for (const c of B1_CASES) {
+    test(`${c.file} → ${c.status}：打卡 3 筆不重複、三環的眠＝engine、跑兩次結果相同`, async ({ page, browser }, testInfo) => {
+      const first = await b1Once(page, c);
+      const ctx = await browser.newContext(contextOptions({ baseURL: testInfo.project.use.baseURL }));
+      const w = watchContext(ctx);
+      try {
+        const second = await b1Once(await ctx.newPage(), c);
+        expect(second).toBe(first);
+      } finally {
+        await ctx.close();
+      }
+      assertWatchClean(w, '第二次執行');
+    });
+  }
 });

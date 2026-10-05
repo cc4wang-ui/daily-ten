@@ -5,7 +5,9 @@
    - SW 的 3 秒 ACK 逾時用真實時間（Playwright 的假時鐘只裝在頁面，不在 Service Worker），所以「不重新載入」的判斷一律
      先真實等 4 秒（超過逾時，確認 SW 沒有強制導向）、再推進假時鐘 6 秒（頁面的閒置檢查跑 3 次）。
    - 有沒有重新載入：在文件上做記號（markDocument），記號消失＝換了新文件。
-   - 每一項都比對 localStorage 全部 key 與值：沒有因為更新而掉資料或多寫東西（刻意存檔的項目另外斷言新增的那一筆）。 */
+   - 每一項都比對 localStorage 全部 key 與值：沒有因為更新而掉資料或多寫東西（刻意存檔的項目另外斷言新增的那一筆）。
+   V1：動作庫在訓練分頁；早上的訓練從訓練分頁的「今日課表」開始（今日的下一步是早安打卡）。
+   新增兩種「忙碌」：早安打卡後 10 秒內可復原的 toast 顯示中、早安打卡的「修改時間」列開著——都不重新載入。 */
 import {
   test, expect, readFixture, fixturePath, openApp, seedState, waitReady, gotoTab, tick, tickUntil, runWorkoutToEnd,
   storageSnapshot, storedState, expectHome, swAssets, cacheNumber, makeDeployCopy, REPO_DIR, cacheNames, waitControlled,
@@ -267,7 +269,7 @@ test('SETUP 文字框有焦點（還沒打字）：不重新載入；離開文�
 
 test('示範視窗開著：不重新載入；關掉後才重新載入', async ({ page, deploy }) => {
   await openCurrent(page, deploy);
-  await gotoTab(page, 's-setup');
+  await gotoTab(page, 's-train');
   await page.locator('#vids button[data-demo]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   const before = await storageSnapshot(page);
@@ -284,7 +286,9 @@ test('示範視窗開著：不重新載入；關掉後才重新載入', async ({
 
 test('Boss 成績輸入畫面（2 英里，還沒填）：不重新載入；存成績、回報完成後才重新載入，PR 有存', async ({ page, deploy }) => {
   await openCurrent(page, deploy, { now: '2026-10-11T08:00:00+09:00', seed: 'v3.json' });
-  await page.click('#h-start');
+  await gotoTab(page, 's-train');
+  await expect(page.locator('#tr-start')).toHaveText('開始 Boss Day');
+  await page.click('#tr-start');
   await tickUntil(page, () => document.getElementById('s-boss').classList.contains('active'),
     { every: 5, maxSeconds: 2400, label: '2 英里輸入畫面' });
   await expect(page.locator('#train')).not.toHaveClass(/active/);
@@ -307,6 +311,49 @@ test('Boss 成績輸入畫面（2 英里，還沒填）：不重新載入；存�
   const s = await storedState(page);
   expect(s.prs.run2mi[s.prs.run2mi.length - 1]).toEqual({ date: '2026-10-11', sec: 1110 });
   expect(s.sessions[s.sessions.length - 1]).toEqual({ date: '2026-10-11', type: 'boss', xp: 20 });
+});
+
+test('早安打卡後 10 秒內（復原 toast 顯示中）：不重新載入；toast 收起後才重新載入，打卡紀錄有存', async ({ page, deploy }) => {
+  await openCurrent(page, deploy, { now: '2026-10-05T07:00:00+09:00' });
+  await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'checkin');
+  await page.click('#h-start');
+  await page.click('#ci-wake');
+  const toast = page.locator('#toast');
+  await expect(toast).toBeVisible();
+  await expect(page.locator('#toast-action')).toBeVisible();
+  const saved = await storageSnapshot(page);
+  expect(JSON.parse(saved[MAIN_KEY]).habits.sleep.log).toHaveLength(1);
+  const token = await markDocument(page);
+  await deployNextWhileBusy(page, deploy);
+  await expectNoReload(page, token, '復原 toast 顯示中'); // 假時鐘 +6 秒：仍在 10 秒的復原時段內
+  await expect(toast).toBeVisible();
+  await expect(page.locator('#toast-action')).toBeVisible();
+
+  await page.clock.runFor(4_000); // 滿 10 秒：toast 收起、復原消失
+  await expect(toast).toBeHidden();
+  await expectReloadToNext(page, token, 'toast 收起後');
+  expect(await storageSnapshot(page), '重新載入前後 localStorage 相同（打卡有存）').toEqual(saved);
+  await expect(page.locator('#h-start')).not.toHaveAttribute('data-kind', 'checkin');
+});
+
+test('早安打卡的「修改時間」列開著：不重新載入；按「恢復預設」收起後才重新載入，沒有寫入', async ({ page, deploy }) => {
+  await openCurrent(page, deploy, { now: '2026-10-05T07:00:00+09:00' });
+  await page.click('#h-start');
+  await expect(page.locator('#s-checkin')).toHaveClass(/active/);
+  await page.click('#ci-edit');
+  const row = page.locator('#ci-edit-row');
+  await expect(row).toBeVisible();
+  expect(await page.evaluate(() => /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)), '焦點不在輸入框（只靠編輯列判斷忙碌）').toBe(false);
+  const before = await storageSnapshot(page);
+  const token = await markDocument(page);
+  await deployNextWhileBusy(page, deploy);
+  await expectNoReload(page, token, '修改時間列開著');
+  await expect(row).toBeVisible();
+
+  await page.click('#ci-edit-reset');
+  await expect(row).toBeHidden();
+  await expectReloadToNext(page, token, '收起修改時間列後');
+  expect(await storageSnapshot(page)).toEqual(before);
 });
 
 test('回到前景：visibilitychange → registration.update() 並套用新版；60 秒內最多一次（online 共用節流）；背景時不檢查', async ({ page, deploy }) => {

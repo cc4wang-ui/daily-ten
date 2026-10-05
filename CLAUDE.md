@@ -78,12 +78,13 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D17 | 眠打卡 | 早上 1 次點擊同時記錄起床＋確認昨晚熄燈（預填就寢目標，可改）；不要求睡前拿手機 |
 | D18 | 時段計分 | 漸進：時段內滿分、超出 ≤30 分得一半、之後得基本分；不做全有全無 |
 | D19 | 回歸任務 | 中斷隔天完成任一支柱即得回歸徽章；3 天內完成 2 支柱日另得 XP ×1.5 一天 |
-| D20 | 範圍拆分 | 四個 Milestone、四個 PR：M1／M2a／M2b／M3（§8） |
+| D20 | 範圍拆分 | ~~四個 Milestone、四個 PR：M1／M2a／M2b／M3~~ → 由 D26 取代 |
 | D21 | 文案 | 台灣繁中用語表（§11）；成就以「行為」命名，避免純刷量型佔多數 |
 | D22 | 低輸入模式 | qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge；Cross 只做方向單選與 ≤3 條真機確認（流程見 `docs/ITERATION.md`） |
 | D23 | 自動更新 | 新版上線後，App 在開啟或回到前景時自動檢查並套用；只在閒置時重新載入，訓練中不打斷；SETUP 顯示 App 版本 |
 | D24 | 部署平台 | 正式網址 Vercel `daily-ten-app.vercel.app`，轉送 GitHub Pages 的內容（Vercel 連不到這個 repo；main merge 即兩邊更新，見 `docs/DEPLOY.md`）；`cc4wang-ui.github.io/daily-ten/` 是內容來源、不能關，首頁顯示搬家卡（下載備份 → 新網址匯入） |
 | D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md`。屬開發流程、不是 App 功能：App 仍無帳號、無雲端、無 runtime AI（原則 1、7 不變）；用 Cross 自存的備份做分析，Cross 2026-10-03 選 A 時同意 |
+| D26 | 改版順序 | Cross 2026-10-04 選 B：亮色外觀、三環、早安打卡一起先上（第一版就接近 mockup）；Milestone 改為 V1–V5（§8）；設計以 `docs/vnext-mockup/` 為準，與 §2 衝突時 §2 優先 |
 
 ## 4. 目標架構
 ```
@@ -141,6 +142,7 @@ M1 一次把 v3 欄位建好（空值），避免 M2 再升 v4。
 | 教練一句話 | `coach-table.json` 依狀態桶查表，同日固定（日期 hash） |
 
 ## 7. UI 設計系統：明亮、動態、資訊密度高
+設計目標畫面：`docs/vnext-mockup/`（Cross 2026-10-02 看過的 v-next mockup）；與 §2 衝突時 §2 優先（例：系統字型取代 Google Fonts）。
 - 預設亮色；暗色依系統。背景 `#FAFAF7`，卡片白底圓角 20px，柔和陰影。
 - 主要按鈕用深墨 `#1B1D1A`＋白字；支柱色只用在環、圖表、色塊；支柱色文字用加深版（動 `#B8401F`、眠 `#5446D6`、探 `#00795B`）以符合 WCAG AA。
 - **今日**：三環＋中央等級（未解鎖支柱顯示虛線環＋解鎖進度）；身分宣言；本週目標卡；一顆「下一步」主按鈕；教練一句；AFT 差距卡；條件卡（D6 降量、備份提醒）。
@@ -152,18 +154,20 @@ M1 一次把 v3 欄位建好（空值），避免 M2 再升 v4。
 - 觸控 ≥44px；文字對比 ≥ WCAG AA；訓練畫面字級沿用。
 - 分頁：今日／訓練／目標／統計／成就；設定在今日右上角。
 
-## 8. Milestones（每個一個 PR）
-| M | 內容 | 完成條件 |
+## 8. Milestones（每個一個 PR；D26 起為 V1–V5）
+| V | 內容 | 完成條件 |
 |---|---|---|
-| M1 地基 | 指示檔進 repo；修正失效網址；ES module 拆分（行為零變更）；state v3（含 D15–D17 欄位）＋遷移；備份／匯入驗證／提醒；設計 token；Playwright＋CI；用語表檢查 | 舊 v1/v2 fixture 全通過；功能與 `main` 等價；CI 綠燈 |
-| M2a 睡飽＋目標 | engine（XP/等級/streak/freeze/Perfect Day/階段）、早安打卡、D6、D18、D19、每週目標、季度目標、`.ics`；sim | sim 三人設曲線合理；engine 單元測試覆蓋全部規則 |
-| M2b 探索 | 探支柱、探索清單、興趣分、學習專案升級、時間預算 | P2/P3 轉換的 e2e 測試通過 |
-| M3 介面＋Jev | 今日新首頁、三環、圖表、慶祝動畫、亮色主題；`coach-table.json`、文案合規 | Lighthouse PWA 通過；文案合規 0 違規；Cross 真機清單 |
+| M1 地基 ✅ | 指示檔進 repo；修正失效網址；ES module 拆分（行為零變更）；state v3（含 D15–D17 欄位）＋遷移；備份／匯入驗證／提醒；設計 token；Playwright＋CI；用語表檢查 | 已交付（PR #8） |
+| V1 外觀＋三環＋早安打卡 ✅ | 亮色外觀；分頁今日／訓練／統計＋右上設定；今日三環（動、眠；探鎖定＋解鎖進度）、中央遊戲等級、「下一步」主按鈕；早安打卡（D17、D18、10 秒復原）；engine 第一刀（04:00 遊戲日、XP 由紀錄推導、等級、P1→P2 條件、探索閘門）；現有功能全部搬進新分頁 | 已交付（PR #12） |
+| V2 遊戲核心＋目標 | Freeze、Perfect Day＋慶祝、升級卡、D6 降量卡、D19 回歸任務、目標分頁（週回顧、選下週目標、季度目標、階段卡）、`.ics`；90 天 sim | sim 三人設曲線合理；engine 單元測試覆蓋全部規則 |
+| V3 統計＋成就 | 統計圖表（起床分布、睡眠時數、三支柱熱力圖、KPI）、成就分頁（≥30 個，條件資料化） | 圖表純 SVG；成就條件全在 `data/achievements.json` |
+| V4 探索（原 M2b） | 探支柱、探索清單、興趣分、學習專案升級、時間預算（先補探索分鐘數規格） | P2/P3 轉換的 e2e 測試通過 |
+| V5 收尾（原 M3 其餘） | 暗色（依系統）、教練一句（`coach-table.json`）、文案合規、訓練畫面新風格、離線字型定案 | Lighthouse PWA 通過；文案合規 0 違規；Cross 真機清單 |
 
 ## 9. Definition of Done（每個 PR）
 1. `npm test`（Playwright：首頁、訓練流程、遷移、離線重開、匯入壞檔不白屏）全綠。
 2. `sw.js` CACHE 已 +1，新檔案在預快取清單內。
-3. 新／改動作已同步 `demos.js` 的 `MAP`/`def` 與 SETUP `VIDEOS`。
+3. 新／改動作已同步 `demos.js` 的 `MAP`/`def` 與 `js/ui/content.js` 的 `VIDEOS`（訓練分頁 › 動作庫）。
 4. `PROJECT_STATE.md` 更新決策與踩坑；README 網址正確。
 5. UI 字串通過 §11 用語表檢查。
 6. qa-checker 回傳 PASS（附證據）。

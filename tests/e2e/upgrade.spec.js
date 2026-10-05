@@ -8,9 +8,10 @@
       舊版已有 D23 自動更新（v7 起，有 js/ui/update.js）時：舊頁面回 ACK、閒置時自己重新載入（不是 SW 強制導向），
       所以新版會顯示「已更新到最新版（vN）」；舊版本來就有版本行與提示列。判斷「重開先看到舊版」改比對文件裡的 id 清單。
    3. D12 實機重播（維持原意）：新版存成 v3 → 真的舊版程式記一次訓練、寫回 version 2 → 新版再開 XP 不重複計算。
-   導向所需時間印在 log（[qa] …）並記在測試 annotation，報告引用。 */
+   導向所需時間印在 log（[qa] …）並記在測試 annotation，報告引用。
+   V1：舊版頁面用 M1 的判斷（waitReadyM1：營養目標畫好；expectHomeM1：四個數字都在 HOME），新版用 V1 的（html[data-ready]、expectHome）。 */
 import {
-  test, expect, readFixture, installClock, seedOnce, seedState, waitReady, expectHome, storedState, storageSnapshot,
+  test, expect, readFixture, installClock, seedOnce, seedState, waitReady, waitReadyM1, expectHome, expectHomeM1, storedState, storageSnapshot,
   triggerSave, runWorkoutToEnd, gotoTab, openApp, contextOptions, watchContext, assertWatchClean, rawMain,
   swAssets, cacheNumber, readSwCache, REPO_DIR, cacheNames, waitControlled, markDocument, sameDocument,
   countNavigations, realWait
@@ -39,13 +40,13 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   await installClock(page);
   await seedOnce(page, seedState(readFixture('v2-real.json')));
   await page.goto(deploy.url());
-  await waitReady(page);
+  await waitReadyM1(page);
   /* 舊版：v5／v6 沒有版本行與「已更新」提示（v5 也沒有「下載備份」）；v7 起兩者都有 */
   await expect(page.locator('#app-version')).toHaveCount(oldHasUpdater ? 1 : 0);
   await expect(page.locator('#upd-note')).toHaveCount(oldHasUpdater ? 1 : 0);
   await expect(page.locator('#bk-download')).toHaveCount(oldHasBackup ? 1 : 0);
   const oldIds = await idFingerprint(page);
-  await expectHome(page, { level: 3, xp: 361, current: 9, best: 11 });
+  await expectHomeM1(page, { level: 3, xp: 361, current: 9, best: 11 });
   await waitControlled(page, oldCache);
 
   /* 舊版記一次保底版 */
@@ -60,7 +61,7 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   /* 部署目前版本 → 重開一次：cache-first 先給快取裡的舊版 */
   deploy.setRoot(REPO_DIR);
   await page.reload();
-  await waitReady(page);
+  await waitReadyM1(page);
   const t0 = Date.now();
   const token = await markDocument(page);
   expect(await idFingerprint(page), '重開：先看到快取裡的舊版').toBe(oldIds);
@@ -118,9 +119,8 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
     await expectHome(page, { level: 3, xp: 364, current: 1, best: 11 });
     await gotoTab(page, 's-setup');
     await expect(page.locator('#app-version')).toHaveText(`App 版本 v${CUR_N}`);
-    await gotoTab(page, 's-hist');
-    await gotoTab(page, 's-body');
-    await gotoTab(page, 's-home');
+    for (const id of ['s-train', 's-hist', 's-body', 's-home']) await gotoTab(page, id);
+    await expect(page.locator('#h-rings')).toBeVisible(); // 離線也有規則檔（預快取）
     expect(networkHits, '離線期間不應有請求真的打到網路').toEqual([]);
   } finally {
     await context.unroute('**/*');
@@ -158,9 +158,9 @@ test('D12 實機重播：新版存成 v3 → 舊版 App 記一次訓練並寫回
 
     /* 2. 舊版（main）讀這份 v3：畫面正常，記一次保底版 → 寫回 version 2，game 沒動 */
     const pA = await ctxA.newPage();
-    await openApp(pA, { seed: seedState(v3raw) });
+    await openApp(pA, { seed: seedState(v3raw), ready: 'm1' });
     await expect(pA.locator('#bk-download')).toHaveCount(0); // 確認是舊版
-    await expectHome(pA, { level: 3, xp: 361, current: 9, best: 11 });
+    await expectHomeM1(pA, { level: 3, xp: 361, current: 9, best: 11 });
     await pA.click('#h-minimal');
     await runWorkoutToEnd(pA);
     await pA.click('#d-ok');

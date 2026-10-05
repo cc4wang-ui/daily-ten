@@ -1,13 +1,13 @@
 {
   "name": "Daily Ten",
   "short_name": "Daily Ten",
-  "description": "彈力帶與徒手訓練語音導引計時器 + streak 追蹤",
+  "description": "動、眠、探的個人成長遊戲：訓練語音導引、早安打卡、連續天數",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#12140F",
-  "theme_color": "#12140F",
+  "background_color": "#FAFAF7",
+  "theme_color": "#FAFAF7",
   "lang": "zh-Hant",
   "icons": [
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

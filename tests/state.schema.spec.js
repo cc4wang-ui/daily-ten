@@ -1,13 +1,14 @@
 /* data-guardian：schema.js／time.js 單元測試（純 Node，不開瀏覽器） */
 import { test, expect } from '@playwright/test';
-import { SCHEMA_VERSION, DEFAULT_IDENTITY, defaultState, validateImport } from '../js/state/schema.js';
-import { isoLocal, localDateStr, compactStamp, isValidDateStr, dayNumber, dayNumberToStr } from '../js/state/time.js';
+import { SCHEMA_VERSION, DEFAULT_IDENTITY, PHASES, defaultState, validateImport } from '../js/state/schema.js';
+import { isoLocal, localDateStr, compactStamp, isValidDateStr, isIsoWithOffset, dayNumber, dayNumberToStr } from '../js/state/time.js';
 import { loadFixture, NOW, useTokyoTime, findBannedWords } from './state.helpers.js';
 
 useTokyoTime(test);
 
 const codes = (r) => r.errors.map((e) => e.code);
 const paths = (r) => r.errors.map((e) => e.path);
+const sleepItem = (patch = {}) => ({ date: '2026-10-04', lightsOut: '2026-10-03T23:00:00+09:00', wake: '2026-10-04T06:58:12+09:00', lightsOutEdited: false, ...patch });
 
 test.describe('defaultState', () => {
   test('內容精確符合 v3 規格', () => {
@@ -88,6 +89,21 @@ test.describe('time.js', () => {
       expect(isValidDateStr(bad)).toBe(false);
   });
 
+  test('isIsoWithOffset：含時區的 ISO 8601 時間才算', () => {
+    for (const ok of [
+      '2026-10-04T06:58:00+09:00', isoLocal(NOW), '2026-10-04T06:58+09:00', '2026-10-04T06:58:00.123+09:00',
+      '2026-10-03T21:58:00.000Z', new Date(NOW).toISOString(), '2026-10-03T21:58:00Z', '2026-10-04T06:58:00-07:00',
+      '2026-10-04T06:58:00+05:30', '2026-10-04T00:00:00+00:00', '2026-10-04T23:59:59+14:00', '2028-02-29T07:00:00+09:00'
+    ]) expect(isIsoWithOffset(ok), ok).toBe(true);
+    for (const bad of [
+      '2026-10-04T06:58:00', '2026-10-04', '06:58', '2026-10-04 06:58:00+09:00', '2026-10-04T06:58:00+0900',
+      '2026-10-04T06:58:00+9:00', '2026-10-04T6:58:00+09:00', '2026-10-04T24:00:00+09:00', '2026-10-04T06:60:00+09:00',
+      '2026-10-04T06:58:60+09:00', '2026-10-04T06:58:00.1+09:00', '2026-10-04T06:58:00.1234+09:00', '2026-10-04t06:58:00z',
+      '2026-02-30T07:00:00+09:00', '2026-13-01T07:00:00+09:00', '2026-10-04T06:58:00+24:00', ' 2026-10-04T06:58:00+09:00',
+      '2026-10-04T06:58:00+09:00 ', '', null, undefined, 0, Date.parse('2026-10-04T06:58:00+09:00'), new Date(NOW), {}, []
+    ]) expect(isIsoWithOffset(bad), String(bad)).toBe(false);
+  });
+
   test('dayNumber 與時區無關，可來回轉換', () => {
     const a = dayNumber('2026-12-31');
     process.env.TZ = 'America/Los_Angeles';
@@ -100,7 +116,8 @@ test.describe('time.js', () => {
 });
 
 test.describe('validateImport：好檔', () => {
-  for (const name of ['v1-minimal.json', 'v2-real.json', 'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json']) {
+  for (const name of ['v1-minimal.json', 'v2-real.json', 'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json',
+    'v3-checkin.json', 'v3-checkin-reverted-to-v2.json']) {
     test(`${name} 通過`, () => {
       expect(validateImport(loadFixture(name))).toEqual({ ok: true });
     });
@@ -247,7 +264,53 @@ test.describe('validateImport：邊界值', () => {
     ['game 不是物件', (s) => { s.game = 'x'; }, ['invalid_type', 'game']],
     ['meta.lastBackupAt 數字', (s) => { s.meta.lastBackupAt = 123; }, ['invalid_type', 'meta.lastBackupAt']],
     ['explore item 缺 name', (s) => { delete s.habits.explore.items[0].name; }, ['invalid_type', 'habits.explore.items[0].name']],
-    ['explore interest 6', (s) => { s.habits.explore.log = [{ date: '2026-10-01', itemId: 'dj', interest: 6 }]; }, ['out_of_range', 'habits.explore.log[0].interest']]
+    ['explore interest 6', (s) => { s.habits.explore.log = [{ date: '2026-10-01', itemId: 'dj', interest: 6 }]; }, ['out_of_range', 'habits.explore.log[0].interest']],
+    /* B1：早安打卡 sleep log（date／lightsOut／wake 必填且含時區；lightsOutEdited 選填，有就要是 boolean） */
+    ['sleep 項目正確', (s) => { s.habits.sleep.log = [sleepItem()]; }, null],
+    ['sleep 項目用 Z 結尾', (s) => { s.habits.sleep.log = [sleepItem({ lightsOut: '2026-10-03T14:00:00.000Z', wake: '2026-10-03T21:58:00.000Z' })]; }, null],
+    ['sleep 缺 lightsOutEdited（載入時補 false）', (s) => { const e = sleepItem(); delete e.lightsOutEdited; s.habits.sleep.log = [e]; }, null],
+    ['sleep 同一天兩筆（怪資料不擋）', (s) => { s.habits.sleep.log = [sleepItem(), sleepItem({ lightsOutEdited: true })]; }, null],
+    ['sleep 多出不認得的欄位', (s) => { s.habits.sleep.log = [sleepItem({ note: '出差' })]; }, null],
+    ['sleep 項目是字串', (s) => { s.habits.sleep.log = ['2026-10-04 06:58']; }, ['invalid_type', 'habits.sleep.log[0]']],
+    ['sleep 項目是 null', (s) => { s.habits.sleep.log = [null]; }, ['invalid_type', 'habits.sleep.log[0]']],
+    ['sleep 缺 date', (s) => { const e = sleepItem(); delete e.date; s.habits.sleep.log = [e]; }, ['invalid_type', 'habits.sleep.log[0].date']],
+    ['sleep date 不存在', (s) => { s.habits.sleep.log = [sleepItem({ date: '2026-02-30' })]; }, ['out_of_range', 'habits.sleep.log[0].date']],
+    ['sleep 缺 wake', (s) => { const e = sleepItem(); delete e.wake; s.habits.sleep.log = [e]; }, ['invalid_type', 'habits.sleep.log[0].wake']],
+    ['sleep wake 沒有時區', (s) => { s.habits.sleep.log = [sleepItem({ wake: '2026-10-04T06:58:00' })]; }, ['out_of_range', 'habits.sleep.log[0].wake']],
+    ['sleep wake 是毫秒數', (s) => { s.habits.sleep.log = [sleepItem({ wake: 1791583080000 })]; }, ['invalid_type', 'habits.sleep.log[0].wake']],
+    ['sleep lightsOut null', (s) => { s.habits.sleep.log = [sleepItem({ lightsOut: null })]; }, ['invalid_type', 'habits.sleep.log[0].lightsOut']],
+    ['sleep lightsOut 只有 HH:MM', (s) => { s.habits.sleep.log = [sleepItem({ lightsOut: '23:00' })]; }, ['out_of_range', 'habits.sleep.log[0].lightsOut']],
+    ['sleep lightsOutEdited 字串', (s) => { s.habits.sleep.log = [sleepItem({ lightsOutEdited: 'true' })]; }, ['invalid_type', 'habits.sleep.log[0].lightsOutEdited']],
+    ['sleep lightsOutEdited null', (s) => { s.habits.sleep.log = [sleepItem({ lightsOutEdited: null })]; }, ['invalid_type', 'habits.sleep.log[0].lightsOutEdited']],
+    ['sleep.log 不是陣列', (s) => { s.habits.sleep.log = {}; }, ['invalid_type', 'habits.sleep.log']],
+    ['sleep 完整形狀（wakeEdited＋target）', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: true, target: { bedtime: '23:30', wakeTime: '07:00', windowMin: 30 } })]; }, null],
+    ['sleep wakeEdited false', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: false })]; }, null],
+    ['sleep target null', (s) => { s.habits.sleep.log = [sleepItem({ target: null })]; }, null],
+    ['sleep target 多出欄位', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00', windowMin: 30, phoneDownMin: 30 } })]; }, null],
+    ['sleep wakeEdited 字串', (s) => { s.habits.sleep.log = [sleepItem({ wakeEdited: 'true' })]; }, ['invalid_type', 'habits.sleep.log[0].wakeEdited']],
+    ['sleep target 是字串', (s) => { s.habits.sleep.log = [sleepItem({ target: '23:00' })]; }, ['invalid_type', 'habits.sleep.log[0].target']],
+    ['sleep target 缺 windowMin', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00' } })]; }, ['invalid_type', 'habits.sleep.log[0].target.windowMin']],
+    ['sleep target.bedtime 格式錯', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: 'late', wakeTime: '07:00', windowMin: 30 } })]; }, ['out_of_range', 'habits.sleep.log[0].target.bedtime']],
+    ['sleep target.windowMin 超過 1440', (s) => { s.habits.sleep.log = [sleepItem({ target: { bedtime: '23:00', wakeTime: '07:00', windowMin: 1441 } })]; }, ['out_of_range', 'habits.sleep.log[0].target.windowMin']],
+    /* B1：加一輪（sessions[].plus 選填 boolean；type 'plus' 照收） */
+    ['session plus true', (s) => { s.sessions[0].plus = true; }, null],
+    ['session plus false', (s) => { s.sessions[0].plus = false; }, null],
+    ['session type plus', (s) => { s.sessions.push({ date: '2026-10-02', type: 'plus', xp: 0 }); }, null],
+    ['session type plus、沒有 xp', (s) => { s.sessions.push({ date: '2026-10-02', type: 'plus', plus: true }); }, null],
+    ['session plus 字串', (s) => { s.sessions[0].plus = 'yes'; }, ['invalid_type', 'sessions[0].plus']],
+    ['session plus null', (s) => { s.sessions[0].plus = null; }, ['invalid_type', 'sessions[0].plus']],
+    /* B1：階段 */
+    ['phase.startedAt 含時區', (s) => { s.phase.startedAt = '2026-10-02T06:50:10+09:00'; }, null],
+    ['phase.startedAt Z 結尾', (s) => { s.phase.startedAt = '2026-10-01T21:50:10.000Z'; }, null],
+    ['phase.startedAt 沒有時區', (s) => { s.phase.startedAt = '2026-10-02T06:50:10'; }, ['out_of_range', 'phase.startedAt']],
+    ['phase.startedAt 只有日期', (s) => { s.phase.startedAt = '2026-10-02'; }, ['out_of_range', 'phase.startedAt']],
+    ['phase.startedAt 數字', (s) => { s.phase.startedAt = 1791583080000; }, ['invalid_type', 'phase.startedAt']],
+    ['phase.current P2', (s) => { s.phase.current = 'P2'; }, null],
+    ['phase.current P3', (s) => { s.phase.current = 'P3'; }, null],
+    ['phase.current P4', (s) => { s.phase.current = 'P4'; }, ['out_of_range', 'phase.current']],
+    ['phase.current 小寫 p1', (s) => { s.phase.current = 'p1'; }, ['out_of_range', 'phase.current']],
+    ['phase.current 空字串', (s) => { s.phase.current = ''; }, ['invalid_type', 'phase.current']],
+    ['phase.current 數字', (s) => { s.phase.current = 1; }, ['invalid_type', 'phase.current']]
   ];
   for (const [name, mutate, expected] of cases) {
     test(name, () => {
@@ -270,8 +333,27 @@ test.describe('validateImport：邊界值', () => {
 });
 
 test.describe('錯誤訊息', () => {
+  test('B1 欄位：睡眠紀錄、探索紀錄、階段的訊息', () => {
+    const s = loadFixture('v3.json');
+    s.habits.sleep.log = [sleepItem({ wake: '06:58' }), sleepItem({ lightsOut: null }), sleepItem({ lightsOutEdited: 'yes', target: { bedtime: '23:00', wakeTime: '7:00', windowMin: 30 } })];
+    delete s.habits.explore.items[0].name;
+    s.phase.current = 'P9';
+    s.phase.startedAt = 'yesterday';
+    expect(validateImport(s).errors).toStrictEqual([
+      { code: 'out_of_range', path: 'habits.sleep.log[0].wake', message: '睡眠紀錄（habits.sleep.log[0].wake）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' },
+      { code: 'invalid_type', path: 'habits.sleep.log[1].lightsOut', message: '睡眠紀錄（habits.sleep.log[1].lightsOut）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' },
+      { code: 'invalid_type', path: 'habits.sleep.log[2].lightsOutEdited', message: '睡眠紀錄（habits.sleep.log[2].lightsOutEdited）應為 true 或 false' },
+      { code: 'out_of_range', path: 'habits.sleep.log[2].target.wakeTime', message: '睡眠紀錄（habits.sleep.log[2].target.wakeTime）應為 HH:MM 格式的時間' },
+      { code: 'invalid_type', path: 'habits.explore.items[0].name', message: '探索紀錄（habits.explore.items[0].name）缺少必要的值，應為文字' },
+      { code: 'out_of_range', path: 'phase.current', message: '階段（phase.current）應為 P1、P2、P3 其中之一' },
+      { code: 'out_of_range', path: 'phase.startedAt', message: '階段（phase.startedAt）應為含時區的時間（例 2026-10-04T06:58:00+09:00）' }
+    ]);
+    expect(PHASES).toEqual(['P1', 'P2', 'P3']);
+    expect(Object.isFrozen(PHASES)).toBe(true);
+  });
+
   test('全部是繁中、含欄位路徑、沒有用語表的「不用」詞', () => {
-    const files = ['import-bad-missing-fields.json', 'import-bad-wrong-types.json', 'import-bad-oversized.json', 'v2-wrong-types.json', 'v2-missing-fields.json'];
+    const files = ['import-bad-missing-fields.json', 'import-bad-wrong-types.json', 'import-bad-oversized.json', 'v2-wrong-types.json', 'v2-missing-fields.json', 'v3-bad-sleep.json'];
     const all = files.flatMap((f) => validateImport(loadFixture(f)).errors);
     const s = loadFixture('v3.json');
     s.version = 9; s.sessions[0].type = ''; s.goals.identity = '我'.repeat(501); s.settings.bedtime = '25:00'; s.game.level = 'x';

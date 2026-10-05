@@ -4,12 +4,18 @@
      localDateStr(date)    → '2026-10-02'（本地日期）
      compactStamp(date)    → '20261002153000'（備份 key 用，本地時間）
      isValidDateStr(s)     → 是否為真實存在的 'YYYY-MM-DD'
+     isIsoWithOffset(s)    → 是否為「含時區」的 ISO 8601 時間（原則：時間一律含 offset）
+                             接受 YYYY-MM-DDTHH:MM[:SS[.sss]] 加上 ±HH:MM 或 Z；日期必須真實存在。
+                             只收 ECMAScript 規定的 Date Time String Format（毫秒剛好 3 位、offset 有冒號），
+                             不收各瀏覽器自行擴充的寫法，避免 iOS Safari 與其他環境解析不一致。
+                             例：'2026-10-04T06:58:00+09:00'（isoLocal 的輸出）、'2026-10-03T21:58:00.000Z'（toISOString）
      dayNumber(s)          → 'YYYY-MM-DD' 轉成日序整數（以 UTC 計算，與時區、夏令時間無關）
      dayNumberToStr(n)     → dayNumber 的反向
    無效的 date 參數一律改用「現在」，避免把 'NaN-NaN' 寫進資料。 */
 
 const DAY_MS = 86400000;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ISO_OFFSET_RE = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{3})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
 
 const pad = (n, width = 2) => String(n).padStart(width, '0');
 
@@ -51,6 +57,12 @@ export function isValidDateStr(s) {
   const y = Number(m[1]), mo = Number(m[2]), day = Number(m[3]);
   if (mo < 1 || mo > 12 || day < 1) return false;
   return day <= utcDate(y, mo, 0).getUTCDate();
+}
+
+export function isIsoWithOffset(s) {
+  if (typeof s !== 'string') return false;
+  const m = ISO_OFFSET_RE.exec(s);
+  return !!m && isValidDateStr(m[1]) && Number.isFinite(Date.parse(s));
 }
 
 export function dayNumber(s) {

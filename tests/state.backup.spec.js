@@ -7,7 +7,9 @@ import {
   BACKUP_REMINDER_DAYS, IMPORT_MAX_CHARS, PRE_IMPORT_KEY, isoLocal, localDateStr, backupFilename, buildBackup,
   needsBackupReminder, parseImport, diffSummary, applyImport, downloadBackup, downloadRawBackup
 } from '../js/state/backup.js';
-import { readFixture, loadFixture, NOW, DAY_MS, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords } from './state.helpers.js';
+import { ensurePhaseStarted } from '../js/state/habits.js';
+import { validateImport } from '../js/state/schema.js';
+import { readFixture, loadFixture, NOW, DAY_MS, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords, CHECKIN_LOG, CHECKIN_STARTED_AT } from './state.helpers.js';
 
 useTokyoTime(test);
 test.afterEach(() => clearGlobals());
@@ -59,6 +61,34 @@ test.describe('備份檔', () => {
 
   test('buildBackup 給非物件 → 丟 TypeError（downloadBackup 會先擋）', () => {
     expect(() => buildBackup(null, NOW)).toThrow(TypeError);
+  });
+
+  test('buildBackup 正規化：畫面在記憶體寫進格式不對的值，備份檔仍能通過嚴格驗證（= 下次載入的修補結果）', async () => {
+    await loadCurrent('v3-checkin.json');
+    const s = getState();
+    s.settings.bedtime = '';                         // 例如時間欄位被清空
+    s.habits.sleep.log.push({ date: '2026-10-05', wake: '06:58' }); // 沒經過 habits.js 的錯誤寫入
+    s.phase.current = 'X';
+    const before = JSON.stringify(s);
+    expect(validateImport(s).ok).toBe(false);
+    const { text, stamped } = buildBackup(s, NOW);
+    expect(JSON.stringify(s)).toBe(before); // 不改動傳入的 state
+    expect(stamped.settings.bedtime).toBe('23:00');
+    expect(stamped.habits.sleep.log).toStrictEqual(CHECKIN_LOG);
+    expect(stamped.phase.current).toBe('P1');
+    const r = parseImport(text, { now: NOW });
+    expect(r.ok).toBe(true);
+    expect(r.incoming).toStrictEqual(stamped);
+  });
+
+  test('buildBackup：正常資料除了 lastBackupAt 之外完全不變（含欄位順序）', async () => {
+    for (const name of ['v3.json', 'v3-checkin.json', 'v2-real.json', 'v2-wrong-types.json']) {
+      await loadCurrent(name);
+      const { stamped } = buildBackup(getState(), NOW);
+      const expected = JSON.parse(JSON.stringify(getState()));
+      expected.meta.lastBackupAt = isoLocal(NOW);
+      expect(JSON.stringify(stamped), name).toBe(JSON.stringify(expected));
+    }
   });
 });
 
@@ -161,6 +191,38 @@ test.describe('parseImport：壞檔', () => {
     expect(r.errors).toStrictEqual([{ code: 'out_of_range', path: 'version', message: '這份資料來自較新版本的 App（v4），請先更新 App 再匯入' }]);
   });
 
+  test('v3-bad-sleep.json（手動改壞的打卡紀錄）→ 9 筆錯誤，getState() 與 storage 都不變', async () => {
+    const local = await loadCurrent('v3-checkin.json');
+    const ref = getState();
+    const before = JSON.stringify(ref);
+    const storageBefore = local.snapshot();
+    const r = parseImport(readFixture('v3-bad-sleep.json'), { now: NOW });
+    expect(r.ok).toBe(false);
+    expect(r.errors.map((e) => [e.code, e.path])).toStrictEqual([
+      ['out_of_range', 'habits.sleep.log[1].wake'],
+      ['invalid_type', 'habits.sleep.log[2].lightsOutEdited'],
+      ['invalid_type', 'habits.sleep.log[4]'],
+      ['out_of_range', 'habits.sleep.log[5].lightsOut'],
+      ['invalid_type', 'habits.sleep.log[6].wake'],
+      ['invalid_type', 'habits.sleep.log[7].lightsOut'],
+      ['invalid_type', 'habits.sleep.log[10].wakeEdited'],
+      ['out_of_range', 'habits.sleep.log[10].target.bedtime'],
+      ['out_of_range', 'phase.startedAt']
+    ]);
+    expect(r.errors[0].message).toBe('睡眠紀錄（habits.sleep.log[1].wake）應為含時區的時間（例 2026-10-04T06:58:00+09:00）');
+    expect(r.errors[2].message).toBe('睡眠紀錄（habits.sleep.log[4]）應為物件');
+    expect(r.errors[4].message).toBe('睡眠紀錄（habits.sleep.log[6].wake）缺少必要的值，應為含時區的時間（例 2026-10-04T06:58:00+09:00）');
+    expect(r.errors[7].message).toBe('睡眠紀錄（habits.sleep.log[10].target.bedtime）應為 HH:MM 格式的時間');
+    for (const e of r.errors) {
+      expect(e.message).toMatch(/[一-鿿]/);
+      expect(e.message).toContain(e.path);
+      expect(findBannedWords(e.message)).toEqual([]);
+    }
+    expect(getState()).toBe(ref);
+    expect(JSON.stringify(getState())).toBe(before);
+    expect(local.snapshot()).toStrictEqual(storageBefore);
+  });
+
   test('錯誤最多回傳 10 筆', () => {
     const s = loadFixture('v2-real.json');
     s.sessions = Array.from({ length: 30 }, () => ({ date: 'bad', type: 'full', xp: 10 }));
@@ -181,12 +243,10 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     expect(r.incoming.xp).toBe(361);
     expect(r.incoming.game.xp.move).toBe(361);
     expect(r.incoming).not.toBe(ref);
+    /* 只列存起來的事實；XP、連續天數由 engine 推導，不在預覽裡（QA V1 BUG-1） */
     expect(r.summary.rows).toStrictEqual([
       { key: 'version', label: '版本', current: 'v3', incoming: 'v2 → v3', changed: true },
-      { key: 'level', label: '等級', current: 'L3', incoming: 'L3', changed: false },
-      { key: 'xp', label: 'XP', current: '396', incoming: '361', changed: true },
-      { key: 'streak', label: '連續天數', current: '12 天', incoming: '9 天', changed: true },
-      { key: 'bestStreak', label: '最佳連續', current: '12 天', incoming: '11 天', changed: true },
+      { key: 'level', label: '課表強度', current: 'L3', incoming: 'L3', changed: false },
       { key: 'lastSession', label: '最後訓練日', current: '2026-10-01', incoming: '2026-09-28', changed: true },
       { key: 'sessions', label: '訓練紀錄筆數', current: '35 筆', incoming: '32 筆', changed: true },
       { key: 'prs', label: 'PR 筆數', current: '11 筆', incoming: '11 筆', changed: false },
@@ -204,6 +264,29 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     expect(local.snapshot()).toStrictEqual(storageBefore);
   });
 
+  test('預覽不列 legacy 的 XP／連續天數（engine 推導值才是畫面上的數字），也不用「等級」這個詞', async () => {
+    await loadCurrent('v3-checkin.json');
+    for (const name of ['v1-minimal.json', 'v2-real.json', 'v3.json', 'v3-checkin-reverted-to-v2.json']) {
+      const r = parseImport(readFixture(name), { now: NOW });
+      expect(r.summary.rows.map((x) => x.key), name).toEqual(['version', 'level', 'lastSession', 'sessions', 'prs', 'body', 'sleepLog', 'lastBackup']);
+      expect(r.summary.rows.map((x) => x.label), name).toEqual(['版本', '課表強度', '最後訓練日', '訓練紀錄筆數', 'PR 筆數', '身體指標筆數', '睡眠紀錄筆數', '最後備份']);
+      const text = JSON.stringify(r.summary);
+      expect(text, name).not.toMatch(/XP|連續|等級/);
+    }
+    const rev = parseImport(readFixture('v3-checkin-reverted-to-v2.json'), { now: NOW });
+    expect(rev.summary.rows).toStrictEqual([
+      { key: 'version', label: '版本', current: 'v3', incoming: 'v2 → v3', changed: true },
+      { key: 'level', label: '課表強度', current: 'L3', incoming: 'L3', changed: false },
+      { key: 'lastSession', label: '最後訓練日', current: '2026-10-03', incoming: '2026-10-04', changed: true },
+      { key: 'sessions', label: '訓練紀錄筆數', current: '37 筆', incoming: '38 筆', changed: true },
+      { key: 'prs', label: 'PR 筆數', current: '11 筆', incoming: '11 筆', changed: false },
+      { key: 'body', label: '身體指標筆數', current: '31 筆', incoming: '31 筆', changed: false },
+      { key: 'sleepLog', label: '睡眠紀錄筆數', current: '3 筆', incoming: '3 筆', changed: false },
+      { key: 'lastBackup', label: '最後備份', current: '2026-10-03 21:05', incoming: '2026-10-03 21:05', changed: false }
+    ]);
+    expect(rev.summary.warnings).toEqual([]);
+  });
+
   test('匯入較新的備份：沒有警告', async () => {
     await loadCurrent('v2-real.json');
     const r = parseImport(readFixture('v3.json'), { now: NOW });
@@ -212,9 +295,36 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     expect(r.summary.rows.find((x) => x.key === 'version')).toStrictEqual({ key: 'version', label: '版本', current: 'v3', incoming: 'v3', changed: false });
   });
 
+  test('匯入有打卡紀錄的備份：睡眠紀錄筆數 0 → 3；反過來會警告睡眠紀錄變少', async () => {
+    await loadCurrent('v3.json');
+    const r = parseImport(readFixture('v3-checkin.json'), { now: NOW });
+    expect(r.ok).toBe(true);
+    expect(r.incoming.habits.sleep.log).toStrictEqual(CHECKIN_LOG);
+    expect(r.summary.rows.find((x) => x.key === 'sleepLog')).toStrictEqual({ key: 'sleepLog', label: '睡眠紀錄筆數', current: '0 筆', incoming: '3 筆', changed: true });
+    expect(r.summary.warnings).toEqual([]);
+    await loadCurrent('v3-checkin.json');
+    const back = parseImport(readFixture('v3.json'), { now: NOW });
+    expect(back.summary.warnings).toStrictEqual([
+      '訓練紀錄會從 37 筆變成 35 筆',
+      '睡眠紀錄會從 3 筆變成 0 筆',
+      '匯入檔的最後訓練日（2026-10-01）比目前（2026-10-03）舊'
+    ]);
+    for (const w of back.summary.warnings) expect(findBannedWords(w)).toEqual([]);
+  });
+
+  test('applyImport 之後呼叫 ensurePhaseStarted：匯入檔有 startedAt 就沿用；沒有（M1 備份）才寫入', async () => {
+    await loadCurrent('v3.json');
+    expect(await applyImport(parseImport(readFixture('v3-checkin.json'), { now: NOW }).incoming)).toBe(true);
+    expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: false, startedAt: CHECKIN_STARTED_AT });
+    expect(await applyImport(parseImport(readFixture('v2-real.json'), { now: NOW }).incoming)).toBe(true);
+    expect(getState().phase.startedAt).toBe(null);
+    expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-02T15:30:00+09:00' });
+  });
+
   test('每個好 fixture 都能匯入（含 v1、被改回 v2、空陣列、帶 BOM）', async () => {
     await loadCurrent();
-    for (const name of ['v1-minimal.json', 'v2-real.json', 'v3.json', 'v3-reverted-to-v2.json', 'empty-arrays.json']) {
+    for (const name of ['v1-minimal.json', 'v2-real.json', 'v3.json', 'v3-reverted-to-v2.json', 'empty-arrays.json',
+      'v3-checkin.json', 'v3-checkin-reverted-to-v2.json']) {
       const r = parseImport(readFixture(name), { now: NOW });
       expect(r.ok, name).toBe(true);
       expect(r.incoming.version).toBe(3);
@@ -282,7 +392,8 @@ test.describe('fixtures/README.md 對照', () => {
     const at = (iso) => new Date(iso);
     const table = [
       ['v1-minimal.json', true], ['v2-real.json', true], ['v2-missing-fields.json', true], ['v2-wrong-types.json', true],
-      ['v3.json', false], ['v3-reverted-to-v2.json', false], ['empty-arrays.json', false], ['corrupt-state.txt', false]
+      ['v3.json', false], ['v3-reverted-to-v2.json', false], ['empty-arrays.json', false], ['corrupt-state.txt', false],
+      ['v3-checkin.json', false], ['v3-checkin-reverted-to-v2.json', false], ['v3-bad-sleep.json', false]
     ];
     for (const [name, atNow] of table) {
       await loadCurrent(name);
@@ -292,6 +403,12 @@ test.describe('fixtures/README.md 對照', () => {
       await loadCurrent(name);
       expect(needsBackupReminder(getState(), at('2026-10-07T21:15:00+09:00')), name).toBe(false);
       expect(needsBackupReminder(getState(), new Date(at('2026-10-07T21:15:00+09:00').getTime() + 1)), name).toBe(true);
+    }
+    /* B1 fixture：lastBackupAt 2026-10-03T21:05:00+09:00 */
+    for (const name of ['v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json']) {
+      await loadCurrent(name);
+      expect(needsBackupReminder(getState(), at('2026-10-10T21:05:00+09:00')), name).toBe(false);
+      expect(needsBackupReminder(getState(), new Date(at('2026-10-10T21:05:00+09:00').getTime() + 1)), name).toBe(true);
     }
   });
 

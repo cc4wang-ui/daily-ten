@@ -1,14 +1,15 @@
-/* Daily Ten — Boss Day：十動作暖身 → HRP／Plank／2 英里測驗 → 成績輸入。M1 自 index.html 原樣搬出。 */
+/* Daily Ten — Boss Day：十動作暖身 → HRP／Plank／2 英里測驗 → 成績輸入。M1 自 index.html 原樣搬出。
+   B1：測驗計時（#train）與完成畫面的版面保持 M1；成績輸入畫面（#s-boss）換亮色樣式（class 取代 inline 琥珀色）。
+   PR 與訓練紀錄的日期用遊戲日（04:00 換日）；完成畫面顯示新尺度 XP 與「連續 N 天」，身分句改中性的「測驗完成，成績已記錄。」 */
 import { getState, saveState } from '../state/store.js';
 import { $, showScreen } from './dom.js';
-import { todayStr } from './dates.js';
+import { todayKey } from './game.js';
 import { initAudio, beep, speak } from './audio.js';
 import { lockScreen, unlockScreen } from './wakelock.js';
 import { fullSeq } from './program.js';
-import { XP } from './content.js';
-import { bossItem, recordSession } from './session.js';
+import { bossItem } from './session.js';
 import { setTrainDemo, stopDemo } from './demo.js';
-import { startWorkout } from './train.js';
+import { startWorkout, recordAndGain, streakDays } from './train.js';
 import { renderHome } from './home.js';
 
 /* ================= BOSS FLOW ================= */
@@ -65,28 +66,28 @@ function bossPlank(){
 function bossRun(){ bossInput('run2mi'); }
 function bossInput(item,presetSec){
   showScreen('s-boss');
-  const titles={hrp:'HRP 成績輸入',plank:'Plank 成績確認',run2mi:'2 Mile Run 成績輸入'};
+  const titles={hrp:'HRP 成績輸入',plank:'Plank 成績確認',run2mi:'2 英里跑 成績輸入'};
   $('b-title').textContent=titles[item];
   const c=$('b-card');
   if(item==='hrp'){
     c.innerHTML='<h3>2 分鐘內完成幾下？</h3><div class="inputrow"><input type="number" id="bi-1" min="0" max="200" inputmode="numeric"><span>下</span></div><button class="btn-main" id="bi-save">儲存 PR</button>';
     $('bi-save').onclick=()=>{const v=parseInt($('bi-1').value,10);
       if(isNaN(v)||v<0){alert('請輸入次數');return;}
-      getState().prs.hrp.push({date:todayStr(),reps:v});finishBoss();};
+      getState().prs.hrp.push({date:todayKey(),reps:v});finishBoss();};
   }else if(item==='plank'){
-    c.innerHTML='<h3>本次成績</h3><p style="font-family:var(--mono);font-size:28px;color:var(--amber)">'+Math.floor(presetSec/60)+':'+String(presetSec%60).padStart(2,'0')+'</p><button class="btn-main" id="bi-save" style="margin-top:12px">儲存 PR</button>';
-    $('bi-save').onclick=()=>{getState().prs.plank.push({date:todayStr(),sec:presetSec});finishBoss();};
+    c.innerHTML='<h3>本次成績</h3><p class="boss-result num">'+Math.floor(presetSec/60)+':'+String(presetSec%60).padStart(2,'0')+'</p><button class="btn-main" id="bi-save">儲存 PR</button>';
+    $('bi-save').onclick=()=>{getState().prs.plank.push({date:todayKey(),sec:presetSec});finishBoss();};
   }else{
     c.innerHTML='<h3>戶外跑 2 英里（3.2 km），回來輸入時間</h3><div class="inputrow"><input type="number" id="bi-m" min="0" max="59" placeholder="分" inputmode="numeric"><span>分</span><input type="number" id="bi-s" min="0" max="59" placeholder="秒" inputmode="numeric"><span>秒</span></div><p>雨天可改跑步機或延後至下午，當日輸入即可。</p><button class="btn-main" id="bi-save">儲存 PR</button>';
     $('bi-save').onclick=()=>{const m=parseInt($('bi-m').value,10),s=parseInt($('bi-s').value,10);
       if(isNaN(m)||isNaN(s)){alert('請輸入完整時間');return;}
-      getState().prs.run2mi.push({date:todayStr(),sec:m*60+s});finishBoss();};
+      getState().prs.run2mi.push({date:todayKey(),sec:m*60+s});finishBoss();};
   }
   function finishBoss(){
-    recordSession('boss');
+    const gain=recordAndGain('boss');
     saveState();
-    $('d-identity').textContent='測驗完成。數據不說謊。';
-    $('d-xp').textContent='+'+XP.boss+' XP　·　STREAK '+getState().streak.current;
+    $('d-identity').textContent='測驗完成，成績已記錄。';
+    $('d-xp').textContent='+'+gain+' XP　·　連續 '+streakDays()+' 天';
     $('done').classList.add('active');
   }
 }

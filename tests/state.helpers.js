@@ -11,7 +11,53 @@ export const NOW = new Date('2026-10-02T15:30:00+09:00');
 export const DAY_MS = 86400000;
 
 export const GOOD_FIXTURES = ['v1-minimal.json', 'v2-real.json', 'v2-missing-fields.json', 'v2-wrong-types.json',
-  'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json'];
+  'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json',
+  'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json'];
+
+/* B1 早安打卡 fixture 的 sleep log（v3-checkin.json 與 v3-checkin-reverted-to-v2.json 相同）
+   10-03 晚上就寢目標從 23:00 改成 23:30：前兩筆的 target 仍是 23:00（改設定不重算過去） */
+export const TARGET_2300 = Object.freeze({ bedtime: '23:00', wakeTime: '07:00', windowMin: 30 });
+export const TARGET_2330 = Object.freeze({ bedtime: '23:30', wakeTime: '07:00', windowMin: 30 });
+export const CHECKIN_LOG = [
+  { date: '2026-10-02', lightsOut: '2026-10-01T23:00:00+09:00', wake: '2026-10-02T06:51:40+09:00', lightsOutEdited: false, target: { ...TARGET_2300 } },
+  { date: '2026-10-03', lightsOut: '2026-10-03T00:40:00+09:00', wake: '2026-10-03T07:25:05+09:00', lightsOutEdited: true, target: { ...TARGET_2300 } },
+  { date: '2026-10-04', lightsOut: '2026-10-03T23:30:00+09:00', wake: '2026-10-04T06:45:00+09:00', lightsOutEdited: false, wakeEdited: true, target: { ...TARGET_2330 } }
+];
+export const CHECKIN_STARTED_AT = '2026-10-02T06:50:10+09:00';
+
+/* 舊版 App（ec87e03 的 v2 程式）的 recordSession：只動 legacy 欄位（D12 fixture 重播用） */
+export function legacyRecordSession(state, date, type, xp) {
+  const prev = new Date(`${date}T00:00:00Z`);
+  prev.setUTCDate(prev.getUTCDate() - 1);
+  const yesterday = prev.toISOString().slice(0, 10);
+  const same = state.sessions.find((x) => x.date === date);
+  if (same) {
+    if (xp > same.xp) { state.xp += xp - same.xp; same.xp = xp; same.type = type; }
+    return state;
+  }
+  state.sessions.push({ date, type, xp });
+  state.xp += xp;
+  if (state.streak.lastDate === yesterday) state.streak.current += 1;
+  else if (state.streak.lastDate !== date) state.streak.current = 1;
+  state.streak.lastDate = date;
+  if (state.streak.current > state.streak.best) state.streak.best = state.streak.current;
+  return state;
+}
+/* 舊版 App 的 migrate：保留整個物件、只補 v2 欄位、version 改回 2 */
+export function legacyV2Migrate(s) {
+  s.version = s.version || 1;
+  s.prs = s.prs || {};
+  for (const k of ['hrp', 'plank', 'run2mi', 'pushup', 'pike', 'sideplank']) if (!Array.isArray(s.prs[k])) s.prs[k] = [];
+  s.body = s.body || {};
+  for (const k of ['weight', 'waist', 'arm', 'shoulder', 'thigh', 'rhr', 'sleep']) if (!Array.isArray(s.body[k])) s.body[k] = [];
+  s.profile = s.profile || {};
+  if (!('heightCm' in s.profile)) s.profile.heightCm = null;
+  if (!('age' in s.profile)) s.profile.age = null;
+  s.settings = s.settings || { voice: true, beep: true };
+  if (!('band' in s.settings)) s.settings.band = true;
+  s.version = 2;
+  return s;
+}
 
 /* CLAUDE.md §11「不用」詞 */
 export const BANNED_WORDS = ['窗口', '時長', '散點', '數據', '斷線', '設置', '撤銷', '撤回', '俯臥撐', '視頻', '信息', '收下', '錨點'];

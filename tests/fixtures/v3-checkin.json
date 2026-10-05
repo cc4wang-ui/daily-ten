@@ -1,0 +1,164 @@
+{
+  "version": 3,
+  "level": 3,
+  "xp": 411,
+  "streak": {"current":14,"best":14,"lastDate":"2026-10-03"},
+  "sessions": [
+    {"date":"2026-08-24","type":"full","xp":10},
+    {"date":"2026-08-25","type":"full","xp":10},
+    {"date":"2026-08-26","type":"cycle","xp":15},
+    {"date":"2026-08-27","type":"minimal","xp":3},
+    {"date":"2026-08-28","type":"full","xp":10},
+    {"date":"2026-08-30","type":"boss","xp":20},
+    {"date":"2026-08-31","type":"full","xp":10},
+    {"date":"2026-09-01","type":"full","xp":10},
+    {"date":"2026-09-02","type":"cycle","xp":15},
+    {"date":"2026-09-03","type":"rain","xp":5},
+    {"date":"2026-09-04","type":"full","xp":10},
+    {"date":"2026-09-05","type":"rest","xp":5},
+    {"date":"2026-09-06","type":"boss","xp":20},
+    {"date":"2026-09-07","type":"full","xp":10},
+    {"date":"2026-09-08","type":"full","xp":10},
+    {"date":"2026-09-09","type":"cycle","xp":15},
+    {"date":"2026-09-12","type":"rest","xp":5},
+    {"date":"2026-09-13","type":"boss","xp":20},
+    {"date":"2026-09-14","type":"full","xp":10},
+    {"date":"2026-09-15","type":"minimal","xp":3},
+    {"date":"2026-09-16","type":"cycle","xp":15},
+    {"date":"2026-09-17","type":"full","xp":10},
+    {"date":"2026-09-18","type":"full","xp":10},
+    {"date":"2026-09-20","type":"boss","xp":20},
+    {"date":"2026-09-21","type":"full","xp":10},
+    {"date":"2026-09-22","type":"full","xp":10},
+    {"date":"2026-09-23","type":"cycle","xp":15},
+    {"date":"2026-09-24","type":"full","xp":10},
+    {"date":"2026-09-25","type":"full","xp":10},
+    {"date":"2026-09-26","type":"rest","xp":5},
+    {"date":"2026-09-27","type":"boss","xp":20},
+    {"date":"2026-09-28","type":"full","xp":10},
+    {"date":"2026-09-29","type":"full","xp":10},
+    {"date":"2026-09-30","type":"cycle","xp":15},
+    {"date":"2026-10-01","type":"full","xp":10},
+    {"date":"2026-10-02","type":"full","xp":10,"plus":true},
+    {"date":"2026-10-03","type":"rest","xp":5}
+  ],
+  "prs": {
+    "hrp": [
+      {"date":"2026-09-06","reps":18},
+      {"date":"2026-09-27","reps":21}
+    ],
+    "plank": [
+      {"date":"2026-09-13","sec":95}
+    ],
+    "run2mi": [
+      {"date":"2026-08-30","sec":1012},
+      {"date":"2026-09-20","sec":975}
+    ],
+    "pushup": [
+      {"date":"2026-08-25","v":22},
+      {"date":"2026-09-22","v":26}
+    ],
+    "pike": [
+      {"date":"2026-08-25","v":9},
+      {"date":"2026-09-22","v":11}
+    ],
+    "sideplank": [
+      {"date":"2026-08-25","v":40},
+      {"date":"2026-09-22","v":52}
+    ]
+  },
+  "body": {
+    "weight": [
+      {"date":"2026-09-15","v":68},
+      {"date":"2026-09-16","v":68.2},
+      {"date":"2026-09-17","v":67.9},
+      {"date":"2026-09-18","v":68.4},
+      {"date":"2026-09-19","v":68.3},
+      {"date":"2026-09-20","v":68.5},
+      {"date":"2026-09-21","v":68.6},
+      {"date":"2026-09-22","v":68.4},
+      {"date":"2026-09-23","v":68.7},
+      {"date":"2026-09-24","v":68.9},
+      {"date":"2026-09-25","v":68.8},
+      {"date":"2026-09-26","v":69},
+      {"date":"2026-09-27","v":69.1},
+      {"date":"2026-09-28","v":69},
+      {"date":"2026-10-01","v":69.2}
+    ],
+    "waist": [
+      {"date":"2026-09-01","v":79},
+      {"date":"2026-09-22","v":78.5}
+    ],
+    "arm": [
+      {"date":"2026-09-01","v":31.5},
+      {"date":"2026-09-22","v":32}
+    ],
+    "shoulder": [
+      {"date":"2026-09-01","v":112},
+      {"date":"2026-09-22","v":113.5}
+    ],
+    "thigh": [
+      {"date":"2026-09-22","v":55}
+    ],
+    "rhr": [
+      {"date":"2026-09-20","v":58},
+      {"date":"2026-09-22","v":60},
+      {"date":"2026-09-24","v":57},
+      {"date":"2026-09-26","v":59},
+      {"date":"2026-09-28","v":58}
+    ],
+    "sleep": [
+      {"date":"2026-09-12","v":30},
+      {"date":"2026-09-13","v":7.5},
+      {"date":"2026-09-20","v":6.5},
+      {"date":"2026-09-27","v":8}
+    ]
+  },
+  "profile": {"heightCm":null,"age":null},
+  "settings": {
+    "voice": true,
+    "beep": false,
+    "band": false,
+    "bedtime": "23:30",
+    "wakeTime": "07:00",
+    "windowMin": 30,
+    "phoneDownMin": 30
+  },
+  "habits": {
+    "sleep": {
+      "log": [
+        {"date":"2026-10-02","lightsOut":"2026-10-01T23:00:00+09:00","wake":"2026-10-02T06:51:40+09:00","lightsOutEdited":false,"target":{"bedtime":"23:00","wakeTime":"07:00","windowMin":30}},
+        {"date":"2026-10-03","lightsOut":"2026-10-03T00:40:00+09:00","wake":"2026-10-03T07:25:05+09:00","lightsOutEdited":true,"target":{"bedtime":"23:00","wakeTime":"07:00","windowMin":30}},
+        {"date":"2026-10-04","lightsOut":"2026-10-03T23:30:00+09:00","wake":"2026-10-04T06:45:00+09:00","lightsOutEdited":false,"wakeEdited":true,"target":{"bedtime":"23:30","wakeTime":"07:00","windowMin":30}}
+      ]
+    },
+    "explore": {
+      "items": [
+        {"id":"dj","name":"DJ","minimalAction":"練 1 個 transition","createdAt":"2026-09-28T07:30:00+09:00","status":"trying"}
+      ],
+      "log": []
+    }
+  },
+  "goals": {
+    "identity": "我是獨立、自律、持續成長的人。",
+    "weekly": [],
+    "season": []
+  },
+  "phase": {
+    "current": "P1",
+    "startedAt": "2026-10-02T06:50:10+09:00",
+    "history": []
+  },
+  "game": {
+    "xp": {"move":411,"sleep":0,"explore":0,"total":411},
+    "level": null,
+    "streaks": {
+      "train": {"current":14,"best":14,"lastDate":"2026-10-03"},
+      "life": {"current":14,"best":14,"lastDate":"2026-10-03"}
+    },
+    "freezeTokens": 0,
+    "achievements": {},
+    "perfectDays": []
+  },
+  "meta": {"lastBackupAt":"2026-10-03T21:05:00+09:00"}
+}

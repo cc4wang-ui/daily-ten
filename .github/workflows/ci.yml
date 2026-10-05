@@ -34,7 +34,7 @@ jobs:
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 
-      # M1：拆 module 前的 main（ec87e03）作為「行為零變更」的比對基準。M2a 起畫面會刻意改變，屆時移除或改基準。
+      # 拆 module 前的 main（ec87e03）作為訓練流程與課表規則的比對基準。V1 起今日／統計／設定畫面刻意改變（D26），畫面層的比對已移除。
       - name: Prepare parity baseline
         run: git worktree add "$RUNNER_TEMP/parity-base" ec87e03
 

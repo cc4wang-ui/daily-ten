@@ -5,7 +5,10 @@
      BACKUP_REMINDER_DAYS = 7、IMPORT_MAX_CHARS = 5,000,000、PRE_IMPORT_KEY
      backupFilename(now)                          → 'daily-ten-backup-YYYY-MM-DD.json'
      buildBackup(state, now)                      → {filename, text, stamped}
-                                                    stamped = 複製 → mirrorLegacyToGame → meta.lastBackupAt = isoLocal(now)
+                                                    stamped = migrate(state)（複製＋正規化＋mirrorLegacyToGame）→ meta.lastBackupAt = isoLocal(now)
+                                                    正規化 = 下次載入時的修補結果；正常資料完全不變（遷移冪等）。
+                                                    畫面若在記憶體寫進格式不對的值（例如清空的就寢時間 ''），
+                                                    備份檔仍一定能通過 parseImport 的嚴格驗證。
                                                     text = JSON.stringify(stamped, null, 2)；備份檔內容 = 儲存後的 state
      downloadBackup({now}={})                     → Promise<{ok:true, method:'download'|'share', filename}
                                                     | {ok:false, reason:'cancelled'|'error', message}>
@@ -22,8 +25,8 @@
      downloadRawBackup(backupKey, {now}={})       → {ok, filename?, message?}：把 localStorage 該 key 的原始字串
                                                     下載成 'daily-ten-raw-YYYY-MM-DD.txt'（原資料可能不是合法 JSON） */
 import { getState, setState, saveState, STORAGE_KEY } from './store.js';
-import { isPlainObject, deepClone, validateImport } from './schema.js';
-import { migrate, mirrorLegacyToGame } from './migrate.js';
+import { isPlainObject, validateImport } from './schema.js';
+import { migrate } from './migrate.js';
 import { isoLocal, localDateStr, isValidDateStr } from './time.js';
 
 export { isoLocal, localDateStr };
@@ -53,8 +56,7 @@ export function backupFilename(now = new Date()) {
 
 export function buildBackup(state, now = new Date()) {
   if (!isPlainObject(state)) throw new TypeError('buildBackup 需要 state 物件');
-  const stamped = deepClone(state);
-  mirrorLegacyToGame(stamped);
+  const stamped = migrate(state, { now }).state; // 新物件；不改動傳入的 state
   if (!isPlainObject(stamped.meta)) stamped.meta = { lastBackupAt: null };
   stamped.meta.lastBackupAt = isoLocal(now);
   return { filename: backupFilename(now), text: JSON.stringify(stamped, null, 2), stamped };
@@ -185,17 +187,15 @@ function lastSessionDate(state) {
   return last;
 }
 
+/* 預覽只列「存起來的事實」：XP 與連續天數由 engine 從紀錄推導（畫面上的數字），
+   legacy 的 xp／streak 只為舊版 App 保留（D12），列出來會和畫面矛盾，所以不列（QA V1 BUG-1） */
 function summarize(state) {
   if (!isPlainObject(state)) return null;
-  const streak = isPlainObject(state.streak) ? state.streak : {};
   const habits = isPlainObject(state.habits) ? state.habits : {};
   const sleep = isPlainObject(habits.sleep) ? habits.sleep : {};
   return {
     version: state.version,
     level: state.level,
-    xp: state.xp,
-    streak: streak.current,
-    best: streak.best,
     lastSession: lastSessionDate(state),
     sessions: count(state.sessions),
     prs: countBuckets(state.prs),
@@ -216,10 +216,7 @@ function backupText(v) {
 
 const ROWS = [
   ['version', '版本', (s, o) => (isNum(s.version) ? (o.fromVersion && o.fromVersion !== s.version ? `v${o.fromVersion} → v${s.version}` : `v${s.version}`) : '—')],
-  ['level', '等級', (s) => (isNum(s.level) ? `L${s.level}` : '—')],
-  ['xp', 'XP', (s) => (isNum(s.xp) ? String(s.xp) : '—')],
-  ['streak', '連續天數', (s) => (isNum(s.streak) ? `${s.streak} 天` : '—')],
-  ['bestStreak', '最佳連續', (s) => (isNum(s.best) ? `${s.best} 天` : '—')],
+  ['level', '課表強度', (s) => (isNum(s.level) ? `L${s.level}` : '—')], // 不叫「等級」：遊戲等級是 Lv N
   ['lastSession', '最後訓練日', (s) => s.lastSession || '—'],
   ['sessions', '訓練紀錄筆數', (s) => `${s.sessions} 筆`],
   ['prs', 'PR 筆數', (s) => `${s.prs} 筆`],
