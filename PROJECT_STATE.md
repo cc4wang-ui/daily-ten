@@ -1,6 +1,6 @@
 # Daily Ten — Project State
 
-更新：2026-10-04（Asia/Tokyo，D24 上線、D26 改版順序）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D26 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
+更新：2026-10-05（Asia/Tokyo，V1 亮色＋三環＋早安打卡）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D26 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
 
 ## 版本來源與待找回產物
 
@@ -17,9 +17,10 @@
 
 ## Verified facts
 
-- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、計時引擎、課表）、`js/state/*.js`（資料層）。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v8（D23 自動更新、D24 搬家卡），預快取全部 App 檔（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
+- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`（V1 亮色；訓練計時與完成畫面維持暗色）；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、三環、早安打卡、計時引擎、課表）、`js/game/*.js`＋`js/habits/*.js`（遊戲引擎，純函式）、`js/state/*.js`（資料層）；規則數值在 `data/game.json`。分頁：今日／訓練／統計，設定在今日右上齒輪。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v9（V1），預快取全部 App 檔含 `data/game.json`（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
 - **動作示範**：53 個線條動畫，涵蓋所有課表步驟（L1–L5 × 有帶／無帶 × 三組伸展 × 三種區塊 × 加練／恢復／保底／雨天）。步驟名稱以 `DT_DEMOS.keyFor()` 的關鍵字表對應，順序敏感（例：「深蹲蹲坐」「靠牆深蹲」要排在「深蹲」前）。計次動作的動畫週期 = tempo 秒；休息／準備／換組播下一個動作。SETUP 保留 YouTube 搜尋連結當「真人」補充。
 - **狀態**：`daily-ten-state` 存在裝置 localStorage；若環境提供 `window.storage`，程式也嘗試讀寫（D14，M3 評估移除）。M1 起為 **state v3**：保留 v2 全部欄位（level、XP、streak、sessions、六種 PR、七種 body、profile、設定），新增 `habits.sleep/explore`（預設探索項目 DJ）、`goals`（身分宣言）、`phase`（P1）、`game`、`meta.lastBackupAt` 與就寢／起床設定，數值留給 M2a。v1／v2 載入時遷移，冪等；`game` 物件存在即視為已遷移（D12）。M1 期間 legacy `xp`、`streak` 仍是真實來源，每次存檔**複製**到 `game`（不累加）。讀不出來或格式異常 → 原始字串另存 `daily-ten-state.bak-v{N}`、首頁錯誤卡可下載，不白屏。備份：「下載備份」存成 `.json`（iPhone 走分享選單），7 天未備份首頁提醒；匯入：驗證 → 差異預覽 → 兩次確認，壞檔不動現有資料，覆蓋前另存 `daily-ten-state.pre-import`。
+- **遊戲規則（V1）**：XP 一律由紀錄推導（`sessions`＋`habits.sleep.log`，依 `data/game.json`），每次重算、不寫入 state。畫面顯示的 XP、等級、連續天數都是推導值；state 裡的 legacy `xp`／`streak` 仍照舊表累加，並複製到 `game`（D12，給舊版 App），**和畫面數字不同**（fixture 例：legacy 406、推導 1760），分析備份時要用推導值。遊戲日 04:00 換日，新的訓練紀錄也用遊戲日。早安打卡 04:00–12:00、一個遊戲日一筆；每筆存打卡當下的目標 `target`（之後改設定不重算）、改過起床時間另存 `wakeEdited`；加一輪記 `sessions[].plus: true`。`phase.startedAt` 缺少時載入補上（下次存檔才寫入）。這些都是選填欄位，state 仍是 v3。8 條規則的拍板與理由在 `data/game.json` 的 `_notes.decisions`。
 - **一週節奏**：週一／四肩推，週二／五下肢，週三拉與加練，週六三組伸展恢復，週日十動作暖身後輪替 HRP／Plank／跑步測驗。A/B/C 伸展組依日輪替。預設有彈力帶；關閉後切回毛巾／徒手替代。
 - **劑量**：L1–L5 改變組數、次數與時間；主課表時長由序列計算。L2 有彈力帶週四 22 分鐘、加一輪 33 分鐘；保底版目前各級約 3 分鐘。週日只預估十動作暖身，測驗時間另計，尤其戶外 2 英里跑。
 - **紀錄與判讀**：同日重練可把 session 升級為較高 XP，不重複累積 streak；升級需最近 7 日都有 session，且近 21 日任一 AFT PR 達該級門檻。體重趨勢需前後各 7 日有紀錄；心率警示需近 3 日讀數及歷史至少 7 筆。睡眠、PR 停滯、跑步退步等規則目前只是畫面上的手動參考，沒有自動調整課表或熱量。熱量是體重 kg × (33–37) + 250 kcal 的起點估算，不是測得的 TDEE。
@@ -27,7 +28,7 @@
 ## General rules / decisions
 
 1. `index.html` 的實際行為是產品事實；改演算法、時間或文案時，同步檢查 README、mockup、manifest 與 Service Worker 快取版本。
-6. **新增或改名課表動作時**，要在 `demos.js` 的 `MAP` 對應一個示範（或新增 `def`），並在 SETUP 的 `VIDEOS` 加一列；否則訓練畫面會退回顯示下一個動作。
+6. **新增或改名課表動作時**，要在 `demos.js` 的 `MAP` 對應一個示範（或新增 `def`），並在 `js/ui/content.js` 的 `VIDEOS`（訓練分頁 › 動作庫）加一列；否則訓練畫面會退回顯示下一個動作。
 7. 示範動畫只是示意，不宣稱經專業審核；競品資料要標日期與來源，未在商店頁核對的欄位標「未確認」。
 2. `mockup.html` 只展示空白狀態及獨立的中斷／測驗情境；不可把示意畫面當成真實個人紀錄。固定數字要標示對應 level、星期、器材，或明說只是示意。
 3. 不把「三項訓練目標」寫成「正式 AFT 通過」，也不把男性 17–21 歲標準冒稱為使用者當前年齡的標準。若要改終點線，先決定目標年齡與用途，再查官方現行表。
@@ -35,6 +36,8 @@
 5. 不以「已通過測試」替代真機安裝、離線重開及實際使用驗證；證據要標明日期與環境。
 8. App 檔新增或改名 → 同步 `sw.js` 的 `ASSETS` 並把 CACHE 版號 +1（CI `check-repo` 會擋漏列）。ES modules 必須經 http(s) 開啟，不能用 file://。
 9. 資料結構變更必須走 `js/state/`（schema 版本＋遷移步驟＋舊資料 fixture＋單元測試），由 data-guardian 負責；UI 只透過 `store.js`／`backup.js` 的 API 存取 state。
+10. V1 起，game-designer＋data-guardian 依契約拍板的遊戲規則寫在 `data/game.json` 的 `_notes.decisions`（d1–d8），Cross 可推翻；推翻就改資料檔並記錄在本檔。
+11. 只新增**選填**欄位、舊資料不受影響時不升 schema 版本，但仍要驗證規則＋fixture＋單元測試（V1：`sessions[].plus`、睡眠紀錄的 `target`／`wakeEdited`）。
 
 ## Completed work
 
@@ -51,6 +54,7 @@
 | 2026-10-02 | **M1 地基**：拆 ES modules＋設計 token（行為零變更）、state v3＋遷移、載入失敗保護、備份下載＋7 天提醒、匯入驗證／預覽／二次確認、台灣用語表檢查、Playwright＋CI、SW v6。 | PR #8、`3feb97c`；驗證見下 |
 | 2026-10-03 | **D23 自動更新**：開啟／回前景檢查新版、閒置才重新載入（訓練、匯入預覽、輸入中不打斷）、舊頁面由 SW 導向、SETUP 顯示 App 版本；D22 低輸入模式與 `docs/ITERATION.md`；`check-repo` 改為比對 main 的 CACHE；SW v7。 | PR #10；`reports/qa-d23-1.md` PASS |
 | 2026-10-03 | **D24 搬到 Vercel**：正式網址 `daily-ten-app.vercel.app`（轉送 GitHub Pages）、舊網址搬家卡、新網址匯入卡、`check-repo` 的新網址與 `.vercelignore` 規則；D25 週報排程；SW v8。 | PR #11；`reports/qa-d24-1.md` PASS |
+| 2026-10-05 | **V1 亮色＋三環＋早安打卡**（D26）：亮色外觀、分頁今日／訓練／統計＋右上設定、三環＋中央「Lv N」、「下一步」主按鈕、早安打卡（D17、D18 漸進、10 秒復原、可改熄燈／往前改起床）、AFT 自選目標差距卡；engine 第一刀（`data/game.json`、04:00 遊戲日、XP 由紀錄推導、等級、P1→P2 條件與探索閘門）；舊功能全部搬進新分頁；畫面層等價比對退役（保留訓練畫面家族與課表規則）；SW v9。 | PR #12；`reports/qa-v1-1.md`、`reports/qa-v1-2.md` |
 
 ## Lessons learned / pitfalls
 
@@ -78,6 +82,10 @@
 | 換網址時 localStorage 不會跟著走；iPhone 主畫面 App 與 Safari 的儲存也分開。 | 搬家只靠備份檔：舊網址搬家卡下載備份 → 新網址主畫面 App 的匯入卡（沿用驗證、預覽、兩次確認）。用 Safari 開舊網址時資料是空的，搬家卡會提醒改從舊圖示打開。 |
 | 搬家模組原本叫 `js/ui/move.js`，和之後「動 Move」支柱的 `js/habits/move.js` 撞名。 | 改名 `js/ui/relocate.js`。 |
 | Vercel 帳號的 GitHub 連線綁在另一個 GitHub 帳號；daily-ten 在 cc4wang-ui，Vercel 看不到。`github-limited` 部署回 `git_info_fail`。短網址 `daily-ten.vercel.app` 已被別人使用；團隊預設保護會擋正式網址。 | 專案不連 GitHub，用轉送（external rewrite）指向 GitHub Pages，零手動部署；網址用 `daily-ten-app.vercel.app`；保護改為只擋預覽、不快取轉送內容。 |
+| 三個 subagent 同時跑，兩次撞到帳號用量上限，進度停在未 commit 的 worktree。 | 用 SendMessage 讓原 agent 從 transcript 接續；長任務先 commit 一次 wip 再跑全套；每個 agent 只 commit 自己的檔案，Orchestrator 用 cherry-pick／fast-forward 整合。 |
+| UI 先用替身（stub）開發，替身的回傳形狀比真的 engine 少（`buildCheckIn` 失敗時的 `ok:false`、AFT 門檻的欄位名）。 | 整合後安排第二輪接線，專門處理形狀差異；替身不得 commit。 |
+| XP 改由紀錄推導後，匯入預覽仍顯示 legacy `xp`／`streak`，和畫面數字不一致（QA 第 1 輪 BUG-1）。 | 預覽只列儲存的事實（版本、課表強度、紀錄筆數、最後訓練日、最後備份）；XP、連續天數一律用 engine 推導值。 |
+| 一個 agent 用 `pkill -f "playwright test"` 停自己的測試，順便停掉另一個 agent 的測試。 | 只停自己的 PID；多個 agent 同機跑測試時各用不同 port。 |
 | `create_trigger` 建的排程帶不進連接器（Google Drive），排程 session 讀不到 Drive。 | 週報排程改綁有連接器的 session。 |
 | Playwright 截圖比對的雜訊：fake clock 會讓兩個分頁的動畫相位不同、fullPage 截圖固定分頁列會飄、圓角有 ±1 像素差。 | 載入後先對齊時間、逐屏截圖再拼接、Chromium 加 `--disable-partial-raster`；同版本自比 0 px 後才拿來比對。 |
 
