@@ -187,17 +187,15 @@ function lastSessionDate(state) {
   return last;
 }
 
+/* 預覽只列「存起來的事實」：XP 與連續天數由 engine 從紀錄推導（畫面上的數字），
+   legacy 的 xp／streak 只為舊版 App 保留（D12），列出來會和畫面矛盾，所以不列（QA V1 BUG-1） */
 function summarize(state) {
   if (!isPlainObject(state)) return null;
-  const streak = isPlainObject(state.streak) ? state.streak : {};
   const habits = isPlainObject(state.habits) ? state.habits : {};
   const sleep = isPlainObject(habits.sleep) ? habits.sleep : {};
   return {
     version: state.version,
     level: state.level,
-    xp: state.xp,
-    streak: streak.current,
-    best: streak.best,
     lastSession: lastSessionDate(state),
     sessions: count(state.sessions),
     prs: countBuckets(state.prs),
@@ -218,10 +216,7 @@ function backupText(v) {
 
 const ROWS = [
   ['version', '版本', (s, o) => (isNum(s.version) ? (o.fromVersion && o.fromVersion !== s.version ? `v${o.fromVersion} → v${s.version}` : `v${s.version}`) : '—')],
-  ['level', '等級', (s) => (isNum(s.level) ? `L${s.level}` : '—')],
-  ['xp', 'XP', (s) => (isNum(s.xp) ? String(s.xp) : '—')],
-  ['streak', '連續天數', (s) => (isNum(s.streak) ? `${s.streak} 天` : '—')],
-  ['bestStreak', '最佳連續', (s) => (isNum(s.best) ? `${s.best} 天` : '—')],
+  ['level', '課表強度', (s) => (isNum(s.level) ? `L${s.level}` : '—')], // 不叫「等級」：遊戲等級是 Lv N
   ['lastSession', '最後訓練日', (s) => s.lastSession || '—'],
   ['sessions', '訓練紀錄筆數', (s) => `${s.sessions} 筆`],
   ['prs', 'PR 筆數', (s) => `${s.prs} 筆`],

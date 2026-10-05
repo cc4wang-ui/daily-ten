@@ -243,12 +243,10 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     expect(r.incoming.xp).toBe(361);
     expect(r.incoming.game.xp.move).toBe(361);
     expect(r.incoming).not.toBe(ref);
+    /* 只列存起來的事實；XP、連續天數由 engine 推導，不在預覽裡（QA V1 BUG-1） */
     expect(r.summary.rows).toStrictEqual([
       { key: 'version', label: '版本', current: 'v3', incoming: 'v2 → v3', changed: true },
-      { key: 'level', label: '等級', current: 'L3', incoming: 'L3', changed: false },
-      { key: 'xp', label: 'XP', current: '396', incoming: '361', changed: true },
-      { key: 'streak', label: '連續天數', current: '12 天', incoming: '9 天', changed: true },
-      { key: 'bestStreak', label: '最佳連續', current: '12 天', incoming: '11 天', changed: true },
+      { key: 'level', label: '課表強度', current: 'L3', incoming: 'L3', changed: false },
       { key: 'lastSession', label: '最後訓練日', current: '2026-10-01', incoming: '2026-09-28', changed: true },
       { key: 'sessions', label: '訓練紀錄筆數', current: '35 筆', incoming: '32 筆', changed: true },
       { key: 'prs', label: 'PR 筆數', current: '11 筆', incoming: '11 筆', changed: false },
@@ -264,6 +262,29 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     for (const w of r.summary.warnings) expect(findBannedWords(w)).toEqual([]);
     expect(getState()).toBe(ref);
     expect(local.snapshot()).toStrictEqual(storageBefore);
+  });
+
+  test('預覽不列 legacy 的 XP／連續天數（engine 推導值才是畫面上的數字），也不用「等級」這個詞', async () => {
+    await loadCurrent('v3-checkin.json');
+    for (const name of ['v1-minimal.json', 'v2-real.json', 'v3.json', 'v3-checkin-reverted-to-v2.json']) {
+      const r = parseImport(readFixture(name), { now: NOW });
+      expect(r.summary.rows.map((x) => x.key), name).toEqual(['version', 'level', 'lastSession', 'sessions', 'prs', 'body', 'sleepLog', 'lastBackup']);
+      expect(r.summary.rows.map((x) => x.label), name).toEqual(['版本', '課表強度', '最後訓練日', '訓練紀錄筆數', 'PR 筆數', '身體指標筆數', '睡眠紀錄筆數', '最後備份']);
+      const text = JSON.stringify(r.summary);
+      expect(text, name).not.toMatch(/XP|連續|等級/);
+    }
+    const rev = parseImport(readFixture('v3-checkin-reverted-to-v2.json'), { now: NOW });
+    expect(rev.summary.rows).toStrictEqual([
+      { key: 'version', label: '版本', current: 'v3', incoming: 'v2 → v3', changed: true },
+      { key: 'level', label: '課表強度', current: 'L3', incoming: 'L3', changed: false },
+      { key: 'lastSession', label: '最後訓練日', current: '2026-10-03', incoming: '2026-10-04', changed: true },
+      { key: 'sessions', label: '訓練紀錄筆數', current: '37 筆', incoming: '38 筆', changed: true },
+      { key: 'prs', label: 'PR 筆數', current: '11 筆', incoming: '11 筆', changed: false },
+      { key: 'body', label: '身體指標筆數', current: '31 筆', incoming: '31 筆', changed: false },
+      { key: 'sleepLog', label: '睡眠紀錄筆數', current: '3 筆', incoming: '3 筆', changed: false },
+      { key: 'lastBackup', label: '最後備份', current: '2026-10-03 21:05', incoming: '2026-10-03 21:05', changed: false }
+    ]);
+    expect(rev.summary.warnings).toEqual([]);
   });
 
   test('匯入較新的備份：沒有警告', async () => {
