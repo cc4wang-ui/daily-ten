@@ -68,7 +68,7 @@ test.describe('下載備份（Asia/Tokyo）', () => {
     await expect(page.locator('#imp-preview')).toBeVisible();
     await expect(page.locator('#imp-error')).toBeHidden();
     const changed = await page.locator('#imp-rows .prline[data-key]').evaluateAll((els) => els.map((el) => `${el.dataset.key}=${el.dataset.changed}`));
-    expect(changed).toHaveLength(11);
+    expect(changed).toHaveLength(8); // V1：預覽只列存檔裡的事實（8 列）
     expect(changed.filter((c) => !c.endsWith('=false'))).toEqual([]);
     await expect(page.locator('#imp-warnings')).toBeHidden();
     await confirmImportTwice(page); // 第二下在 1.5 秒後（連點保護：1 秒內的點擊忽略）

@@ -502,7 +502,9 @@ test.describe('新網址（Vercel）：從舊網址搬資料', () => {
     await expect(p.locator('#imp-preview')).toBeVisible();
     const row = (key) => p.locator(`#imp-rows .prline[data-key="${key}"]`).evaluate((el) => [...el.children].map((c) => c.textContent));
     expect(await row('sessions')).toEqual(['訓練紀錄筆數', '0 筆', '32 筆']);
-    expect(await row('xp')).toEqual(['XP', '0', '361']);
+    expect(await row('level')).toEqual(['課表強度', 'L2', 'L3']);
+    expect(await row('lastSession')).toEqual(['最後訓練日', '—', '2026-09-28']);
+    expect(await p.locator('#imp-rows .prline[data-key="xp"]').count(), '預覽沒有舊尺度的 XP 列').toBe(0);
     expect(await p.evaluate(() => document.getElementById('mv-import').hidden), '匯入前 HOME 的卡片不變').toBe(false);
     await p.click('#imp-confirm');
     await expect(p.locator('#imp-confirm')).toHaveText(IMPORT_ARMED_TEXT);

@@ -29,13 +29,11 @@ const EXTRA_BAD = [
   { file: 'v2-wrong-types.json', count: 10 } // 20 筆只顯示前 10 筆
 ];
 
-/* README §2「好檔的差異摘要」（目前 = v3.json，匯入 v2-real.json） */
+/* README §2「好檔的差異摘要」（目前 = v3.json，匯入 v2-real.json）。V1 QA BUG-1 之後 8 列：版本／課表強度／最後訓練日／
+   訓練紀錄筆數／PR 筆數／身體指標筆數／睡眠紀錄筆數／最後備份（舊尺度的 XP 與連續天數不再出現在預覽） */
 const ROWS_V3_TO_V2REAL = [
   ['version', '版本', 'v3', 'v2 → v3', true],
-  ['level', '等級', 'L3', 'L3', false],
-  ['xp', 'XP', '396', '361', true],
-  ['streak', '連續天數', '12 天', '9 天', true],
-  ['bestStreak', '最佳連續', '12 天', '11 天', true],
+  ['level', '課表強度', 'L3', 'L3', false], // V1：只列存檔裡的事實（XP、連續天數、最佳連續已移除；強度不叫「等級」）
   ['lastSession', '最後訓練日', '2026-10-01', '2026-09-28', true],
   ['sessions', '訓練紀錄筆數', '35 筆', '32 筆', true],
   ['prs', 'PR 筆數', '11 筆', '11 筆', false],
@@ -207,7 +205,10 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     await expect(page.locator('#imp-preview')).toBeVisible();
     const rows = await previewRows(page);
     expect(rows[0]).toEqual(['version', '版本', 'v3', 'v3', false]);
-    expect(rows[2]).toEqual(['xp', 'XP', '361', '396', true]);
+    const byKey = (rs, k) => rs.find((r) => r[0] === k);
+    expect(rows.map((r) => r[0])).toEqual(ROWS_V3_TO_V2REAL.map((r) => r[0]));
+    expect(byKey(rows, 'lastSession')).toEqual(['lastSession', '最後訓練日', '2026-09-28', '2026-10-01', true]);
+    expect(byKey(rows, 'sessions')).toEqual(['sessions', '訓練紀錄筆數', '32 筆', '35 筆', true]);
     await expect(page.locator('#imp-warnings')).toBeHidden();
     await confirmImportTwice(page);
     await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
@@ -224,7 +225,8 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     await paste(page, readFixture('v1-minimal.json'));
     const rows1 = await previewRows(page);
     expect(rows1[0]).toEqual(['version', '版本', 'v3', 'v1 → v3', true]);
-    expect(rows1[2]).toEqual(['xp', 'XP', '396', '35', true]);
+    expect(byKey(rows1, 'lastSession')).toEqual(['lastSession', '最後訓練日', '2026-10-01', '2026-08-05', true]);
+    expect(byKey(rows1, 'sessions')).toEqual(['sessions', '訓練紀錄筆數', '35 筆', '3 筆', true]);
     await expect(page.locator('#imp-warnings')).toBeVisible();
     await page.click('#imp-cancel');
     await expect(page.locator('#io-msg')).toHaveText('已取消匯入，資料沒有變更。');
