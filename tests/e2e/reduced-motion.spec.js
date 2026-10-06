@@ -5,7 +5,7 @@
    2. 執行（早安打卡 → toast；回今日 → 三環掃入）：no-preference → 每個動畫的關鍵影格只含 transform／opacity；
       reduce → 只含 opacity（淡入），沒有任何位移或旋轉。
    3. 訓練畫面（#train）蓋上來時，三環與 toast 的動畫一律暫停（animation-play-state: paused）；示範動畫（demos.js 以 rAF 繪製）不受影響。
-   4. M1 的資料保護元素（錯誤卡、提醒卡、匯入控制項、預覽）與啟動失敗卡仍沒有任何動畫或 transition。 */
+   4. M1 的資料保護元素（錯誤卡、匯入控制項、預覽）與啟動失敗卡仍沒有任何動畫或 transition（D27 起今日沒有備份提醒卡）。 */
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, expect, readFixture, readRepo, ROOT, openApp, seedState, gotoTab } from './helpers.js';
@@ -146,7 +146,6 @@ for (const mode of ['no-preference', 'reduce']) {
 
 /* ---------- M1 的資料保護元素：沒有任何動畫或 transition ---------- */
 const NEW_ELEMENTS = ['#err-card', '#err-text', '#err-download', '#err-dismiss', '#err-note',
-  '#bk-reminder', '#bk-reminder-text', '#bk-reminder-btn', '#bk-reminder-msg',
   '#bk-download', '#bk-status', '#imp-file-btn', '#imp-error', '#imp-preview', '#imp-rows', '#imp-warnings',
   '#imp-confirm', '#imp-cancel'];
 
@@ -168,11 +167,10 @@ async function motionReport(page, selectors) {
 }
 
 for (const mode of ['reduce', 'no-preference']) {
-  test(`prefers-reduced-motion: ${mode} → 錯誤卡、提醒卡、匯入控制項與預覽出現時沒有任何動畫或 transition`, async ({ page }) => {
+  test(`prefers-reduced-motion: ${mode} → 錯誤卡、匯入控制項與預覽出現時沒有任何動畫或 transition`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: mode });
-    await openApp(page, { seed: seedState(readFixture('v2-wrong-types.json')) }); // 錯誤卡＋提醒卡都會出現
+    await openApp(page, { seed: seedState(readFixture('v2-wrong-types.json')) }); // 錯誤卡會出現（D27 起今日沒有提醒卡）
     await expect(page.locator('#err-card')).toBeVisible();
-    await expect(page.locator('#bk-reminder')).toBeVisible();
     expect(await motionReport(page, NEW_ELEMENTS)).toEqual({ animations: 0, styles: [] });
 
     await gotoTab(page, 's-setup');

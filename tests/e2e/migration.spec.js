@@ -1,5 +1,5 @@
 /* qa-checker：遷移 e2e（PLAN.md §5 #1、#2）。預期值逐字取自 tests/fixtures/README.md 第 1 節。
-   流程：fixture 原文寫入 localStorage → 開 App → HOME 數值、錯誤卡、提醒卡 → 主 key 在存檔前未被覆寫
+   流程：fixture 原文寫入 localStorage → 開 App → HOME 數值、錯誤卡、今日沒有備份提醒卡（D27）→ 主 key 在存檔前未被覆寫
    → 觸發一次存檔（設定切換兩次）→ storage 為 v3 且 game 正確 → reload 再存一次 → 與第一次逐字相同；
    另開一個全新 context 再跑一次，結果也逐字相同。
    V1：loadState() 在 phase.startedAt 缺少時以載入當下（假時鐘 NOW）補上，第一次存檔時寫入；
@@ -13,16 +13,17 @@ import {
 const MSG_REPAIRED = '部分資料格式異常，已自動修復。原始資料已另存，可下載保存。';
 const MSG_RECOVERED = '讀取資料時發生問題，已改用空白資料。原始資料已另存，可下載保存。';
 
-/* README §1 表格；reminder = README §3 在 2026-10-02 15:30 的提醒結果；lastBackupAt = 載入後的 meta.lastBackupAt */
+/* README §1 表格；lastBackupAt = 載入後的 meta.lastBackupAt。
+   D27（Cross 2026-10-06 放棄備份）：README §3 的 7 天提醒卡已從今日拿掉 → 每個 fixture 都是 #bk-reminder 數量 0（不再依資料判斷） */
 const CASES = [
-  { file: 'v1-minimal.json', status: 'migrated', level: 2, xp: 35, streak: [1, 2, '2026-08-05'], life: [1, 2, '2026-08-05'], reminder: true, lastBackupAt: null },
-  { file: 'v2-real.json', status: 'migrated', level: 3, xp: 361, streak: [9, 11, '2026-09-28'], life: [9, 11, '2026-09-28'], reminder: true, lastBackupAt: null },
-  { file: 'v2-missing-fields.json', status: 'migrated', level: 2, xp: 60, streak: [3, 3, '2026-09-20'], life: [3, 3, '2026-09-20'], reminder: true, lastBackupAt: null },
-  { file: 'v2-wrong-types.json', status: 'repaired', level: 3, xp: 120, streak: [4, 6, '2026-09-20'], life: [4, 4, '2026-09-20'], reminder: true, lastBackupAt: null },
-  { file: 'empty-arrays.json', status: 'migrated', level: 2, xp: 0, streak: [0, 0, null], life: [0, 0, null], reminder: false, lastBackupAt: null },
-  { file: 'v3.json', status: 'ok', level: 3, xp: 396, streak: [12, 12, '2026-10-01'], life: [12, 12, '2026-10-01'], reminder: false, lastBackupAt: '2026-09-30T21:15:00+09:00' },
-  { file: 'v3-reverted-to-v2.json', status: 'migrated', level: 3, xp: 406, streak: [13, 13, '2026-10-02'], life: [13, 13, '2026-10-02'], reminder: false, lastBackupAt: '2026-09-30T21:15:00+09:00' },
-  { file: 'corrupt-state.txt', status: 'recovered', level: 2, xp: 0, streak: [0, 0, null], life: [0, 0, null], reminder: false, lastBackupAt: null }
+  { file: 'v1-minimal.json', status: 'migrated', level: 2, xp: 35, streak: [1, 2, '2026-08-05'], life: [1, 2, '2026-08-05'], lastBackupAt: null },
+  { file: 'v2-real.json', status: 'migrated', level: 3, xp: 361, streak: [9, 11, '2026-09-28'], life: [9, 11, '2026-09-28'], lastBackupAt: null },
+  { file: 'v2-missing-fields.json', status: 'migrated', level: 2, xp: 60, streak: [3, 3, '2026-09-20'], life: [3, 3, '2026-09-20'], lastBackupAt: null },
+  { file: 'v2-wrong-types.json', status: 'repaired', level: 3, xp: 120, streak: [4, 6, '2026-09-20'], life: [4, 4, '2026-09-20'], lastBackupAt: null },
+  { file: 'empty-arrays.json', status: 'migrated', level: 2, xp: 0, streak: [0, 0, null], life: [0, 0, null], lastBackupAt: null },
+  { file: 'v3.json', status: 'ok', level: 3, xp: 396, streak: [12, 12, '2026-10-01'], life: [12, 12, '2026-10-01'], lastBackupAt: '2026-09-30T21:15:00+09:00' },
+  { file: 'v3-reverted-to-v2.json', status: 'migrated', level: 3, xp: 406, streak: [13, 13, '2026-10-02'], life: [13, 13, '2026-10-02'], lastBackupAt: '2026-09-30T21:15:00+09:00' },
+  { file: 'corrupt-state.txt', status: 'recovered', level: 2, xp: 0, streak: [0, 0, null], life: [0, 0, null], lastBackupAt: null }
 ];
 
 const streakObj = ([current, best, lastDate]) => ({ current, best, lastDate });
@@ -50,9 +51,8 @@ async function migrateOnce(page, c) {
     await expect(err).toBeHidden();
     expect(Object.keys(await storageSnapshot(page))).toEqual([MAIN_KEY]);
   }
-  /* 提醒卡（README §3） */
-  if (c.reminder) await expect(page.locator('#bk-reminder')).toBeVisible();
-  else await expect(page.locator('#bk-reminder')).toBeHidden();
+  /* D27：今日沒有備份提醒卡（任何 fixture；D27 以前 v1、v2 真實、v2 缺欄位、v2 型別錯會顯示） */
+  await expect(page.locator('#bk-reminder')).toHaveCount(0);
 
   /* 主 key 在存檔前沒有被覆寫（任何 status） */
   expect(await rawMain(page)).toBe(raw);
@@ -179,11 +179,11 @@ test.describe('遷移：fixture 載入後畫面正常、XP 與連續天數正確
     expect(s.version).toBe(3);
   });
 
-  test('沒有任何資料（第一次開 App）：HOME 正常、不出現錯誤卡與提醒卡、開 App 不寫入 storage', async ({ page }) => {
+  test('沒有任何資料（第一次開 App）：HOME 正常、不出現錯誤卡、沒有提醒卡（D27）、開 App 不寫入 storage', async ({ page }) => {
     await openApp(page);
     await expectHome(page, { level: 2, xp: 0, current: 0, best: 0 });
     await expect(page.locator('#err-card')).toBeHidden();
-    await expect(page.locator('#bk-reminder')).toBeHidden();
+    await expect(page.locator('#bk-reminder')).toHaveCount(0);
     expect(await storageSnapshot(page)).toEqual({});
     await triggerSave(page);
     const s = await storedState(page);

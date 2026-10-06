@@ -127,9 +127,9 @@ async function auditScreen(page, label, testInfo) {
 }
 
 test.describe('對比、觸控目標、用語：V1 每個畫面', () => {
-  test('今日（打卡前、錯誤卡、提醒卡、中斷提示）→ 早安打卡（待打卡、修改時間）→ 打卡後（計分明細、toast）→ 今日（打卡後）', async ({ page }, testInfo) => {
-    await openApp(page, { now: MORNING, seed: seedState(readFixture('v2-real.json')) }); // 從未備份（提醒卡）、9/28 後中斷（中斷提示）
-    await expect(page.locator('#bk-reminder')).toBeVisible();
+  test('今日（打卡前、中斷提示）→ 早安打卡（待打卡、修改時間）→ 打卡後（計分明細、toast）→ 今日（打卡後）', async ({ page }, testInfo) => {
+    await openApp(page, { now: MORNING, seed: seedState(readFixture('v2-real.json')) }); // 9/28 後中斷（中斷提示）；D27 起今日沒有備份提醒卡
+    await expect(page.locator('#bk-reminder')).toHaveCount(0);
     await expect(page.locator('#h-banner')).toBeVisible();
     const all = [];
     all.push(await auditScreen(page, '今日（打卡前）', testInfo));
