@@ -43,6 +43,18 @@ v3 欄位形狀不變（沒有升版）：`habits.sleep.log[]` 每筆 `{date, li
 
 e2e 可用的時間點：2026-10-04T07:30+09:00（今天已打卡）、2026-10-05T06:50+09:00（今天還沒打卡）。
 
+### V2a 遊戲核心 fixture
+v3 欄位形狀不變（沒有升版）；`game` 新增選填 `seen:{level, perfectDay}`、`deload:{restoredOn}`；舊資料沒有就維持沒有（舊 fixture 結果不變、開 App 不寫入）。
+
+| Fixture | 內容 | 載入結果 |
+|---|---|---|
+| `v3-v2a.json` | 從 `v3-checkin.json` 接續 V2a 第一次開啟的 10-05：06:40 開 App → `ensureSeenInitialized(7,'2026-10-05')`（只改記憶體）→ 06:41 早安打卡（熄燈改 01:45、起床 06:41:20：睡不到 6 小時＋熄燈晚於時段 90 分以上 → D6 降量）→ `setDeloadRestored('2026-10-05')` → 晚上主課表 full → `markPerfectDaySeen('2026-10-05')`；當天沒升級。逐字等於重播寫入流程的結果 | `ok`（遷移是 no-op）；`game.seen={level:7, perfectDay:'2026-10-05'}`、`game.deload={restoredOn:'2026-10-05'}`；xp 421、streak 1 / 14 / 2026-10-05；打卡 4 筆 |
+| `v3-v2a-reverted-to-v2.json` | D12：上一個檔案被舊版 App 改回 `version:2`，舊版又在 10-06 做一次保底 | `migrated`；seen／deload 原樣（不重設、不補發）；xp 424、`game.xp.move` 424（不是 421＋424）；streak 2 / 14 / 2026-10-06；打卡 4 筆不重複 |
+| `v3-v2a-bad-fields.json` | 手改壞新欄位：`seen.level:"7"`、`seen.perfectDay:"2026/10/05"`、`deload:"2026-10-05"` | `repaired`（原字串存 `bak-v3`）：修補 3 處（level coerced → 7、perfectDay → null、deload → `{restoredOn:null}`），其他資料與 `v3-v2a.json` 相同 |
+
+匯入：`v3-v2a-bad-fields.json` ✗（`invalid_type` `game.seen.level`、`out_of_range` `game.seen.perfectDay`、`invalid_type` `game.deload`）；`v3-v2a.json`、`v3-v2a-reverted-to-v2.json` ✓（seen／deload 原樣）。
+e2e 時間點：2026-10-05T20:00+09:00（已恢復、已慶祝、無升級卡）；2026-10-06T06:50+09:00（restoredOn 是昨天 → 未恢復；今天的 Perfect Day 可慶祝一次）。等級以 engine 計算為準。
+
 ## 2. 匯入（`parseImport(text)`）
 
 壞檔一律 `{ok:false, errors:[{code, path, message}]}`（最多 10 筆），**`getState()` 與 localStorage 都不變**。
