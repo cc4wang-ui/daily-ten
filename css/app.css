@@ -158,13 +158,6 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .levelup{display:flex;align-items:center;gap:var(--sp-2h);width:100%;min-height:52px;padding:var(--sp-3) var(--sp-4);border-radius:var(--r-md);
   background:var(--move-soft);color:var(--move-ink);font-size:14px;font-weight:700;text-align:left}
 .levelup .ic{flex:none}
-#bk-reminder.warn{display:flex;align-items:center;gap:var(--sp-3);border-radius:var(--r-card);padding:var(--sp-3h) var(--sp-4)}
-.bn-ic{width:40px;height:40px;border-radius:50%;background:var(--c-card);display:flex;align-items:center;justify-content:center;
-  flex:none;color:var(--warn-icon)}
-.bn-body{flex:1;min-width:0}
-#bk-reminder-text{font-size:14px;font-weight:700;color:var(--c-ink)}
-#bk-reminder-msg:empty{display:none}
-#app #bk-reminder-btn{width:auto;flex:none;margin:0;padding:0 var(--sp-3h)}
 #err-card .btn-sub{margin-top:var(--sp-2h)}
 /* AFT 自選目標差距 */
 .aft-rows{display:flex;flex-direction:column;gap:var(--sp-3h);margin:var(--sp-3) 0}
@@ -372,9 +365,7 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #app .mv-card{border:1.5px solid var(--move-ink)}
 #app .mv-card h3{color:var(--move-ink);font-size:16px}
 #app .mv-card p{color:var(--c-ink);text-wrap:pretty}
-#app .mv-card p.mv-hint{color:var(--warn-ink);margin-top:var(--sp-1h)}
 #app .mv-card .btn-sub{min-height:var(--touch);margin-bottom:0;border-color:var(--move-ink);color:var(--move-ink);font-weight:700}
-#app .mv-card>.btn-sub{margin-top:var(--sp-3)}
 .mv-link{display:block;text-align:center}
 .mv-steps{list-style:none;margin-top:var(--sp-3)}
 .mv-steps li{display:flex;align-items:flex-start;gap:var(--sp-2h)}
@@ -386,8 +377,6 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .mv-step p+p{margin-top:var(--sp-1)}
 .mv-msg{overflow-wrap:anywhere}
 .mv-msg:not(:empty){margin-top:var(--sp-1h)}
-#app .mv-msg.mv-ok{color:var(--ok-ink)}
-#app .mv-msg.mv-err{color:var(--danger-ink)}
 .mv-host{font-family:var(--mono);text-align:center}
 #upd-note{position:fixed;top:calc(env(safe-area-inset-top) + var(--toast-top));left:var(--toast-side);right:var(--toast-side);
   max-width:calc(var(--maxw) - 2 * var(--toast-side));margin:0 auto;z-index:45;text-align:center;pointer-events:none}

@@ -1,15 +1,14 @@
 /* Daily Ten — 今日：日期、階段、連續天數、身分宣言、三環＋中央等級、「下一步」主按鈕（全畫面唯一一顆）、保底版、
-   AFT 自選目標差距卡、條件卡（搬家／匯入、載入錯誤、已更新、中斷提示、強度升級、備份提醒）。
+   AFT 自選目標差距卡、條件卡（搬家、載入錯誤、已更新、中斷提示、強度升級）。
    遊戲層（engine）就緒時：階段、三環、下一步由 todaySummary 決定（早上＝早安打卡、之後＝今日課表、週日＝Boss Day、都完成＝完成）；
    未就緒時（規則檔讀不到）：隱藏階段與三環，下一步照 M1 的課表邏輯（今日課表／Boss Day／已完成），其他照常。
    今日與訓練分頁共用今日課表：這裡一起呼叫 renderTrain()；統計三格（累計 XP、最佳連續）也一起更新（同 M1 首頁）。
-   D24：最上方的搬家引導卡（舊網址搬家、新網址匯入）在 relocate.js，每次 renderHome 重新判斷。 */
+   D24：最上方的搬家卡（只在舊網址顯示）在 relocate.js，每次 renderHome 重新判斷。D27 起今日不再有備份提醒卡。 */
 import { getState, saveState } from '../state/store.js';
 import { $ } from './dom.js';
 import { dayGap } from './dates.js';
 import { DOW, estMin, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, levelUpEligible } from './session.js';
-import { renderBackupReminder } from './backup.js';
 import { renderMoveCard } from './relocate.js';
 import { goTo } from './nav.js';
 import { icon } from './icons.js';
@@ -140,7 +139,6 @@ export function renderHome(){
   renderBanner(st,t,doneToday);
   renderLevelUp();
   renderAft();
-  renderBackupReminder();
   renderMoveCard();
   renderTrain();
   renderKpis(sum);
