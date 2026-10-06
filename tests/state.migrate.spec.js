@@ -423,6 +423,103 @@ test.describe('B1 修補規則：sleep 項目與 phase', () => {
   });
 });
 
+test.describe('V2a 修補規則：game.seen／game.deload', () => {
+  const base = () => loadFixture('v3-v2a.json');
+
+  test('沒有就維持沒有：v1、v2、v3、V1 的資料遷移都不新增（開 App 不寫入、v3 遷移仍是 no-op）', () => {
+    for (const name of ['v1-minimal.json', 'v2-real.json', 'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json', 'v3-checkin.json', 'v3-checkin-reverted-to-v2.json']) {
+      const g = migrate(loadFixture(name), { now: NOW }).state.game;
+      expect('seen' in g, name).toBe(false);
+      expect('deload' in g, name).toBe(false);
+    }
+    expect('seen' in defaultState(NOW).game).toBe(false);
+    expect('deload' in defaultState(NOW).game).toBe(false);
+  });
+
+  test('有值就原樣保留（含欄位順序與不認得的子欄位）', () => {
+    const raw = base();
+    raw.game.seen.weekly = '2026-W41';
+    raw.game.deload.from = 3;
+    const r = migrate(raw, { now: NOW });
+    expect(r.issues).toEqual([]);
+    expect(JSON.stringify(r.state)).toBe(JSON.stringify(raw));
+  });
+
+  test('seen／deload 不是物件 → 子欄位全 null 的物件（reset）', () => {
+    for (const bad of [null, 'x', 7, true, [], [7, '2026-10-05']]) {
+      const raw = base();
+      raw.game.seen = bad;
+      raw.game.deload = bad;
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.game.seen, JSON.stringify(bad)).toStrictEqual({ level: null, perfectDay: null });
+      expect(r.state.game.deload, JSON.stringify(bad)).toStrictEqual({ restoredOn: null });
+      expect(r.issues).toStrictEqual([{ path: 'game.seen', action: 'reset' }, { path: 'game.deload', action: 'reset' }]);
+      expect(validateImport(r.state)).toEqual({ ok: true });
+    }
+  });
+
+  test('子欄位缺少 → null（不算修補）', () => {
+    const raw = base();
+    raw.game.seen = {};
+    raw.game.deload = {};
+    const r = migrate(raw, { now: NOW });
+    expect(r.issues).toEqual([]);
+    expect(r.state.game.seen).toStrictEqual({ level: null, perfectDay: null });
+    expect(r.state.game.deload).toStrictEqual({ restoredOn: null });
+    expect(validateImport(r.state)).toEqual({ ok: true });
+  });
+
+  test('seen.level：數字字串 → 數字（coerced）；超出 1–100,000、小數、其他型別 → null（reset）；null 保留', () => {
+    for (const [input, out, action] of [
+      [7, 7, null], [1, 1, null], [100000, 100000, null], [null, null, null], ['7', 7, 'coerced'], [' 12 ', 12, 'coerced'], ['8.0', 8, 'coerced'],
+      [0, null, 'reset'], [-1, null, 'reset'], [100001, null, 'reset'], ['100001', null, 'reset'], [2.5, null, 'reset'], ['abc', null, 'reset'],
+      [true, null, 'reset'], [{}, null, 'reset'], [[7], null, 'reset']
+    ]) {
+      const raw = base();
+      raw.game.seen.level = input;
+      const r = migrate(raw, { now: NOW });
+      expect(r.state.game.seen, JSON.stringify(input)).toStrictEqual({ level: out, perfectDay: '2026-10-05' });
+      expect(r.issues, JSON.stringify(input)).toStrictEqual(action ? [{ path: 'game.seen.level', action }] : []);
+    }
+  });
+
+  test('seen.perfectDay、deload.restoredOn：格式錯 → null（reset，不猜遊戲日）；null 保留', () => {
+    for (const [input, action] of [
+      ['2026-10-05', null], [null, null], ['2026/10/05', 'reset'], ['2026-10-5', 'reset'], ['2026-02-30', 'reset'],
+      ['2026-10-05T07:00:00+09:00', 'reset'], [20261005, 'reset'], ['', 'reset'], [{}, 'reset']
+    ]) {
+      const raw = base();
+      raw.game.seen.perfectDay = input;
+      raw.game.deload.restoredOn = input;
+      const r = migrate(raw, { now: NOW });
+      const out = action ? null : input;
+      expect(r.state.game.seen, JSON.stringify(input)).toStrictEqual({ level: 7, perfectDay: out });
+      expect(r.state.game.deload, JSON.stringify(input)).toStrictEqual({ restoredOn: out });
+      expect(r.issues).toStrictEqual(action ? [{ path: 'game.seen.perfectDay', action }, { path: 'game.deload.restoredOn', action }] : []);
+    }
+  });
+
+  test('game 本身壞掉被重建時，seen／deload 跟著消失（UI 重新初始化，不補發）', () => {
+    const raw = base();
+    raw.game = 'broken';
+    const r = migrate(raw, { now: NOW });
+    expect(r.issues).toStrictEqual([{ path: 'game', action: 'reset' }]);
+    expect('seen' in r.state.game).toBe(false);
+    expect('deload' in r.state.game).toBe(false);
+  });
+
+  test('被舊版改回 v2（D12）：seen／deload 只修補、不重建，保留 legacy 以外的 game 欄位', () => {
+    const raw = loadFixture('v3-v2a-reverted-to-v2.json');
+    raw.game.seen.level = '9';
+    const r = migrate(raw, { now: NOW });
+    expect(r.alreadyMigrated).toBe(true);
+    expect(r.issues).toStrictEqual([{ path: 'game.seen.level', action: 'coerced' }]);
+    expect(r.state.game.seen).toStrictEqual({ level: 9, perfectDay: '2026-10-05' });
+    expect(r.state.game.deload).toStrictEqual({ restoredOn: '2026-10-05' });
+    expect(r.state.game.xp).toStrictEqual({ move: 424, sleep: 0, explore: 0, total: 424 });
+  });
+});
+
 test.describe('冪等、不改動輸入、輸出一定能再匯入', () => {
   for (const name of GOOD_FIXTURES) {
     test(`${name}：跑兩次結果相同`, () => {
@@ -757,6 +854,43 @@ test.describe('fuzz：隨機破壞資料，載入永遠不丟例外', () => {
       }
       expect(['P1', 'P2', 'P3']).toContain(r.state.phase.current);
       expect(r.state.phase.startedAt === null || typeof r.state.phase.startedAt === 'string').toBe(true);
+    }
+  });
+
+  test('300 次隨機破壞 V2a 的 seen／deload：遷移成功、輸出可匯入、冪等；留下的欄位一定是正確形狀', () => {
+    const rand = rng(20261006);
+    const V2A_JUNK = ['7', '2026-10-05', '2026/10/05', '2026-10-05T07:00:00+09:00', 100000, 100001, { level: 7 }, { restoredOn: '2026-10-05' }];
+    const sources = ['v3-v2a.json', 'v3-v2a-reverted-to-v2.json', 'v3-v2a-bad-fields.json'].map(loadFixture);
+    const DATE = /^\d{4}-\d{2}-\d{2}$/;
+    for (let i = 0; i < 300; i++) {
+      const raw = JSON.parse(JSON.stringify(sources[i % sources.length]));
+      const all = [['game', 'seen'], ['game', 'deload'], ...paths(raw.game.seen, ['game', 'seen']), ...paths(raw.game.deload, ['game', 'deload'])];
+      const edits = 1 + Math.floor(rand() * 3);
+      for (let j = 0; j < edits; j++) {
+        const p = all[Math.floor(rand() * all.length)];
+        let parent = raw;
+        for (const k of p.slice(0, -1)) parent = parent && typeof parent === 'object' ? parent[k] : undefined;
+        if (!parent || typeof parent !== 'object') continue;
+        const pool = rand() < 0.5 ? JUNK : V2A_JUNK;
+        if (rand() < 0.2) delete parent[p[p.length - 1]];
+        else parent[p[p.length - 1]] = JSON.parse(JSON.stringify(pool[Math.floor(rand() * pool.length)]));
+      }
+      const before = JSON.stringify(raw);
+      const r = migrate(raw, { now: NOW });
+      expect(JSON.stringify(raw)).toBe(before);
+      const v = validateImport(r.state);
+      if (!v.ok) throw new Error(`#${i} 輸出無法匯入：${JSON.stringify(v.errors)}\n輸入：${before}`);
+      const again = migrate(r.state, { now: NOW });
+      if (again.repaired || JSON.stringify(again.state) !== JSON.stringify(r.state)) {
+        throw new Error(`#${i} 不冪等：${JSON.stringify(again.issues)}\n輸入：${before}`);
+      }
+      const { seen, deload } = r.state.game;
+      if (seen !== undefined) {
+        expect(seen.level === null || (Number.isInteger(seen.level) && seen.level >= 1 && seen.level <= 100000)).toBe(true);
+        expect(seen.perfectDay === null || DATE.test(seen.perfectDay)).toBe(true);
+      }
+      if (deload !== undefined) expect(deload.restoredOn === null || DATE.test(deload.restoredOn)).toBe(true);
+      expect(r.state.game.xp.move).toBe(r.state.xp); // D12 不重複計 XP
     }
   });
 });

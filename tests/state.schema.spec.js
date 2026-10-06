@@ -117,7 +117,7 @@ test.describe('time.js', () => {
 
 test.describe('validateImport：好檔', () => {
   for (const name of ['v1-minimal.json', 'v2-real.json', 'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json',
-    'v3-checkin.json', 'v3-checkin-reverted-to-v2.json']) {
+    'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-v2a.json', 'v3-v2a-reverted-to-v2.json']) {
     test(`${name} 通過`, () => {
       expect(validateImport(loadFixture(name))).toEqual({ ok: true });
     });
@@ -310,7 +310,42 @@ test.describe('validateImport：邊界值', () => {
     ['phase.current P4', (s) => { s.phase.current = 'P4'; }, ['out_of_range', 'phase.current']],
     ['phase.current 小寫 p1', (s) => { s.phase.current = 'p1'; }, ['out_of_range', 'phase.current']],
     ['phase.current 空字串', (s) => { s.phase.current = ''; }, ['invalid_type', 'phase.current']],
-    ['phase.current 數字', (s) => { s.phase.current = 1; }, ['invalid_type', 'phase.current']]
+    ['phase.current 數字', (s) => { s.phase.current = 1; }, ['invalid_type', 'phase.current']],
+    /* V2a：game.seen {level, perfectDay}、game.deload {restoredOn}（選填；有就要完整、格式正確） */
+    ['game.seen 正確', (s) => { s.game.seen = { level: 7, perfectDay: '2026-10-05' }; }, null],
+    ['game.seen 未初始化（全 null）', (s) => { s.game.seen = { level: null, perfectDay: null }; }, null],
+    ['game.seen.level 1', (s) => { s.game.seen = { level: 1, perfectDay: null }; }, null],
+    ['game.seen.level 100,000', (s) => { s.game.seen = { level: 100000, perfectDay: null }; }, null],
+    ['game.seen.level 0', (s) => { s.game.seen = { level: 0, perfectDay: null }; }, ['out_of_range', 'game.seen.level']],
+    ['game.seen.level 100,001', (s) => { s.game.seen = { level: 100001, perfectDay: null }; }, ['out_of_range', 'game.seen.level']],
+    ['game.seen.level 負數', (s) => { s.game.seen = { level: -1, perfectDay: null }; }, ['out_of_range', 'game.seen.level']],
+    ['game.seen.level 小數', (s) => { s.game.seen = { level: 7.5, perfectDay: null }; }, ['out_of_range', 'game.seen.level']],
+    ['game.seen.level 字串', (s) => { s.game.seen = { level: '7', perfectDay: null }; }, ['invalid_type', 'game.seen.level']],
+    ['game.seen.level true', (s) => { s.game.seen = { level: true, perfectDay: null }; }, ['invalid_type', 'game.seen.level']],
+    ['game.seen.perfectDay 斜線', (s) => { s.game.seen = { level: 7, perfectDay: '2026/10/05' }; }, ['out_of_range', 'game.seen.perfectDay']],
+    ['game.seen.perfectDay 不存在的日期', (s) => { s.game.seen = { level: 7, perfectDay: '2026-02-30' }; }, ['out_of_range', 'game.seen.perfectDay']],
+    ['game.seen.perfectDay 是 ISO 時間（不猜遊戲日）', (s) => { s.game.seen = { level: 7, perfectDay: '2026-10-05T07:00:00+09:00' }; }, ['out_of_range', 'game.seen.perfectDay']],
+    ['game.seen.perfectDay 數字', (s) => { s.game.seen = { level: 7, perfectDay: 20261005 }; }, ['invalid_type', 'game.seen.perfectDay']],
+    ['game.seen 缺 level', (s) => { s.game.seen = { perfectDay: '2026-10-05' }; }, ['invalid_type', 'game.seen.level']],
+    ['game.seen 缺 perfectDay', (s) => { s.game.seen = { level: 7 }; }, ['invalid_type', 'game.seen.perfectDay']],
+    ['game.seen null', (s) => { s.game.seen = null; }, ['invalid_type', 'game.seen']],
+    ['game.seen 字串', (s) => { s.game.seen = '7'; }, ['invalid_type', 'game.seen']],
+    ['game.seen 陣列', (s) => { s.game.seen = [7, '2026-10-05']; }, ['invalid_type', 'game.seen']],
+    ['game.seen 多出不認得的欄位', (s) => { s.game.seen = { level: 7, perfectDay: '2026-10-05', weekly: '2026-W41' }; }, null],
+    ['game.deload 正確', (s) => { s.game.deload = { restoredOn: '2026-10-05' }; }, null],
+    ['game.deload.restoredOn null', (s) => { s.game.deload = { restoredOn: null }; }, null],
+    ['game.deload.restoredOn 格式錯', (s) => { s.game.deload = { restoredOn: '10/05' }; }, ['out_of_range', 'game.deload.restoredOn']],
+    ['game.deload.restoredOn 是 ISO 時間', (s) => { s.game.deload = { restoredOn: '2026-10-05T07:00:00+09:00' }; }, ['out_of_range', 'game.deload.restoredOn']],
+    ['game.deload.restoredOn true', (s) => { s.game.deload = { restoredOn: true }; }, ['invalid_type', 'game.deload.restoredOn']],
+    ['game.deload 缺 restoredOn', (s) => { s.game.deload = {}; }, ['invalid_type', 'game.deload.restoredOn']],
+    ['game.deload null', (s) => { s.game.deload = null; }, ['invalid_type', 'game.deload']],
+    ['game.deload 字串', (s) => { s.game.deload = '2026-10-05'; }, ['invalid_type', 'game.deload']],
+    ['game.deload 多出不認得的欄位', (s) => { s.game.deload = { restoredOn: '2026-10-05', from: 3 }; }, null],
+    /* M1 舊欄位（V2a 保留不動）：規則照舊 */
+    ['game.freezeTokens 2', (s) => { s.game.freezeTokens = 2; }, null],
+    ['game.freezeTokens 負數', (s) => { s.game.freezeTokens = -1; }, ['out_of_range', 'game.freezeTokens']],
+    ['game.perfectDays 任何內容', (s) => { s.game.perfectDays = ['2026-09-30', { date: 'x' }, 3]; }, null],
+    ['game.perfectDays 不是陣列', (s) => { s.game.perfectDays = '2026-09-30'; }, ['invalid_type', 'game.perfectDays']]
   ];
   for (const [name, mutate, expected] of cases) {
     test(name, () => {
@@ -352,8 +387,21 @@ test.describe('錯誤訊息', () => {
     expect(Object.isFrozen(PHASES)).toBe(true);
   });
 
+  test('V2a 欄位：升級卡與慶祝紀錄、降量恢復紀錄的訊息', () => {
+    const s = loadFixture('v3-v2a.json');
+    s.game.seen = { level: 0 };
+    s.game.deload = { restoredOn: 20261005 };
+    expect(validateImport(s).errors).toStrictEqual([
+      { code: 'out_of_range', path: 'game.seen.level', message: '升級卡與慶祝紀錄（game.seen.level）數值超出合理範圍（應為 1–100,000 的整數）' },
+      { code: 'invalid_type', path: 'game.seen.perfectDay', message: '升級卡與慶祝紀錄（game.seen.perfectDay）缺少必要的值，應為 YYYY-MM-DD 格式的日期' },
+      { code: 'invalid_type', path: 'game.deload.restoredOn', message: '降量恢復紀錄（game.deload.restoredOn）應為 YYYY-MM-DD 格式的日期' }
+    ]);
+    s.game.seen = 'x';
+    expect(validateImport(s).errors[0]).toStrictEqual({ code: 'invalid_type', path: 'game.seen', message: '升級卡與慶祝紀錄（game.seen）應為物件' });
+  });
+
   test('全部是繁中、含欄位路徑、沒有用語表的「不用」詞', () => {
-    const files = ['import-bad-missing-fields.json', 'import-bad-wrong-types.json', 'import-bad-oversized.json', 'v2-wrong-types.json', 'v2-missing-fields.json', 'v3-bad-sleep.json'];
+    const files = ['import-bad-missing-fields.json', 'import-bad-wrong-types.json', 'import-bad-oversized.json', 'v2-wrong-types.json', 'v2-missing-fields.json', 'v3-bad-sleep.json', 'v3-v2a-bad-fields.json'];
     const all = files.flatMap((f) => validateImport(loadFixture(f)).errors);
     const s = loadFixture('v3.json');
     s.version = 9; s.sessions[0].type = ''; s.goals.identity = '我'.repeat(501); s.settings.bedtime = '25:00'; s.game.level = 'x';

@@ -233,3 +233,79 @@ test('匯入流程：壞檔不動資料；好檔確認後才覆蓋', async ({ pa
   expect(out.savedXp).toBe(361);
   expect(out.preImport).toBe(true);
 });
+
+test('V2a 遊戲進度標記（game.js）：初始化不寫入；看過升級卡／慶祝、恢復寫入 localStorage，重新整理後還在；復原後變回 null', async ({ page }) => {
+  const raw = readFixture('v3-checkin.json');
+  const first = await page.evaluate(async ({ raw }) => {
+    localStorage.setItem('daily-ten-state', raw);
+    const store = await import('/js/state/store.js');
+    const game = await import('/js/state/game.js');
+    const load = await store.loadState({ now: new Date('2026-10-05T06:40:00+09:00') });
+    const init = game.ensureSeenInitialized(7, '2026-10-05');
+    const untouched = localStorage.getItem('daily-ten-state') === raw;
+    const keys = Object.keys(localStorage);
+    const lv = game.markLevelSeen(8);
+    const lvSaved = await lv.saved;
+    const pd = game.markPerfectDaySeen('2026-10-05');
+    const pdSaved = await pd.saved;
+    const rs = game.setDeloadRestored('2026-10-05');
+    const rsSaved = await rs.saved;
+    return { load, init, untouched, keys, saved: [lvSaved, pdSaved, rsSaved], game: JSON.parse(localStorage.getItem('daily-ten-state')).game };
+  }, { raw });
+  expect(first.load).toStrictEqual({ status: 'ok', error: null });
+  expect(first.init).toStrictEqual({ ok: true, changed: true, seen: { level: 7, perfectDay: '2026-10-04' } });
+  expect(first.untouched).toBe(true); // 開 App＋初始化不寫入
+  expect(first.keys).toEqual(['daily-ten-state']);
+  expect(first.saved).toEqual([true, true, true]);
+  expect(first.game.seen).toStrictEqual({ level: 8, perfectDay: '2026-10-05' });
+  expect(first.game.deload).toStrictEqual({ restoredOn: '2026-10-05' });
+
+  await page.reload();
+  const second = await page.evaluate(async () => {
+    const store = await import('/js/state/store.js');
+    const game = await import('/js/state/game.js');
+    const schema = await import('/js/state/schema.js');
+    const load = await store.loadState({ now: new Date('2026-10-05T07:10:00+09:00') });
+    const init = game.ensureSeenInitialized(3, '2026-10-05');
+    const restored = schema.isDeloadRestored(store.getState(), '2026-10-05');
+    const undo = game.clearDeloadRestored('2026-10-05');
+    const saved = await undo.saved;
+    return { load, init, restored, undo: { ok: undo.ok, changed: undo.changed, deload: undo.deload }, saved };
+  });
+  expect(second.load).toStrictEqual({ status: 'ok', error: null });
+  expect(second.init).toStrictEqual({ ok: true, changed: false, seen: { level: 8, perfectDay: '2026-10-05' } });
+  expect(second.restored).toBe(true);
+  expect(second.undo).toStrictEqual({ ok: true, changed: true, deload: { restoredOn: null } });
+  expect(second.saved).toBe(true);
+
+  await page.reload();
+  const third = await page.evaluate(async () => {
+    const store = await import('/js/state/store.js');
+    const load = await store.loadState();
+    return { load, seen: store.getState().game.seen, deload: store.getState().game.deload };
+  });
+  expect(third).toStrictEqual({ load: { status: 'ok', error: null }, seen: { level: 8, perfectDay: '2026-10-05' }, deload: { restoredOn: null } });
+});
+
+test('V2a 壞欄位 → repaired：原字串存在 bak-v3，修補後的備份可再匯入', async ({ page }) => {
+  const raw = readFixture('v3-v2a-bad-fields.json');
+  const out = await page.evaluate(async ({ raw }) => {
+    localStorage.setItem('daily-ten-state', raw);
+    const store = await import('/js/state/store.js');
+    const backup = await import('/js/state/backup.js');
+    const load = await store.loadState();
+    const { text } = backup.buildBackup(store.getState(), new Date('2026-10-06T08:00:00+09:00'));
+    const again = backup.parseImport(text);
+    return { load, bak: localStorage.getItem('daily-ten-state.bak-v3') === raw, main: localStorage.getItem('daily-ten-state') === raw,
+      seen: store.getState().game.seen, deload: store.getState().game.deload, importOk: again.ok };
+  }, { raw });
+  expect(out.load).toStrictEqual({
+    status: 'repaired',
+    error: { code: 'repaired', message: '部分資料格式異常，已自動修復。原始資料已另存，可下載保存。', backupKey: 'daily-ten-state.bak-v3' }
+  });
+  expect(out.bak).toBe(true);
+  expect(out.main).toBe(true);
+  expect(out.seen).toStrictEqual({ level: 7, perfectDay: null });
+  expect(out.deload).toStrictEqual({ restoredOn: null });
+  expect(out.importOk).toBe(true);
+});
