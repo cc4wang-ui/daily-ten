@@ -89,7 +89,7 @@
 
 - 正式網址：`https://daily-ten-app.vercel.app/`。Vercel 把請求轉送到 GitHub Pages（`tools/deploy/vercel-proxy.json`），`main` merge 後約 1 分鐘兩邊同時更新，不用手動部署（見 [docs/DEPLOY.md](./docs/DEPLOY.md)）。
 - 根目錄 `vercel.json`、`.vercelignore` 是日後改成直接部署時用的設定（只上線 App 檔；CI `check-repo` 確認不會排除預快取的檔案）。
-- GitHub Pages `https://cc4wang-ui.github.io/daily-ten/` 是內容來源，不能關；這個網址的首頁多一張搬家卡，引導下載備份 → 打開新網址 → 加入主畫面 → 匯入。
+- GitHub Pages `https://cc4wang-ui.github.io/daily-ten/` 是內容來源，不能關；這個網址的首頁多一張搬家卡，引導打開新網址 → 加入主畫面（D27 起不含備份步驟）。
 
 ## 展示給別人看
 
@@ -99,7 +99,7 @@
 
 Safari 開啟 App 網址 `https://daily-ten-app.vercel.app/`（不是 `mockup.html`）→ 分享鈕 → **加入主畫面** → 從主畫面圖示開啟。
 
-從舊網址搬過來：打開舊圖示，照首頁搬家卡的 3 步做（下載備份 → 打開新網址並加入主畫面 → 在新圖示裡選備份檔匯入），搬好後刪掉舊圖示。主畫面 App 和 Safari 的資料是分開的，一定要在新圖示裡匯入。
+從舊圖示打開會看到搬家卡：打開新網址、在 Safari 加入主畫面，之後從新圖示打開、刪掉舊圖示。紀錄不會跟著搬（Cross 2026-10-06 放棄備份，D27）。
 
 ## 更新 App
 
@@ -116,7 +116,7 @@ App 改用 ES modules，必須透過 http(s) 開啟（GitHub Pages 或 `npm run 
 
 資料只存在這台裝置的 localStorage，沒有雲端。
 
-- **下載備份**：SETUP → 資料備份 →「下載備份」，存成 `daily-ten-backup-YYYY-MM-DD.json`。iPhone 會跳出分享選單 →「儲存到檔案」。超過 7 天沒備份（或從未備份），首頁會出現提醒卡，一鍵就能下載。
+- **下載備份**：設定 → 資料備份 →「下載備份」，存成 `daily-ten-backup-YYYY-MM-DD.json`。iPhone 會跳出分享選單 →「儲存到檔案」。D27 起首頁不提醒，需要時手動用。
 - **匯入**：「選擇備份檔匯入」或把 JSON 貼進文字框後按「匯入」。App 先驗證格式，壞檔只會顯示錯誤、不動現有資料；通過後先顯示「目前／匯入後」差異預覽，要按兩次確認才會覆蓋。
 - **載入失敗保護**：資料讀不出來或格式異常時，原始內容會另存一份並在首頁顯示錯誤卡，可下載保存，App 不會白屏。
 - 「匯出 JSON」（文字框複製）仍保留。

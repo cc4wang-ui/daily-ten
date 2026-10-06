@@ -17,7 +17,7 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 
 1. **V2 遊戲核心＋目標**（CLAUDE.md §8）：Freeze、Perfect Day＋慶祝、升級卡、D6 降量卡、D19 回歸任務、目標分頁（週回顧、選下週目標、季度目標、階段卡）、`.ics`、90 天 sim。開工前先給 Cross checkpoint。
 2. V3 統計＋成就 → V4 探索 → V5 收尾（暗色、教練一句、訓練畫面新風格）。
-3. 週報（D25）：排程 `daily-ten-weekly` 綁在原 session（那裡才有 Google Drive／Vercel 連接器），每週一 07:45 東京；Cross 每週存一份備份到 Drive 才有內容。
+3. 週報（D25）：**D27 起暫停**（Cross 2026-10-06 放棄備份，週報沒有資料可讀）。排程 `daily-ten-weekly` 仍在、`enabled=false`，綁在原 session；Cross 說「恢復週報」才用 `update_trigger` 重開。今日頁已沒有備份提醒與匯入卡，設定頁仍可手動下載／匯入。
 
 ## 必須保留的 project knowledge
 

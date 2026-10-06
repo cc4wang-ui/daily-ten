@@ -62,7 +62,7 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D1 | 方向 | 個人使用優先，無帳號 |
 | D2 | Jev 用法 | Build-time 編譯產生／驗證 `data/*.json`；runtime 只查表 |
 | D3 | AFT | 維持男性 17–21 歲三項自選目標＋差距自動計算 |
-| D4 | 資料保護 | 下載 `.json` 備份＋7 天未備份提醒卡；匯入前驗證與預覽 |
+| D4 | 資料保護 | 下載 `.json` 備份；匯入前驗證與預覽；~~7 天未備份提醒卡~~（D27：只留在設定頁，不提醒） |
 | D5 | 就寢提醒 | `.ics` 每日提醒檔＋iOS 捷徑教學頁（不做 Web Push） |
 | D6 | 自動降量 | 睡眠 <6h 或熄燈晚於時段 90 分以上 → 當日預設降一級，可一鍵恢復 |
 | D7 | 架構 | 無 build；原生 ES modules |
@@ -82,9 +82,10 @@ Daily Ten 是 Cross 的**個人成長遊戲**：穩定養成習慣、即時正�
 | D21 | 文案 | 台灣繁中用語表（§11）；成就以「行為」命名，避免純刷量型佔多數 |
 | D22 | 低輸入模式 | qa-checker PASS＋CI 綠燈 → Orchestrator 直接 merge；Cross 只做方向單選與 ≤3 條真機確認（流程見 `docs/ITERATION.md`） |
 | D23 | 自動更新 | 新版上線後，App 在開啟或回到前景時自動檢查並套用；只在閒置時重新載入，訓練中不打斷；SETUP 顯示 App 版本 |
-| D24 | 部署平台 | 正式網址 Vercel `daily-ten-app.vercel.app`，轉送 GitHub Pages 的內容（Vercel 連不到這個 repo；main merge 即兩邊更新，見 `docs/DEPLOY.md`）；`cc4wang-ui.github.io/daily-ten/` 是內容來源、不能關，首頁顯示搬家卡（下載備份 → 新網址匯入） |
-| D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md`。屬開發流程、不是 App 功能：App 仍無帳號、無雲端、無 runtime AI（原則 1、7 不變）；用 Cross 自存的備份做分析，Cross 2026-10-03 選 A 時同意 |
+| D24 | 部署平台 | 正式網址 Vercel `daily-ten-app.vercel.app`，轉送 GitHub Pages 的內容（Vercel 連不到這個 repo；main merge 即兩邊更新，見 `docs/DEPLOY.md`）；`cc4wang-ui.github.io/daily-ten/` 是內容來源、不能關，首頁顯示搬家卡（D27 起只引導打開新網址、加入主畫面，不含備份步驟） |
+| D25 | 每週週報 | Cross 每週把備份存到自己的 Google Drive；排程 session 只讀最新備份 → 週報＋3 個提案 → Cross 單選後才開發；只讀不寫、個人數據不進公開 repo；契約與節奏見 `docs/ITERATION.md`。屬開發流程、不是 App 功能：App 仍無帳號、無雲端、無 runtime AI（原則 1、7 不變）；用 Cross 自存的備份做分析，Cross 2026-10-03 選 A 時同意。**D27 起暫停**（Cross 放棄備份）；Cross 說「恢復週報」才重開排程 |
 | D26 | 改版順序 | Cross 2026-10-04 選 B：亮色外觀、三環、早安打卡一起先上（第一版就接近 mockup）；Milestone 改為 V1–V5（§8）；設計以 `docs/vnext-mockup/` 為準，與 §2 衝突時 §2 優先 |
+| D27 | 放棄備份 | Cross 2026-10-06：「把首頁備份檔的部分 我放棄備份」。今日頁移除 7 天備份提醒卡與新網址匯入卡；舊網址搬家卡只留打開新網址＋加入主畫面；設定頁保留下載／匯入（不提醒）；D25 週報暫停。風險：紀錄只在這支手機的這個主畫面 App 裡，換手機、刪掉圖示或清除 Safari 網站資料就會遺失 |
 
 ## 4. 目標架構
 ```
@@ -145,7 +146,7 @@ M1 一次把 v3 欄位建好（空值），避免 M2 再升 v4。
 設計目標畫面：`docs/vnext-mockup/`（Cross 2026-10-02 看過的 v-next mockup）；與 §2 衝突時 §2 優先（例：系統字型取代 Google Fonts）。
 - 預設亮色；暗色依系統。背景 `#FAFAF7`，卡片白底圓角 20px，柔和陰影。
 - 主要按鈕用深墨 `#1B1D1A`＋白字；支柱色只用在環、圖表、色塊；支柱色文字用加深版（動 `#B8401F`、眠 `#5446D6`、探 `#00795B`）以符合 WCAG AA。
-- **今日**：三環＋中央等級（未解鎖支柱顯示虛線環＋解鎖進度）；身分宣言；本週目標卡；一顆「下一步」主按鈕；教練一句；AFT 差距卡；條件卡（D6 降量、備份提醒）。
+- **今日**：三環＋中央等級（未解鎖支柱顯示虛線環＋解鎖進度）；身分宣言；本週目標卡；一顆「下一步」主按鈕；教練一句；AFT 差距卡；條件卡（D6 降量）。
 - **早安打卡**：1 次點擊完成眠；10 秒內可復原。
 - **目標**：週回顧（戰績、時間預算、選下週目標）、季度目標、探索清單。
 - **動態**：環形填充 600ms ease-out、XP 數字滾動、升級全螢幕卡、Perfect Day 彩帶（Canvas，≤1.5 秒）；`prefers-reduced-motion` 改淡入。
