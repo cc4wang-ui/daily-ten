@@ -9,7 +9,7 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 ## 📍 當前階段
 
 - Repo：[cc4wang-ui/daily-ten](https://github.com/cc4wang-ui/daily-ten)；App 正式網址 `https://daily-ten-app.vercel.app/`（D24，Vercel）；舊網址 `https://cc4wang-ui.github.io/daily-ten/` 只剩搬家卡。
-- PR #7（指示檔＋網址）、PR #8（**M1 地基**）、PR #9（U2 紀錄）、PR #10（**D23 自動更新**，SW v7）、PR #11（**D24 搬到 Vercel**，SW v8）、PR #12（**V1 亮色＋三環＋早安打卡**，SW v9）已 merge。Cross 放棄搬舊資料，新網址從頭開始。V1 內容：亮色外觀、分頁今日／訓練／統計＋右上設定、三環＋中央「Lv N」、「下一步」、早安打卡（D17、D18、10 秒復原）、engine 第一刀（`data/game.json`、04:00 遊戲日、XP 由紀錄推導、P1→P2 條件與探索閘門）。
+- PR #7（指示檔＋網址）、PR #8（**M1 地基**）、PR #9（U2 紀錄）、PR #10（**D23 自動更新**，SW v7）、PR #11（**D24 搬到 Vercel**，SW v8）、PR #12（**V1 亮色＋三環＋早安打卡**，SW v9）、PR #13（**D27 放棄備份**：今日頁不再有備份提醒與匯入卡，SW v10）已 merge。Cross 放棄搬舊資料，新網址從頭開始。V1 內容：亮色外觀、分頁今日／訓練／統計＋右上設定、三環＋中央「Lv N」、「下一步」、早安打卡（D17、D18、10 秒復原）、engine 第一刀（`data/game.json`、04:00 遊戲日、XP 由紀錄推導、P1→P2 條件與探索閘門）。
 - 未驗證：iPhone 真機（V1 亮色與狀態列、早安打卡與復原、iOS 時間選擇器、飛航模式冷啟動、TTS＋示範、自動更新）。PR #12 描述有逐條清單。
 - 流程：低輸入模式（D22）——Cross 說「繼續」即可；QA PASS＋CI 綠燈由 Orchestrator 直接 merge。每週迴圈見 `docs/ITERATION.md`。
 

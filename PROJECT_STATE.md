@@ -17,7 +17,7 @@
 
 ## Verified facts
 
-- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`（V1 亮色；訓練計時與完成畫面維持暗色）；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、三環、早安打卡、計時引擎、課表）、`js/game/*.js`＋`js/habits/*.js`（遊戲引擎，純函式）、`js/state/*.js`（資料層）；規則數值在 `data/game.json`。分頁：今日／訓練／統計，設定在今日右上齒輪。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v9（V1），預快取全部 App 檔含 `data/game.json`（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
+- **現行產物**：無框架、無 build 的 PWA。`index.html` 只剩 markup；樣式在 `css/tokens.css`＋`css/app.css`（V1 亮色；訓練計時與完成畫面維持暗色）；程式是原生 ES modules：`js/app.js`（開機）、`js/ui/*.js`（各畫面、三環、早安打卡、計時引擎、課表）、`js/game/*.js`＋`js/habits/*.js`（遊戲引擎，純函式）、`js/state/*.js`（資料層）；規則數值在 `data/game.json`。分頁：今日／訓練／統計，設定在今日右上齒輪。`demos.js` 是 App 與展示頁共用的示範動畫（classic script）；`mockup.html` 是靜態展示，不讀取使用者紀錄。`sw.js` 快取 v10（D27），預快取全部 App 檔含 `data/game.json`（CI 檢查清單完整）。repo 有 Playwright 測試與 GitHub Actions CI（M1 起）。
 - **動作示範**：53 個線條動畫，涵蓋所有課表步驟（L1–L5 × 有帶／無帶 × 三組伸展 × 三種區塊 × 加練／恢復／保底／雨天）。步驟名稱以 `DT_DEMOS.keyFor()` 的關鍵字表對應，順序敏感（例：「深蹲蹲坐」「靠牆深蹲」要排在「深蹲」前）。計次動作的動畫週期 = tempo 秒；休息／準備／換組播下一個動作。SETUP 保留 YouTube 搜尋連結當「真人」補充。
 - **狀態**：`daily-ten-state` 存在裝置 localStorage；若環境提供 `window.storage`，程式也嘗試讀寫（D14，M3 評估移除）。M1 起為 **state v3**：保留 v2 全部欄位（level、XP、streak、sessions、六種 PR、七種 body、profile、設定），新增 `habits.sleep/explore`（預設探索項目 DJ）、`goals`（身分宣言）、`phase`（P1）、`game`、`meta.lastBackupAt` 與就寢／起床設定，數值留給 M2a。v1／v2 載入時遷移，冪等；`game` 物件存在即視為已遷移（D12）。M1 期間 legacy `xp`、`streak` 仍是真實來源，每次存檔**複製**到 `game`（不累加）。讀不出來或格式異常 → 原始字串另存 `daily-ten-state.bak-v{N}`、首頁錯誤卡可下載，不白屏。備份：「下載備份」存成 `.json`（iPhone 走分享選單），只在設定頁、不提醒（D27，Cross 放棄備份；原本的 7 天首頁提醒卡已移除）；匯入：驗證 → 差異預覽 → 兩次確認，壞檔不動現有資料，覆蓋前另存 `daily-ten-state.pre-import`。
 - **遊戲規則（V1）**：XP 一律由紀錄推導（`sessions`＋`habits.sleep.log`，依 `data/game.json`），每次重算、不寫入 state。畫面顯示的 XP、等級、連續天數都是推導值；state 裡的 legacy `xp`／`streak` 仍照舊表累加，並複製到 `game`（D12，給舊版 App），**和畫面數字不同**（fixture 例：legacy 406、推導 1760），分析備份時要用推導值。遊戲日 04:00 換日，新的訓練紀錄也用遊戲日。早安打卡 04:00–12:00、一個遊戲日一筆；每筆存打卡當下的目標 `target`（之後改設定不重算）、改過起床時間另存 `wakeEdited`；加一輪記 `sessions[].plus: true`。`phase.startedAt` 缺少時載入補上（下次存檔才寫入）。這些都是選填欄位，state 仍是 v3。8 條規則的拍板與理由在 `data/game.json` 的 `_notes.decisions`。
@@ -56,6 +56,7 @@
 | 2026-10-03 | **D23 自動更新**：開啟／回前景檢查新版、閒置才重新載入（訓練、匯入預覽、輸入中不打斷）、舊頁面由 SW 導向、SETUP 顯示 App 版本；D22 低輸入模式與 `docs/ITERATION.md`；`check-repo` 改為比對 main 的 CACHE；SW v7。 | PR #10；`reports/qa-d23-1.md` PASS |
 | 2026-10-03 | **D24 搬到 Vercel**：正式網址 `daily-ten-app.vercel.app`（轉送 GitHub Pages）、舊網址搬家卡、新網址匯入卡、`check-repo` 的新網址與 `.vercelignore` 規則；D25 週報排程；SW v8。 | PR #11；`reports/qa-d24-1.md` PASS |
 | 2026-10-05 | **V1 亮色＋三環＋早安打卡**（D26）：亮色外觀、分頁今日／訓練／統計＋右上設定、三環＋中央「Lv N」、「下一步」主按鈕、早安打卡（D17、D18 漸進、10 秒復原、可改熄燈／往前改起床）、AFT 自選目標差距卡；engine 第一刀（`data/game.json`、04:00 遊戲日、XP 由紀錄推導、等級、P1→P2 條件與探索閘門）；舊功能全部搬進新分頁；畫面層等價比對退役（保留訓練畫面家族與課表規則）；SW v9。 | PR #12；`reports/qa-v1-1.md`、`reports/qa-v1-2.md` |
+| 2026-10-06 | **D27 放棄備份**（Cross：「把首頁備份檔的部分 我放棄備份」）：今日頁拿掉 7 天備份提醒卡與新網址匯入卡；舊網址搬家卡改 2 步（打開新網址、加入主畫面），不提備份；設定頁保留下載／匯入；週報排程暫停；SW v10。 | PR #13；`reports/qa-d27-1.md` PASS |
 
 ## Lessons learned / pitfalls
 
