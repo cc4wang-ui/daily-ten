@@ -56,7 +56,12 @@ const COPY_SPEC = {
     durationFull: 1, durationNear: 1, durationBase: 1, duration: 1
   },
   unlock: { title: 1, progress: 1, short: 1, readyTitle: 1, ready: 1, readyShort: 1 },
-  aft: { title: 1, subtitle: 1, reps: 1, gapReps: 1, gapSec: 1, gapClock: 1, met: 1, none: 1 }
+  aft: { title: 1, subtitle: 1, reps: 1, gapReps: 1, gapSec: 1, gapClock: 1, met: 1, none: 1 },
+  pillarNames: { move: 1, sleep: 1, explore: 1 },
+  perfectDay: { title: 1, done: 1, todo: 1 },
+  freeze: { label: 1, used: 1 },
+  deload: { short: 1, late: 1, restore: 1, restored: 1, hm: 1, m: 1 },
+  returnQuest: { return: 1, badge: 1, open: 1, last: 1, boost: 1 }
 };
 const copyOk = (spec, c) => isObj(c) && Object.keys(spec).every((k) => (spec[k] === 1 ? isText(c[k]) : copyOk(spec[k], c[k])));
 
@@ -98,6 +103,18 @@ function validAft(a) {
     && typeof it.target === 'number' && Number.isFinite(it.target) && it.target > 0);
 }
 
+/* V2a：Perfect Day、Freeze、D6 降量、D19 回歸任務、週的第一天 */
+function validV2a(r) {
+  if (!isObj(r.perfectDay) || !isInt(r.perfectDay.xp, 0, 1000)) return false;
+  if (!isObj(r.freeze) || !isInt(r.freeze.earnEvery, 1, 366) || !isInt(r.freeze.max, 0, 100)) return false;
+  const d = r.deload;
+  if (!isObj(d) || !isInt(d.shortSleepMin, 0, 1440) || !isInt(d.lateLightsOutMin, 0, 1440) || !isInt(d.step, 0, 10) || !isInt(d.minLevel, 1, 100)) return false;
+  const q = r.returnQuest;
+  if (!isObj(q) || !isInt(q.breakDays, 1, 366) || !isInt(q.windowDays, 1, 366) || !isInt(q.boostMinPillars, 1, PILLARS.length)) return false;
+  if (typeof q.multiplier !== 'number' || !Number.isFinite(q.multiplier) || q.multiplier < 1 || q.multiplier > 10) return false;
+  return isObj(r.week) && isInt(r.week.startsOn, 0, 6);
+}
+
 function valid(r) {
   if (!isObj(r) || !isInt(r.version, 1)) return false;
   if (!isObj(r.day) || !isInt(r.day.rolloverHour, 0, 23)) return false;
@@ -111,6 +128,7 @@ function valid(r) {
   if (!isObj(u) || u.kind !== 'wakeInWindowDays' || !isInt(u.windowDays, 1, 366) || !isInt(u.minDays, 1, u.windowDays)) return false;
   if (!isObj(r.explore) || typeof r.explore.open !== 'boolean') return false;
   if (!validAft(r.aft)) return false;
+  if (!validV2a(r)) return false;
   return copyOk(COPY_SPEC, r.copy);
 }
 
