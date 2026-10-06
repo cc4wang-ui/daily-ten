@@ -4,7 +4,8 @@
 import { test, expect } from '@playwright/test';
 import { parseRules, asRules } from '../js/game/rules.js';
 import { todaySummary } from '../js/game/engine.js';
-import { deloadFor, deloadRestoredDates, courseLevel } from '../js/habits/deload.js';
+import { deloadFor, courseLevel } from '../js/habits/deload.js';
+import { isDeloadRestored } from '../js/state/schema.js';
 import { freezeStreak, returnQuest, dayFacts, perfectDays, weekStartNum } from '../js/game/timeline.js';
 import { dayNumber } from '../js/game/day.js';
 import { readRulesRaw, loadFixture, ALL_FIXTURES, useTZ, variant, makeState, night, session, plusDays, deepFreeze, rng } from './game.helpers.js';
@@ -285,17 +286,18 @@ test.describe('D6 降量（d11）：睡眠 < 6 小時，或熄燈晚於時段 �
     });
   });
 
-  test('恢復只對當天有效：game.deload.restoredOn＝今天 → 不降、顯示「已恢復」；是昨天 → 照樣降', () => {
+  test('恢復只對當天有效（data-guardian 的 game.deload.restoredOn，經 isDeloadRestored 讀）：＝今天 → 不降、顯示「已恢復」；是昨天 → 照樣降', () => {
     const n = night(D, '01:01', '07:00', LATE_OK);
     expect(dl(n, { game: { deload: { restoredOn: D } } })).toMatchObject({
       active: false, restored: true, triggered: true, planLevel: 2, label: '已恢復 L2，照原本的強度練', restoreLabel: null
     });
     expect(dl(n, { game: { deload: { restoredOn: '2026-10-05' } } })).toMatchObject({ active: true, restored: false, planLevel: 1 });
-    expect(dl(n, { game: { deload: { restoredOn: ['2026-10-01', D] } } })).toMatchObject({ restored: true, active: false });
-    for (const restoredOn of [5, {}, 'today', null, ['x'], '2026-02-30']) {
+    /* 形狀不對（陣列、數字、物件、壞日期…）一律當作沒按恢復 → 照樣降（和 data-guardian 的載入修補一致） */
+    for (const restoredOn of [[D], ['2026-10-01', D], 5, {}, 'today', null, ['x'], '2026-02-30']) {
       expect(dl(n, { game: { deload: { restoredOn } } })).toMatchObject({ restored: false, active: true });
     }
     expect(dl(n, { game: { deload: 'x' } })).toMatchObject({ restored: false, active: true });
+    expect(dl(n, { game: { deload: null } })).toMatchObject({ restored: false, active: true });
   });
 
   test('今天已經練完 → 不顯示降量卡；只看今天的打卡（昨天睡很少、今天沒打卡 → 不降）', () => {
@@ -325,8 +327,9 @@ test.describe('D6 降量（d11）：睡眠 < 6 小時，或熄燈晚於時段 �
     }
     expect(deloadFor({ level: 3 }, D, { score: score(45) }, false, null)).toMatchObject({ active: false, fromLevel: null, date: D });
     expect(deloadFor(null, 'bad', null, false, R)).toMatchObject({ active: false, date: null, fromLevel: null });
-    expect(deloadRestoredDates({ game: { deload: { restoredOn: D } } })).toEqual([D]);
-    expect(deloadRestoredDates(null)).toEqual([]);
+    expect(isDeloadRestored({ game: { deload: { restoredOn: D } } }, D)).toBe(true);
+    expect(isDeloadRestored({ game: { deload: { restoredOn: D } } }, '2026-10-05')).toBe(false);
+    expect(isDeloadRestored(null, D)).toBe(false);
   });
 });
 
@@ -491,7 +494,8 @@ test.describe('壞資料、不改動 state、決定性、只加不減', () => {
   });
 
   test('所有 fixture（含被舊版改回 v2、型別錯、超大值）都不丟例外', () => {
-    for (const name of [...ALL_FIXTURES, 'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json']) {
+    for (const name of [...ALL_FIXTURES, 'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json',
+      'v3-v2a.json', 'v3-v2a-reverted-to-v2.json', 'v3-v2a-bad-fields.json']) {
       for (const iso of [NOW, at('2026-10-03', '08:00'), at('2026-12-31', '23:00')]) saneV2a(sum(loadFixture(name), iso));
     }
   });
@@ -525,6 +529,24 @@ test.describe('壞資料、不改動 state、決定性、只加不減', () => {
       const iso = pick([NOW, at('2026-10-05', '03:59'), at('2026-10-05', '08:00'), at('2026-10-06', '08:00'), at('2026-10-02', '12:00')]);
       saneV2a(sum(st, iso));
     }
+  });
+
+  test('data-guardian 的 v3-v2a fixture（10/05：熄燈 01:45、起床 06:41、當天按了恢復、晚上主課表）', () => {
+    const s = sum(loadFixture('v3-v2a.json'), at('2026-10-05', '21:00'));
+    /* V1 engine 2115 XP＋Perfect Day ×3（10/02、10/03、10/05）＝2205；沒有回歸加成 → 仍是 Lv 7，當天不升級（Lv 8 要 2450） */
+    expect(s.xp).toEqual({ move: 1920, sleep: 195, explore: 0, bonus: 90, total: 2205, today: 115 });
+    expect(s.level).toMatchObject({ lv: 7, xpInto: 255, xpNeed: 500 });
+    expect(s.xp.total).toBeLessThan(2450);
+    expect(s.perfectDay).toMatchObject({ done: true, count: 3 });
+    expect(s.deload).toMatchObject({ triggered: true, reason: 'short', reasons: ['short', 'late'], sleepMin: 296, lateMin: 105, restored: true, active: false, label: null, planLevel: 3 });
+    expect(s.returnQuest).toMatchObject({ stage: 'none', boosts: 0 });
+    expect(s.streak).toMatchObject({ days: 22, frozenDays: 2 }); // 10/04 只有打卡、沒練 → Freeze 接上
+    /* 被舊版 App 改回 v2、又補記一筆保底版（10/06）：XP 只多保底版 30，紀錄推導不受舊欄位影響 */
+    const r = sum(loadFixture('v3-v2a-reverted-to-v2.json'), at('2026-10-06'));
+    expect(r.xp).toMatchObject({ move: 1950, bonus: 90, total: 2235 });
+    expect(r.level.lv).toBe(7);
+    /* game.deload 形狀不對（字串）→ 當作沒按恢復 */
+    expect(sum(loadFixture('v3-v2a-bad-fields.json'), at('2026-10-05')).deload).toMatchObject({ restored: false, triggered: true });
   });
 
   test('凍結的 state 也能算、結果相同（證明不改動 state）；同樣輸入同樣輸出', () => {

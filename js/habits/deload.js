@@ -5,10 +5,11 @@
      - late ：熄燈晚於時段（就寢目標＋windowMin）≥ lateLightsOutMin 分（89 不降、90 降）
      兩個都符合時 reason 取 short（reasons 兩個都列）。沒打卡就不降。
    降量：今天的課表預設降 step 級，最低 minLevel；本來就在最低級時不降（active false，triggered 仍為 true）。
-   恢復：Cross 按「恢復 L{n}」→ data-guardian 寫入（setDeloadRestored(date)），只對那一天有效；這裡只讀。
+   恢復：Cross 按「恢復 L{n}」→ data-guardian 寫入 game.deload.restoredOn（js/state/game.js 的 setDeloadRestored(date)），
+         只對那一天有效；這裡只讀，而且只經過 data-guardian 的純函式 isDeloadRestored（js/state/schema.js，不丟例外、
+         不改動 state；不 import store.js，engine 仍可在 Node 單元測試）。
 
    對外：
-     deloadRestoredDates(state) → ['YYYY-MM-DD', ...]（唯一讀取 data-guardian 欄位的地方；整合時只改這個函式）
      courseLevel(state, rules)  → 課表強度（state.level，整數 ≥ minLevel）| null
      deloadFor(state, date, sleepDay, moveDone, rules) → {
        active,          // 今天的課表預設降一級（觸發、還能降、沒按恢復、今天還沒練）
@@ -24,18 +25,9 @@
      } */
 import { asRules, fill } from '../game/rules.js';
 import { isValidDateStr } from '../game/day.js';
+import { isDeloadRestored } from '../state/schema.js';
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
-
-/* data-guardian 的「今天按了恢復」欄位。契約名稱：setDeloadRestored(date)／clearDeloadRestored(date)。
-   預期形狀 game.deload.restoredOn：'YYYY-MM-DD'（只記最後一次）或日期陣列；其他形狀一律當作沒有。 */
-export function deloadRestoredDates(state) {
-  const game = isObj(state) ? state.game : null;
-  const d = isObj(game) ? game.deload : null;
-  const v = isObj(d) ? d.restoredOn : null;
-  if (isValidDateStr(v)) return [v];
-  return Array.isArray(v) ? v.filter(isValidDateStr) : [];
-}
 
 export function courseLevel(state, rules) {
   const R = asRules(rules);
@@ -62,7 +54,7 @@ export function deloadFor(state, date, sleepDay, moveDone, rules) {
   const C = R.copy.deload;
   const fromLevel = courseLevel(state, R);
   const toLevel = fromLevel === null ? null : Math.max(D.minLevel, fromLevel - D.step);
-  const restored = isValidDateStr(date) && deloadRestoredDates(state).includes(date);
+  const restored = isDeloadRestored(state, date);
   const base = { ...none, fromLevel, toLevel, planLevel: fromLevel, restored };
 
   const score = isObj(sleepDay) && isObj(sleepDay.score) ? sleepDay.score : null;
