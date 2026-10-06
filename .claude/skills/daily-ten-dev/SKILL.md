@@ -32,7 +32,8 @@ Subagents 不能再派 subagent，所有派工都由主 session 發出。
 |---|---|---|---|
 | M1 | data-guardian（v3 schema、遷移、備份/匯入）＋ ui-engineer（ES module 拆分、tokens，行為零變更）＋ jev-compiler（用語表檢查腳本） | Orchestrator：指示檔、網址、`package.json`、CI、`sw.js` | qa-checker |
 | V1 | game-designer（engine 第一刀、`data/game.json`）＋ data-guardian（habits 寫入 API、匯入驗證）＋ ui-engineer（亮色外殼、分頁重組、三環與打卡版面） | ui-engineer（三環、早安打卡接 engine） | qa-checker |
-| V2 | game-designer（freeze、Perfect Day、D6、D19、目標、sim）＋ data-guardian（D12 反向雙寫、欄位補強） | ui-engineer（目標分頁、慶祝、升級卡、D6／回歸卡、`.ics`） | qa-checker |
+| V2a（D28） | game-designer（Perfect Day、Freeze、D6、D19、升級判斷、90 天 sim）＋ data-guardian（慶祝／升級「看過」與降量恢復的欄位、遷移、fixture） | ui-engineer（慶祝、升級卡、Freeze、D6 降量卡、回歸卡接 engine） | qa-checker |
+| V2b（D28） | game-designer（每週／季度目標、`data/goals.json`、sim 重跑）＋ data-guardian（goals 欄位寫入 API、驗證） | ui-engineer（目標分頁、週回顧、階段卡、`.ics`） | qa-checker |
 | V3 | game-designer（成就條件資料化）＋ ui-engineer（SVG 圖表元件） | ui-engineer（統計、成就分頁） | qa-checker |
 | V4 | game-designer（explore、學習專案升級、時間預算）＋ data-guardian（探索分鐘數欄位） | ui-engineer（探索打卡、探索清單） | qa-checker |
 | V5 | jev-compiler（coach-table、文案合規）＋ ui-engineer（暗色、訓練畫面新風格、字型定案） | ui-engineer 接入 coach-table | qa-checker |
