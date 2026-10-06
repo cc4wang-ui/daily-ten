@@ -9,7 +9,7 @@
 Vercel 帳號的 GitHub 連線綁在另一個 GitHub 帳號，看不到 cc4wang-ui 的 repo（2026-10-03 試過 GitHub App 授權、公開 repo 部署都失敗）。Cross 決定「直接新建一個」：Vercel 專案不連 GitHub，只部署一個設定檔 `tools/deploy/vercel-proxy.json`，把所有路徑轉送到 GitHub Pages。
 
 - 好處：正式網址是獨立的 Vercel 網域（資料不和其他 github.io 專案共用儲存）；更新零手動；之後若 Vercel 能連上 repo，可改成直接部署（根目錄 `vercel.json`、`.vercelignore` 已備好），網址不變、不用再搬一次資料。
-- 同一份程式在兩個網址行為不同，靠 `js/ui/relocate.js` 判斷網址：舊網址顯示搬家卡、新網址（資料全新時）顯示匯入卡。
+- 同一份程式在兩個網址行為不同，靠 `js/ui/relocate.js` 判斷網址：舊網址顯示搬家卡（D27 起只引導打開新網址、加入主畫面）；新網址不顯示任何搬家相關的卡。
 - Vercel 不快取轉送內容（`enableExternalRewriteCaching: false`）；正式網址公開，只有預覽網址需要 Vercel 登入（`ssoProtection: preview`）。
 
 ## 只有改轉送設定時才要重新部署

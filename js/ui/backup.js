@@ -1,11 +1,11 @@
-/* Daily Ten — 資料保護 UI（M1）：載入錯誤卡、HOME 備份提醒卡、SETUP 備份狀態與下載、
+/* Daily Ten — 資料保護 UI（M1）：載入錯誤卡、SETUP 備份狀態與下載、
    匯入流程（選檔或貼上 → 驗證 → 差異預覽 → 二次確認 → 覆蓋）。
+   D27（Cross 2026-10-06 放棄備份）：拿掉 HOME 的 7 天備份提醒卡；SETUP 資料備份卡與載入錯誤卡照舊。
    資料邏輯全部在 js/state/backup.js（data-guardian）；這裡只管畫面與接線，不直接碰 localStorage。 */
 import { getState } from '../state/store.js';
-import { downloadBackup, downloadRawBackup, needsBackupReminder, parseImport, applyImport, localDateStr } from '../state/backup.js';
+import { downloadBackup, downloadRawBackup, parseImport, applyImport, localDateStr } from '../state/backup.js';
 import { $ } from './dom.js';
 
-const DAY_MS = 86400000;
 const ARM_MS = 10000; // 第一次按「確認匯入」後，10 秒內再按才真的覆蓋
 const GUARD_MS = 1000; // 進入待確認後 1 秒內的點擊一律忽略：雙擊或連續兩次 tap 不會直接覆蓋
 const CONFIRM_TEXT = '確認匯入（覆蓋目前資料）';
@@ -26,9 +26,8 @@ function textEl(tag, text) {
   el.textContent = text;
   return el;
 }
-/* 下載期間停用按鈕，避免連點叫出兩次分享面板；成功時 backup.js 已寫入 meta.lastBackupAt。
-   D24 舊網址的搬家卡（js/ui/relocate.js）也用這個 */
-export async function runBackup(btn) {
+/* 下載期間停用按鈕，避免連點叫出兩次分享面板；成功時 backup.js 已寫入 meta.lastBackupAt */
+async function runBackup(btn) {
   btn.disabled = true;
   try { return await downloadBackup(); } finally { btn.disabled = false; }
 }
@@ -46,25 +45,6 @@ export function showLoadError(error) {
   };
   $('err-dismiss').onclick = () => { $('err-card').className = 'banner'; };
   $('err-card').className = 'banner danger';
-}
-
-/* ---------- HOME 備份提醒卡：每次 renderHome 重新判斷 ---------- */
-export function renderBackupReminder() {
-  const card = $('bk-reminder');
-  const state = getState();
-  const now = new Date();
-  if (!needsBackupReminder(state, now)) { card.className = 'banner'; return; }
-  const t = lastBackupTime(state);
-  $('bk-reminder-text').textContent = t === null
-    ? '還沒有下載過備份。資料只存在這台裝置，建議現在下載一份。'
-    : `已經 ${Math.floor((now.getTime() - t) / DAY_MS)} 天沒有下載備份，建議現在下載一份。`;
-  $('bk-reminder-msg').textContent = '';
-  $('bk-reminder-btn').onclick = async () => {
-    const r = await runBackup($('bk-reminder-btn'));
-    if (r.ok) { card.className = 'banner'; renderBackupStatus(); }
-    else if (r.reason !== 'cancelled') $('bk-reminder-msg').textContent = r.message;
-  };
-  card.className = 'banner warn';
 }
 
 /* ---------- SETUP 資料備份卡 ---------- */

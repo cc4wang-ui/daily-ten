@@ -1,5 +1,4 @@
 /* Daily Ten — 導覽：goTo(id) 同步切畫面並重畫該畫面（不 await、不動態 import）。
-   iOS 只在使用者手勢的同一個同步流程裡允許程式打開檔案選擇：搬家卡的「選擇備份檔」（relocate.js）靠這點。
    各畫面的 render 由 js/app.js 開機時用 onScreen() 登記；本檔只依賴 dom.js，避免循環 import。
    訓練進行中（守門函式回 true）一律不切畫面，回 false。 */
 import { showScreen } from './dom.js';

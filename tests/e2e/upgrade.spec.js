@@ -9,7 +9,8 @@
       所以新版會顯示「已更新到最新版（vN）」；舊版本來就有版本行與提示列。判斷「重開先看到舊版」改比對文件裡的 id 清單。
    3. D12 實機重播（維持原意）：新版存成 v3 → 真的舊版程式記一次訓練、寫回 version 2 → 新版再開 XP 不重複計算。
    導向所需時間印在 log（[qa] …）並記在測試 annotation，報告引用。
-   V1：舊版頁面用 M1 的判斷（waitReadyM1：營養目標畫好；expectHomeM1：四個數字都在 HOME），新版用 V1 的（html[data-ready]、expectHome）。 */
+   V1：舊版頁面用 M1 的判斷（waitReadyM1：營養目標畫好；expectHomeM1：四個數字都在 HOME），新版用 V1 的（html[data-ready]、expectHome）。
+   D27 起 origin/main 本身就是 V1（v9：有三環 js/ui/rings.js、html[data-ready]，今日的數字是 engine 推導值）→ 舊版是 V1 以後時，舊版頁面也用 V1 的判斷。 */
 import {
   test, expect, readFixture, installClock, seedOnce, seedState, waitReady, waitReadyM1, expectHome, expectHomeM1, storedState, storageSnapshot,
   triggerSave, runWorkoutToEnd, gotoTab, openApp, contextOptions, watchContext, assertWatchClean, rawMain,
@@ -35,18 +36,22 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   test.setTimeout(150_000);
   /* 舊版有沒有 D23 自動更新（頁面端）：有 → 回 ACK、閒置自己重新載入、新版顯示「已更新」提示 */
   const oldHasUpdater = existsSync(join(baseDir, 'js/ui/update.js'));
+  /* 舊版是 V1 以後（有 js/ui/rings.js）→ 等 html[data-ready]、今日數字用 engine 推導值（expectHome）；V1 以前 → M1 的判斷 */
+  const oldIsV1 = existsSync(join(baseDir, 'js/ui/rings.js'));
+  const waitOld = oldIsV1 ? waitReady : waitReadyM1;
+  const expectOldHome = oldIsV1 ? expectHome : expectHomeM1;
   const navs = countNavigations(page);
   deploy.setRoot(baseDir);
   await installClock(page);
   await seedOnce(page, seedState(readFixture('v2-real.json')));
   await page.goto(deploy.url());
-  await waitReadyM1(page);
+  await waitOld(page);
   /* 舊版：v5／v6 沒有版本行與「已更新」提示（v5 也沒有「下載備份」）；v7 起兩者都有 */
   await expect(page.locator('#app-version')).toHaveCount(oldHasUpdater ? 1 : 0);
   await expect(page.locator('#upd-note')).toHaveCount(oldHasUpdater ? 1 : 0);
   await expect(page.locator('#bk-download')).toHaveCount(oldHasBackup ? 1 : 0);
   const oldIds = await idFingerprint(page);
-  await expectHomeM1(page, { level: 3, xp: 361, current: 9, best: 11 });
+  await expectOldHome(page, { level: 3, xp: 361, current: 9, best: 11 });
   await waitControlled(page, oldCache);
 
   /* 舊版記一次保底版 */
@@ -61,7 +66,7 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   /* 部署目前版本 → 重開一次：cache-first 先給快取裡的舊版 */
   deploy.setRoot(REPO_DIR);
   await page.reload();
-  await waitReadyM1(page);
+  await waitOld(page);
   const t0 = Date.now();
   const token = await markDocument(page);
   expect(await idFingerprint(page), '重開：先看到快取裡的舊版').toBe(oldIds);
@@ -90,7 +95,9 @@ async function oldPageIsReplaced({ page, context, deploy }, testInfo, baseDir, {
   }
   expect(await cacheNames(page)).toEqual([CUR]);
   await expectHome(page, { level: 3, xp: 364, current: 1, best: 11 });
-  await expect(page.locator('#bk-reminder')).toBeVisible(); // 有紀錄、從未備份
+  /* D27：新版今日沒有備份提醒卡與新網址匯入卡（舊版 v9 有紀錄、從未備份時會顯示提醒卡）；設定的「下載備份」照舊（上面 #bk-download 數量 1） */
+  await expect(page.locator('#bk-reminder')).toHaveCount(0);
+  await expect(page.locator('#mv-import')).toHaveCount(0);
   expect(await storageSnapshot(page), '自動導向不改 localStorage').toEqual(before);
   await gotoTab(page, 's-setup');
   await expect(page.locator('#app-version')).toHaveText(`App 版本 v${CUR_N}`);
