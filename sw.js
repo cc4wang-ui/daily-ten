@@ -16,6 +16,7 @@ const ASSETS = [
   './js/ui/backup.js',
   './js/ui/body.js',
   './js/ui/boss.js',
+  './js/ui/celebrate.js',
   './js/ui/checkin.js',
   './js/ui/content.js',
   './js/ui/dates.js',
