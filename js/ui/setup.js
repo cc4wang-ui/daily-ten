@@ -8,7 +8,7 @@ import { hasBand } from './program.js';
 import { renderHome } from './home.js';
 import { renderStats } from './stats.js';
 import { wireBackupCard } from './backup.js';
-import { ensurePhaseStarted } from './game.js';
+import { ensurePhaseStarted, ensureSeen } from './game.js';
 
 const DEFAULT_TIME = { bedtime: '23:00', wakeTime: '07:00' };
 const timeOf = (key) => {
@@ -60,7 +60,7 @@ export function renderSetup(){
   $('cfg-sleep-msg').textContent='';
   renderSleepNote();
   $('exp-btn').onclick=()=>{$('exp-area').value=JSON.stringify(getState());$('io-msg').textContent='已匯出 — 全選複製保存。';};
-  /* 下載備份、選檔／貼上匯入（驗證 → 差異預覽 → 二次確認）；匯入成功後補階段起點（舊備份沒有 phase.startedAt），
-     再重繪今日（含訓練分頁）、統計、設定 */
-  wireBackupCard(()=>{ensurePhaseStarted(new Date());renderHome();renderStats();renderSetup();});
+  /* 下載備份、選檔／貼上匯入（驗證 → 差異預覽 → 二次確認）；匯入成功後補階段起點（舊備份沒有 phase.startedAt）、
+     V2a 的「看過」起點（舊備份沒有 game.seen：不補播匯入資料裡的升級卡與慶祝；只改記憶體），再重繪今日（含訓練分頁）、統計、設定 */
+  wireBackupCard(()=>{ensurePhaseStarted(new Date());ensureSeen();renderHome();renderStats();renderSetup();});
 }

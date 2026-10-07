@@ -1,7 +1,8 @@
-/* Daily Ten — 課表：劑量、各序列建構、一週排程、時長估算、今日計畫。M1 自 index.html 原樣搬出。 */
+/* Daily Ten — 課表：劑量、各序列建構、一週排程、時長估算、今日計畫。M1 自 index.html 原樣搬出。
+   V2a（D6）：今日計畫的強度＝planLevel()（降量中是降一級後的強度，否則 state.level）；plan.lv 記下算時用的強度。 */
 import { getState } from '../state/store.js';
 import { bossItem } from './session.js';
-import { todayWeekday } from './game.js';
+import { todayWeekday, planLevel } from './game.js';
 
 /* 有彈力帶時走加載版課表；出差沒帶就關掉，自動退回徒手版 */
 export function hasBand(){return getState().settings.band!==false;}
@@ -232,9 +233,10 @@ export function estMin(seq){
   const sec=addTransitions(seq).reduce((a,x)=>a+(x.mode==='time'?x.secs:x.reps*x.tempo)+0.6,0);
   return Math.round(sec/60);
 }
-/* 今日計畫：星期取遊戲日（04:00 前仍是前一天的課表） */
-export function todayPlan(){
-  const p=WEEK[todayWeekday()], lv=getState().level, plan=Object.assign({},p);
+/* 今日計畫：星期取遊戲日（04:00 前仍是前一天的課表）；lv＝今天的強度（預設 planLevel()：D6 降量中降一級） */
+export function todayPlan(lv=planLevel()){
+  const p=WEEK[todayWeekday()], plan=Object.assign({},p);
+  plan.lv=lv;
   if(p.type==='boss'){
     plan.min=estMin(fullSeq(lv,p.mob)); // 僅暖身；測驗長度依項目而異，跑步另計
     plan.label='BOSS DAY · 十動作暖身（約 '+plan.min+' min）＋測驗另計';

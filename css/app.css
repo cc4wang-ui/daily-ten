@@ -44,6 +44,7 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #done.active{display:flex}
 #d-identity{font-size:22px;font-weight:800;line-height:1.5;margin:18px 0 8px}
 #d-xp{font-family:var(--mono);color:var(--amber);font-size:16px;margin-bottom:28px}
+#d-bonus{font-size:13px;color:var(--ink-dim);margin:-20px 0 28px} /* V2a：含 Perfect Day／回歸加成時才出現；#d-xp 不變 */
 .dm-fig{fill:none;stroke:var(--ink);stroke-width:4px;stroke-linecap:round;stroke-linejoin:round}
 .dm-fig *{vector-effect:non-scaling-stroke}
 .dm-head{fill:var(--ink);stroke:none}
@@ -159,6 +160,28 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
   background:var(--move-soft);color:var(--move-ink);font-size:14px;font-weight:700;text-align:left}
 .levelup .ic{flex:none}
 #err-card .btn-sub{margin-top:var(--sp-2h)}
+/* V2a Freeze：外層按鈕 44px（觸控），裡面的 chip 與連續天數同高 */
+.chip-btn{display:flex;align-items:center;min-height:var(--touch);padding:0;background:none;color:var(--c-ink);font-family:inherit}
+.chip-btn .chip{gap:var(--sp-1);padding:0 var(--sp-2h)}
+.chip .snow{color:var(--sleep)}
+.chip-btn[aria-expanded="true"] .chip{box-shadow:0 0 0 2px var(--sleep-ink)}
+#app .freeze-note{font-size:13px;line-height:1.55;color:var(--c-ink);background:var(--sleep-soft);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h)}
+/* V2a 回歸任務卡（#h-banner）：正向語氣，只講接下來能拿到什麼 */
+#app .banner.quest{display:flex;align-items:center;gap:var(--sp-2h);background:var(--quest-bg);color:var(--quest-ink);font-size:14px;font-weight:700}
+#app .banner.quest .q-ic{display:flex;flex:none;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;
+  background:var(--c-card);color:var(--quest-icon)}
+#app .banner.quest.boost{background:var(--quest-boost-bg)}
+#app .banner.quest.boost .q-ic{color:var(--quest-boost-icon)}
+#app .banner.quest b{font-family:var(--font-num);font-weight:900}
+/* V2a D6 降量卡（mockup：眠的淡色塊、月亮、兩行字、恢復按鈕） */
+.deload-card{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3h) var(--sp-4);border-radius:var(--r-card);background:var(--deload-bg)}
+.dl-ic{display:flex;flex:none;width:40px;height:40px;border-radius:50%;align-items:center;justify-content:center;background:var(--c-card);color:var(--sleep-ink)}
+.dl-text{display:flex;flex-direction:column;gap:var(--sp-0h);flex:1;min-width:0}
+#app .dl-title{font-size:14px;font-weight:700;color:var(--deload-ink);line-height:1.45}
+#app .dl-sub{font-size:12px;color:var(--deload-ink-2);line-height:1.5}
+.dl-btn{flex:none;min-height:var(--touch);min-width:var(--touch);padding:0 var(--sp-3h);border-radius:var(--r-sm);border:1.5px solid var(--sleep-ink);
+  background:var(--c-card);color:var(--sleep-ink);font-size:13px;font-weight:700;white-space:nowrap}
+.deload-card[data-state="restored"] .dl-title{font-weight:500}
 /* AFT 自選目標差距 */
 .aft-rows{display:flex;flex-direction:column;gap:var(--sp-3h);margin:var(--sp-3) 0}
 .aft-row{display:flex;flex-direction:column;gap:var(--sp-1h)}
@@ -396,6 +419,33 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .toast-btn{display:inline-flex;align-items:center;gap:var(--sp-1h);flex:none;min-height:var(--touch);min-width:var(--touch);padding:0 var(--sp-3);
   background:none;color:var(--toast-action);font-size:14px;font-weight:700}
 
+/* ---------- 13b. V2a Perfect Day 慶祝、升級卡（#cele，蓋在今日與 toast 之上、訓練畫面之下） ---------- */
+.cele{position:fixed;inset:0;z-index:48;display:flex;align-items:center;justify-content:center;padding:var(--sp-6);
+  background:var(--cele-scrim);color:var(--c-ink);font-family:var(--font);overflow:hidden}
+.cele-confetti{position:absolute;inset:0;pointer-events:none}
+.cf{position:absolute;top:-4vh;width:10px;height:18px;border-radius:3px;opacity:0}
+.cf.move{background:var(--move)}
+.cf.sleep{background:var(--sleep)}
+.cf.explore{background:var(--explore)}
+.cele-card{position:relative;width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);
+  padding:var(--sp-7) var(--sp-6) var(--sp-5h);border-radius:var(--r-cele);background:var(--c-card);box-shadow:var(--shadow-cele);text-align:center}
+.cele-art{position:relative;width:132px;height:132px}
+.cele-svg{display:block;width:100%;height:100%}
+.cele-check{stroke:var(--c-ink)}
+.cele-lv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;line-height:1;color:var(--c-ink)}
+.cele-lv small{font-size:16px;font-weight:700;margin-right:var(--sp-1);color:var(--c-ink-2)}
+.cele-eyebrow{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--c-ink-2)}
+.cele-title{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1.15;color:var(--c-ink)}
+.cele-xp{font-size:22px;font-weight:800;color:var(--cele-xp)}
+.cele-vote{font-size:14px;line-height:1.55;color:var(--c-ink);text-wrap:pretty}
+.cele-stats{display:flex;width:100%;gap:var(--sp-2);margin-top:var(--sp-1)}
+.cele-stat{flex:1;flex-basis:0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:var(--sp-0h);padding:var(--sp-2h) var(--sp-1);
+  border-radius:var(--r-md);background:var(--c-track)}
+.cele-stat b{font-size:20px;font-weight:800;color:var(--c-ink)}
+.cele-stat span{font-size:12px;color:var(--c-ink-2);line-height:1.3}
+.cele-ok{width:100%;min-height:56px;margin-top:var(--sp-2);border-radius:var(--r-md);background:var(--c-ink);color:var(--c-on-ink);font-size:16px;font-weight:700}
+.cele :focus-visible{outline:2px solid var(--sleep-ink);outline-offset:2px}
+
 /* ---------- 14. 動態：只動 transform／opacity（§2.9）；減少動態改淡入；訓練畫面蓋上來時暫停 ---------- */
 .ring-arc{transform-box:fill-box;transform-origin:50% 50%}
 .ring-arc.sweep{animation:ring-sweep var(--ring-ms) var(--ease-out) both}
@@ -403,7 +453,18 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 @keyframes ring-sweep{from{transform:rotate(var(--sweep));opacity:0}45%{opacity:1}to{transform:rotate(0deg);opacity:1}}
 @keyframes toast-in{from{transform:translateY(var(--toast-lift));opacity:0}to{transform:none;opacity:1}}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
+/* V2a 慶祝／升級卡：遮罩淡入、卡片上移＋淡入；彩帶落下＋旋轉＋淡出（≤1.5 秒，時間在 tokens.css） */
+.cele.in{animation:fade-in var(--cele-in-ms) var(--ease-out) both}
+.cele.in .cele-card{animation:cele-pop var(--cele-in-ms) var(--ease-out) both}
+.cf{animation:cf-fall var(--confetti-ms) var(--ease-out) both}
+.cf.still{animation:fade-in var(--cele-in-ms) var(--ease-out) both;opacity:1}
+@keyframes cele-pop{from{transform:translateY(var(--cele-lift)) scale(.96);opacity:0}to{transform:none;opacity:1}}
+@keyframes cf-fall{0%{transform:translate3d(0,0,0) rotate(var(--r0));opacity:1}75%{opacity:1}
+  100%{transform:translate3d(var(--dx),var(--dy),0) rotate(var(--r1));opacity:0}}
 @media (prefers-reduced-motion:reduce){
   .ring-arc.sweep,.toast.in{animation-name:fade-in}
+  .cele.in .cele-card{animation-name:fade-in}
+  .cf{animation-name:fade-in}
 }
 body:has(#train.active) .ring-arc.sweep,body:has(#train.active) .toast.in{animation-play-state:paused}
+body:has(#train.active) .cele,body:has(#train.active) .cele *{animation-play-state:paused}

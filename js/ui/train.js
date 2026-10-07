@@ -1,6 +1,8 @@
 /* Daily Ten — 訓練計時引擎（startWorkout）。M1 自 index.html 原樣搬出；原全域 runner 改為模組內部，對外以 isTraining() 查詢。
    B1：畫面與計時不變；完成畫面的 XP 改顯示新尺度（記錄前後 summary.xp.total 的增加量，不會是負數；遊戲層未就緒時照 M1 的 XP 表），
-   「STREAK N」改「連續 N 天」。opts.plus：加一輪（記成當天 type＋plus:true）。 */
+   「STREAK N」改「連續 N 天」。opts.plus：加一輪（記成當天 type＋plus:true）。
+   V2a：增加量本來就含 Perfect Day＋30 與回歸加成 ×1.5（engine 的總 XP 含 bonus）；這次記錄讓它們出現時，
+   #d-xp 下面多一行 #d-bonus（「含 Perfect Day +30 XP」「含回歸加成 ×1.5 +25 XP」），#d-xp 的文字與版面不變。 */
 import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { initAudio, beep, speak } from './audio.js';
@@ -8,7 +10,7 @@ import { lockScreen, unlockScreen } from './wakelock.js';
 import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
 import { recordSession } from './session.js';
-import { totalXp, summary } from './game.js';
+import { summary } from './game.js';
 import { HAS_DEMO, demoCtl, stopDemo, setTrainDemo } from './demo.js';
 import { renderHome } from './home.js';
 
@@ -21,12 +23,34 @@ export function streakDays(){
   const s=summary();
   return s&&s.streak&&Number.isFinite(s.streak.days)?s.streak.days:getState().streak.current;
 }
+/* 這次記錄新出現的額外 XP（Perfect Day、回歸加成）→ 完成畫面的一行說明；沒有就空字串 */
+function bonusNote(before,after){
+  if(!before||!after)return '';
+  const parts=[];
+  const pa=after.perfectDay,pb=before.perfectDay;
+  if(pa&&pa.done===true&&!(pb&&pb.done===true)&&Number.isFinite(pa.xp)&&pa.xp>0)parts.push(`Perfect Day +${pa.xp} XP`);
+  const qa=after.returnQuest,qb=before.returnQuest;
+  const boost=(qa&&Number.isFinite(qa.boostXp)?qa.boostXp:0)-(qb&&Number.isFinite(qb.boostXp)?qb.boostXp:0);
+  if(qa&&qa.stage==='boost'&&boost>0)parts.push(`回歸加成 ×${qa.multiplier} +${boost} XP`);
+  return parts.length?'含 '+parts.join('、'):'';
+}
+let lastBonus='';
 /* 記錄並回傳這次增加的 XP（新尺度）；遊戲層未就緒時回 M1 XP 表的值 */
 export function recordAndGain(type,opts){
-  const before=totalXp();
+  const before=summary();
   recordSession(type,opts);
-  const after=totalXp();
-  return before!==null&&after!==null?Math.max(0,after-before):XP[type];
+  const after=summary();
+  const tb=before&&before.xp&&Number.isFinite(before.xp.total)?before.xp.total:null;
+  const ta=after&&after.xp&&Number.isFinite(after.xp.total)?after.xp.total:null;
+  lastBonus=bonusNote(before,after);
+  return tb!==null&&ta!==null?Math.max(0,ta-tb):XP[type];
+}
+/* 完成畫面 #d-bonus：上一次 recordAndGain 的額外 XP 說明（沒有就隱藏） */
+export function showBonusNote(){
+  const el=$('d-bonus');
+  if(!el)return;
+  el.textContent=lastBonus;
+  el.hidden=!lastBonus;
 }
 export function startWorkout(seq,type,after,opts){
   seq=addTransitions(seq);
@@ -73,6 +97,7 @@ export function startWorkout(seq,type,after,opts){
     const days=streakDays();
     $('d-identity').textContent=IDENTITY[Math.floor(Math.random()*IDENTITY.length)];
     $('d-xp').textContent='+'+gain+' XP　·　連續 '+days+' 天';
+    showBonusNote();
     speak('完成。'+'目前連續'+days+'天。');
     $('done').classList.add('active');
   }
