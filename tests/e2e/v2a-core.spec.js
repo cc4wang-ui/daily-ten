@@ -290,6 +290,24 @@ test.describe('慶祝的時機', () => {
     expect((await storedSummary(page)).perfectDay.done).toBe(false);
   });
 
+  test('打卡後回今日（等 toast 收起）、馬上從今日開保底版：toast 在訓練中收起 → 訓練中、完成畫面都不播；回今日才播', async ({ page }) => {
+    await openApp(page, { now: AT, seed: seedState(readFixture(REVERTED)) });
+    await checkIn(page);
+    await gotoTab(page, 's-home'); // 今日在前景、toast 顯示中：慶祝先等 toast 收起
+    await expect(cele(page)).toBeHidden();
+    await page.click('#h-minimal');
+    await expect(page.locator('#train')).toHaveClass(/active/);
+    await tick(page, 12); // 訓練中 toast 收起（10 秒）→ 收起後的通知在訓練中觸發
+    await expect(page.locator('#toast')).toBeHidden();
+    await expect(cele(page), '訓練中不播').toBeHidden();
+    expect(await page.evaluate(() => document.getElementById('cele').hidden), '#cele 沒有在訓練畫面底下偷偷打開').toBe(true);
+    await runWorkoutToEnd(page);
+    await expect(page.locator('#done')).toHaveClass(/active/);
+    expect(await page.evaluate(() => document.getElementById('cele').hidden), '完成畫面開著也沒有打開').toBe(true);
+    await page.click('#d-ok');
+    await expectPerfectCard(page, await storedSummary(page));
+  });
+
   test('打卡後馬上去訓練（toast 在訓練中收起）→ 訓練、完成畫面都不播；這次訓練沒帶來 Perfect Day → 沒有 #d-bonus；回今日才播', async ({ page }) => {
     await openApp(page, { now: AT, seed: seedState(readFixture(REVERTED)) });
     await checkIn(page);
@@ -938,6 +956,44 @@ test.describe('資料安全', () => {
       await ctx.close();
     }
     assertWatchClean(w, '第二次執行');
+  });
+
+  test('真的用舊版 App（ec87e03，PARITY_BASE_DIR）來回一次：V2a 存檔 → 舊版記一次保底版（改回 version 2）→ V2a 載入：seen／deload 原樣、不重複、不重播', async ({ page, browser }, testInfo) => {
+    test.skip(!process.env.PARITY_BASE_DIR, '沒有 PARITY_BASE_DIR（舊版 App 目錄），略過');
+    const basePort = Number(process.env.BASE_PORT || Number(process.env.PORT || 4173) + 1);
+    /* 1. V2a：載入 v3-v2a 並存檔（寫入開機時補上的欄位） */
+    await openApp(page, { now: '2026-10-06T06:30:00+09:00', seed: seedState(readFixture('v3-v2a.json')) });
+    await triggerSave(page);
+    const s1 = await rawMain(page);
+    /* 2. 舊版 App（另一個 origin）：同一份資料，記一次保底版 */
+    const s2 = await inFreshContext(browser, testInfo, async (old) => {
+      await openApp(old, { now: '2026-10-06T08:00:00+09:00', seed: seedState(s1), url: `http://127.0.0.1:${basePort}/index.html`, ready: 'm1' });
+      await old.click('#h-minimal');
+      await expect(old.locator('#train')).toHaveClass(/active/);
+      await runWorkoutToEnd(old);
+      await expect(old.locator('#done')).toHaveClass(/active/);
+      await old.click('#d-ok');
+      return rawMain(old);
+    });
+    const o = JSON.parse(s2);
+    console.log(`[qa] 舊版 App 存回：version ${o.version}、game.seen ${JSON.stringify(o.game && o.game.seen)}、game.deload ${JSON.stringify(o.game && o.game.deload)}、最後一筆 ${JSON.stringify(o.sessions[o.sessions.length - 1])}`);
+    expect(o.sessions[o.sessions.length - 1]).toEqual({ date: '2026-10-06', type: 'minimal', xp: 3 });
+    /* 3. V2a 再載入 */
+    await inFreshContext(browser, testInfo, async (p3) => {
+      await openApp(p3, { now: '2026-10-06T20:00:00+09:00', seed: seedState(s2) });
+      await p3.clock.runFor(2_000);
+      await expect(p3.locator('#cele'), '10-05 的 Perfect Day 不重播；今天沒打卡不是 Perfect Day').toBeHidden();
+      await expect(p3.locator('#err-card')).toBeHidden();
+      await triggerSave(p3);
+      const s3 = await storedState(p3);
+      expect(s3.version).toBe(3);
+      expect(s3.game.seen).toEqual({ level: 7, perfectDay: '2026-10-05' });
+      expect(s3.game.deload).toEqual({ restoredOn: '2026-10-05' });
+      expect(s3.habits.sleep.log.map((e) => e.date)).toEqual(['2026-10-02', '2026-10-03', '2026-10-04', '2026-10-05']);
+      expect(new Set(s3.sessions.map((x) => x.date)).size).toBe(s3.sessions.length);
+      const want = summaryOf(s3, '2026-10-06T20:00:00+09:00');
+      await expect(p3.locator('#h-streak')).toHaveText(String(want.streak.days));
+    });
   });
 
   test('v3-v2a-bad-fields：載入修補（錯誤卡、原字串存 bak-v3、"7"→7、日期壞→開啟時補上、deload→{restoredOn:null}）、不重播；匯入擋下 3 筆、資料不變；不白屏', async ({ page }) => {
