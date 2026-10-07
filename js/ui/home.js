@@ -144,9 +144,9 @@ function freezeExplain(fz) {
   const R = gameRules();
   const every = R && R.freeze && Number.isInteger(R.freeze.earnEvery) ? R.freeze.earnEvery : null;
   const max = Number.isInteger(fz.max) ? fz.max : (R && R.freeze ? R.freeze.max : null);
-  const how = every && max ? `連續實際有做每滿 ${every} 天得 1 張，最多 ${max} 張。` : '';
+  const how = every && max ? `實際有做的天數每滿 ${every} 天得 1 張，最多 ${max} 張。` : '';
   return [typeof fz.note === 'string' && fz.note ? `${fz.note}。` : '',
-    `${fz.label}：漏掉一天會自動用掉 1 張，連續天數不會中斷。`, how].join('');
+    `${fz.label}：漏掉的日子一天用 1 張，自動補上、連續天數接起來；張數不夠時先保留。`, how].join('');
 }
 function renderFreeze(sum) {
   const btn = $('h-freeze');
