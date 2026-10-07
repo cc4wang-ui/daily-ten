@@ -7,6 +7,7 @@
      validateImport(obj)            → {ok:true} | {ok:false, errors:[{code, path, message}]}
                                        匯入用的嚴格驗證：只檢查、不修補；接受遷移前的 v1／v2／v3 形狀。
                                        code：missing_field | invalid_type | out_of_range；message 為台灣繁中。
+     readSeen(state)、readDeload(state)、isDeloadRestored(state, date)、isSeenLevel(v)   V2a 新欄位的讀取（見下方 V2a 段）
      isPlainObject(v)、deepClone(v)
    內部共用：STATE_SPEC 是欄位規格，migrate.js 的寬鬆修補與這裡的嚴格驗證共用同一份，
    保證「載入（修補）後的 state 一定能通過匯入驗證」——也就是任何備份檔都能再匯入。
@@ -22,7 +23,32 @@
                          同一天重複的紀錄載入與匯入都保留（怪資料不擋），寫入端（habits.js）保證不會新增重複。
      sessions[].plus     選填 boolean（加一輪；無效 → false）；type 'plus' 本來就接受（任意 1–20 字）
      phase.current       只能是 P1／P2／P3（無效 → P1）
-     phase.startedAt     null 或含時區的 ISO 時間（無效 → null；載入後由 store.loadState 補上，見 migrate.js fillPhaseStartedAt） */
+     phase.startedAt     null 或含時區的 ISO 時間（無效 → null；載入後由 store.loadState 補上，見 migrate.js fillPhaseStartedAt）
+
+   V2a（遊戲核心）新增的選填欄位（仍是 v3、不升版；寫入 API 在 game.js）：
+     game.seen    {level, perfectDay}   升級卡、Perfect Day 慶祝「看過到哪裡」
+                  level       null | 1–100,000 的整數：已看過升級卡的最高等級（中央 Lv＝總 XP 等級）。只增不減。
+                  perfectDay  null | 'YYYY-MM-DD'：Perfect Day 慶祝已處理（播過，或 V2a 第一次開啟時略過）到哪一個遊戲日（含）。只增不減。
+                  null = 還沒初始化（UI 呼叫 game.js 的 ensureSeenInitialized 補上；不補發舊的升級卡與慶祝）。
+     game.deload  {restoredOn}          D6 降量的「恢復 L{n}」
+                  restoredOn  null | 'YYYY-MM-DD'：哪一個遊戲日按了恢復；只對那一天有效（engine 比 restoredOn === 今天）。
+     兩個物件都是 fill:false：舊資料沒有就維持沒有（載入不新增欄位，v3／V1 fixture 的遷移仍是 no-op、開 App 不寫入）。
+     載入修補：不是物件 → 重設成 {level:null, perfectDay:null}／{restoredOn:null}；子欄位缺少補 null（不算修補）；
+               子欄位無效 → null（reset；"7" → 7 這類無損轉換記 coerced）。任何一筆都讓狀態變成 repaired（原字串存 bak-v3）。
+     匯入驗證（嚴格）：不是物件、null、子欄位缺少、型別或範圍錯 → 錯誤；不認得的子欄位照常保留、不報錯。
+     讀取（engine／UI 共用的純函式，不改動 state、不丟例外；形狀不對一律當成 null）：
+       readSeen(state)             → {level, perfectDay}
+       readDeload(state)           → {restoredOn}
+       isDeloadRestored(state, date) → boolean（date 是今天的遊戲日；restoredOn === date）
+       isSeenLevel(v)              → v 是不是有效的已看等級（1–100,000 的整數）
+
+   M1 的 game 舊欄位（V2a 決定：保留不動，不沿用；載入／匯入規則照舊）：
+     game.level        M1 預留給「由 engine 推導的等級」，一直是 null。等級每次由紀錄重算（d6／d7），存一份只會過期；
+                       「已看等級」是另一個意思（只增不減、null = 未初始化），所以另開 game.seen.level，不借用。
+     game.freezeTokens Freeze 由紀錄推導（契約：不讀 game.freezeTokens）；存張數會和紀錄各說各話（復原打卡、匯入、
+                       舊版 App 補記訓練之後就對不上）。維持 0、不寫入。
+     game.perfectDays  Perfect Day 由紀錄推導；慶祝「播過」用 game.seen.perfectDay 一個日期就夠，不需要一直變長的清單。
+                       它的規格是 list(any())（M1 起接受任何內容），沿用就得收緊舊欄位的驗證，可能讓舊備份無法匯入。維持 []、不寫入。 */
 import { isoLocal, isValidDateStr, isIsoWithOffset } from './time.js';
 
 export const SCHEMA_VERSION = 3;
@@ -48,7 +74,8 @@ export const LIMITS = Object.freeze({
   isoText: 40,
   minutesPerDay: 1440,
   heightCm: 300,
-  age: 150
+  age: 150,
+  gameLevel: 100000
 });
 const PR_MAX = { hrp: LIMITS.reps, plank: LIMITS.sec, run2mi: LIMITS.sec, pushup: LIMITS.reps, pike: LIMITS.reps, sideplank: LIMITS.sec };
 
@@ -172,6 +199,15 @@ const exploreEntry = obj({
   itemId: text({ key: true, minLen: 1, maxLen: LIMITS.text }),
   interest: num({ nullable: true, min: 1, max: 5, fill: false, def: null })
 });
+/* V2a：升級卡／慶祝看過到哪裡、D6 恢復（見檔頭）。fill:false：沒有就維持沒有；
+   不是物件 → 重設成子欄位全 null 的物件（defaultFor）；子欄位 req：匯入時缺少要報錯，載入時補 null */
+const seenSpec = obj({
+  level: int({ min: 1, max: LIMITS.gameLevel, nullable: true, req: true, def: null }),
+  perfectDay: date({ nullable: true, req: true, def: null })
+}, { fill: false });
+const deloadSpec = obj({
+  restoredOn: date({ nullable: true, req: true, def: null })
+}, { fill: false });
 
 /* version 不在規格內：由 validateImport／migrate 各自處理 */
 export const STATE_SPEC = obj({
@@ -216,7 +252,9 @@ export const STATE_SPEC = obj({
     streaks: obj({ train: streakSpec({ mirror: true }), life: streakSpec({ mirror: true }) }),
     freezeTokens: int({ min: 0, max: LIMITS.streak }),
     achievements: dict(),
-    perfectDays: list(any())
+    perfectDays: list(any()),
+    seen: seenSpec,
+    deload: deloadSpec
   }),
   meta: obj({ lastBackupAt: text({ nullable: true, maxLen: LIMITS.isoText }) })
 });
@@ -250,7 +288,7 @@ const LABELS = {
   phase: '階段', game: '遊戲進度', meta: '備份資訊'
 };
 /* 比 top 層更具體的名稱（先比對） */
-const SUB_LABELS = [['habits.sleep', '睡眠紀錄'], ['habits.explore', '探索紀錄']];
+const SUB_LABELS = [['habits.sleep', '睡眠紀錄'], ['habits.explore', '探索紀錄'], ['game.seen', '升級卡與慶祝紀錄'], ['game.deload', '降量恢復紀錄']];
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 function where(path) {
@@ -375,4 +413,43 @@ export function validateImport(obj) {
   checkVersion(obj.version, errors);
   check(STATE_SPEC, obj, '', errors);
   return errors.length ? { ok: false, errors } : { ok: true };
+}
+
+/* ---------- V2a：game.seen／game.deload 的讀取（engine 與 UI 共用） ----------
+   純函式：不改動 state、不丟例外（讀取時丟例外的物件也一樣）；形狀不對的值一律當成 null（與載入修補的結果一致）。
+   回傳新物件，改它不影響 state。 */
+export function isSeenLevel(v) {
+  return Number.isInteger(v) && v >= 1 && v <= LIMITS.gameLevel;
+}
+
+function gameField(state, key) {
+  const game = isPlainObject(state) ? state.game : null;
+  const v = isPlainObject(game) ? game[key] : null;
+  return isPlainObject(v) ? v : null;
+}
+
+export function readSeen(state) {
+  try {
+    const seen = gameField(state, 'seen');
+    if (!seen) return { level: null, perfectDay: null };
+    return {
+      level: isSeenLevel(seen.level) ? seen.level : null,
+      perfectDay: isValidDateStr(seen.perfectDay) ? seen.perfectDay : null
+    };
+  } catch (e) {
+    return { level: null, perfectDay: null };
+  }
+}
+
+export function readDeload(state) {
+  try {
+    const deload = gameField(state, 'deload');
+    return { restoredOn: deload && isValidDateStr(deload.restoredOn) ? deload.restoredOn : null };
+  } catch (e) {
+    return { restoredOn: null };
+  }
+}
+
+export function isDeloadRestored(state, date) {
+  return isValidDateStr(date) && readDeload(state).restoredOn === date;
 }

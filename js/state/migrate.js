@@ -20,7 +20,20 @@
 
    D12：只要 game 物件存在（version 是 3，或被舊版 App 改回 2）就視為已遷移——
    只補缺欄位、保留 game 既有的 sleep／explore 等數值，絕不把 legacy xp 加總進 game；
-   最後一律用 mirrorLegacyToGame「複製」legacy 欄位，所以不會重複計 XP。 */
+   最後一律用 mirrorLegacyToGame「複製」legacy 欄位，所以不會重複計 XP。
+   V2a 的 game.seen／game.deload（schema.js）一樣只修補、不重建：舊版 App（ec87e03）的 migrate／saveState
+   原樣保留整個物件、只改 version，所以來回之後兩個欄位都還在，也不會被重設（不補發升級卡與慶祝）。
+
+   V2a 契約第 15 條「D12 反向雙寫」（把 engine 推導的 XP／連續天數寫回 legacy xp／streak）：不需要，理由——
+   1. 新版 App 的 XP、等級、連續天數每次都由紀錄（sessions＋habits.sleep.log）重算（game.json d6），不讀 legacy
+      xp／streak，也不讀 game.xp／game.streaks。舊版 App 改寫 legacy 欄位不會影響新版畫面；舊版補記的訓練寫在
+      sessions，新版下次推導就自動算進去——真正需要「雙寫」的是紀錄本身，而兩版本來就寫同一個 sessions。
+   2. legacy xp 是舊表（full 10、boss 20…）的累加值，新版 recordSession 仍照舊表更新它，舊版 App 打開時看到的數字
+      和它自己的計分一致。若把新表的推導值寫回去，舊版會在新表的總數上再加舊表的分數，兩種尺度混在一起，
+      legacy xp 對兩個版本都失去意義。
+   3. 推導值寫回 state 等於多一個會過期的真實來源（復原打卡、匯入、規則調整後就對不上），而且要在載入時寫入，
+      違反「開 App 不寫入」。game.xp／game.streaks 照舊由 mirrorLegacyToGame 複製 legacy（M1 語意、沒有人讀），
+      維持不變，避免改動所有人的存檔內容。 */
 import {
   SCHEMA_VERSION, STATE_SPEC, LIMITS, TIME_RE,
   defaultState, defaultGame, isPlainObject, deepClone, numInRange, isTooLong, truncateText

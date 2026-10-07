@@ -1,14 +1,18 @@
 /* Daily Ten — 遊戲引擎（擁有者：game-designer）
    純函式、決定性：不讀時鐘（now 由呼叫端傳入）、不碰 DOM／localStorage／網路、不改動傳入的 state。
-   XP 一律由紀錄推導（sessions＋habits.sleep.log），每次重算；本版不寫入任何 XP／連續天數欄位。
+   XP 一律由紀錄推導（sessions＋habits.sleep.log），每次重算；不寫入任何 XP／連續天數／Freeze 欄位，
+   也不讀舊欄位（legacy xp／streak、game.xp、game.streaks、game.freezeTokens、game.perfectDays、game.level；d15）。
    state 欄位缺漏或型別錯 → 回合理預設，不丟例外；rules 無效或 now 無法辨識 → todaySummary 回 null（UI 隱藏遊戲卡片）。
+   規則與理由：data/game.json（_notes.decisions d1–d15）。
 
    對外：
      todaySummary(state, now, rules) → {
        date, weekday,                                   // 遊戲日 'YYYY-MM-DD'；0 = 日 … 6 = 六
        phase:{ current, day, week, label, name },       // day／week：該階段第幾天／週（不知道起點時 null）
-       level:{ lv, xpInto, xpNeed, totalXp, label },    // 中央等級＝總 XP 等級，label 'Lv N'
-       streak:{ days, kind, best, lastDate, todayDone, label },
+       level:{ lv, xpInto, xpNeed, totalXp, label },    // 中央等級＝總 XP（含 bonus）的等級，label 'Lv N'（d13）
+       streak:{ days, kind, best, lastDate, todayDone, label,
+                frozenDays },                           // V2a：days／best＝實際有做的天數，Freeze 補上的日子只接起來不加天數；
+                                                        //       frozenDays＝目前這一段被 Freeze 補上的天數（d10）
        pillars:{
          move:{ xp, max, tier:'none'|'minimal'|'main'|'plus', done, type, label },
          sleep:{ xp, max, checkedIn, entry, score },
@@ -16,15 +20,31 @@
        },
        nextAction:{ kind:'checkin'|'workout'|'boss'|'done', label },
        checkIn:{ open, code, reason, date, from, until }, // 同 js/habits/sleep.js 的 checkInWindow
-       xp:{ move, sleep, explore, total }                 // 各支柱累計 XP（推導值）
+       xp:{ move, sleep, explore, total,                  // 各支柱累計 XP（推導值）；total＝三支柱＋bonus
+            bonus,                                        // V2a：Perfect Day +30 與回歸加成 ×1.5 多出來的 XP（d9、d12）
+            today },                                      // V2a：今天得到的 XP（今天的支柱 XP＋今天的 bonus）
+       // ---- V2a ----
+       perfectDay:{ done, xp, need:['move','sleep'], have:[...], date,   // need＝今天已解鎖的支柱；xp＝今天因 Perfect Day 得到的 XP（0 或 reward）
+                    reward, count, weekCount, title, label },           // reward＝+30；count＝累計天數；weekCount＝本週（週一起）天數
+       freeze:{ tokens, max, usedDates:[...], earnedTotal,              // 由紀錄推導；usedDates＝被補上的日子（遞增）
+                usedTotal, recent:[...], label, note },                 // recent＝緊接在今天前、剛被補上的日子；note＝有 recent 時的說明，否則 null
+       deload:{ active, reason:'short'|'late'|null, fromLevel, toLevel, restored, label,   // D6（js/habits/deload.js，d11）
+                reasons, triggered, planLevel, sleepMin, lateMin, restoreLabel, date },
+       returnQuest:{ stage:'none'|'return'|'badge'|'boost', label, breakDays, badgeDate, boostDate, multiplier,   // D19（d12）
+                     boostUntil, daysLeft, boostXp, badges, boosts }
+                     // return：中斷中、今天還沒完成任何支柱 → 今天完成任一支柱就拿徽章
+                     // badge ：徽章已拿到（badgeDate），boostUntil 前完成 2 支柱的那天 XP ×multiplier（daysLeft 含今天）
+                     // boost ：今天就是加成日，boostXp＝今天多出來的 XP；badges／boosts＝累計次數
      }
      levelFromXp(totalXp, rules) → { lv, xpInto, xpNeed, totalXp, label } | null
      aftGaps(state, rules)       → { title, subtitle, items:[{ key, name, unit, target, best, gap, met,
                                      bestText, targetText, gapText }] } | null（AFT 三項自選目標差距，取歷來最佳） */
 import { asRules, fill } from './rules.js';
 import { toDate, gameDate, weekdayOf, dateOfStamp, dayNumber, dayNumberToStr } from './day.js';
+import { dayFacts, perfectDays, freezeStreak, returnQuest, weekStartNum } from './timeline.js';
 import { moveDays } from '../habits/move.js';
 import { sleepDays, checkInWindow } from '../habits/sleep.js';
+import { deloadFor } from '../habits/deload.js';
 
 const PHASE_IDS = ['P1', 'P2', 'P3'];
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -55,27 +75,6 @@ export function levelFromXp(totalXp, rules) {
     rem -= need;
     lv += 1;
   }
-}
-
-/* ---------- 連續天數 ----------
-   days：今天有做 → 到今天為止；今天還沒做但昨天有 → 到昨天為止（今天還沒結束，不算中斷）；否則 0。
-   best：今天（含）以前最長的一段。今天以後的日期（裝置時鐘或時區造成）不算進連續天數。 */
-function runInfo(days, todayNum) {
-  const past = [...days].filter((n) => n <= todayNum).sort((a, b) => a - b);
-  let best = 0;
-  let run = 0;
-  for (let i = 0; i < past.length; i++) {
-    run = i > 0 && past[i] === past[i - 1] + 1 ? run + 1 : 1;
-    if (run > best) best = run;
-  }
-  let cur = 0;
-  const anchor = days.has(todayNum) ? todayNum : days.has(todayNum - 1) ? todayNum - 1 : null;
-  if (anchor !== null) for (let k = anchor; days.has(k); k--) cur++;
-  return {
-    days: cur, best,
-    lastDate: past.length ? dayNumberToStr(past[past.length - 1]) : null,
-    todayDone: days.has(todayNum)
-  };
 }
 
 /* ---------- 階段與解鎖 ---------- */
@@ -129,10 +128,73 @@ function phaseInfo(state, R, todayNum, sleepIdx) {
   const week = elapsed === null ? null : Math.floor(elapsed / 7) + 1;
   const vars = { id: current, name: P.name, n: P.unit === 'week' ? week : day };
   const label = day === null ? fill(R.copy.phaseNoDay, vars) : fill(P.unit === 'week' ? R.copy.phaseWithWeek : R.copy.phaseWithDay, vars);
-  return { current, day, week, label, name: P.name };
+  return { info: { current, day, week, label, name: P.name }, startNum: start ? dayNumber(start) : null };
+}
+
+/* 每一天已解鎖的支柱：目前階段開始那天（含）起用目前階段的支柱，之前的日子用 P1 的（d9：已經拿到的 Perfect Day
+   不會因為之後解鎖新支柱而消失）；不知道起點時只有今天用目前階段。V2a 探索未開放，階段一律 P1。 */
+function pillarsTimeline(R, current, startNum, todayNum) {
+  const now = R.phases[current].pillars;
+  const before = R.phases.P1.pillars;
+  return (n) => ((startNum !== null ? n >= startNum : n === todayNum) ? now : before);
 }
 
 /* ---------- 今日摘要 ---------- */
+const names = (R, list) => list.map((p) => R.copy.pillarNames[p]).join('、');
+
+function perfectDayInfo(R, facts, perfect, date, todayNum, pillarsOn) {
+  const f = facts.get(todayNum);
+  const need = [...pillarsOn];
+  const have = f ? need.filter((p) => f.done[p]) : [];
+  const done = perfect.has(todayNum);
+  const reward = R.perfectDay.xp;
+  const monday = weekStartNum(todayNum, R.week.startsOn);
+  let weekCount = 0;
+  for (const n of perfect) if (n >= monday && n <= todayNum) weekCount += 1;
+  const C = R.copy.perfectDay;
+  const left = need.filter((p) => !have.includes(p));
+  return {
+    done, xp: done ? reward : 0, need, have, date,
+    reward, count: perfect.size, weekCount,
+    title: C.title,
+    label: done ? fill(C.done, { xp: reward }) : fill(C.todo, { names: names(R, left), xp: reward })
+  };
+}
+
+function freezeInfo(R, fz) {
+  const C = R.copy.freeze;
+  return {
+    tokens: fz.tokens, max: R.freeze.max,
+    usedDates: fz.used.map(dayNumberToStr),
+    earnedTotal: fz.earned, usedTotal: fz.used.length,
+    recent: fz.recent.map(dayNumberToStr),
+    label: fill(C.label, { n: fz.tokens }),
+    note: fz.recent.length ? fill(C.used, { n: fz.recent.length }) : null
+  };
+}
+
+function returnQuestInfo(R, rq, todayNum, pillarsOn) {
+  const Q = R.returnQuest;
+  const C = R.copy.returnQuest;
+  const n = Math.min(Q.boostMinPillars, pillarsOn.length);
+  const daysLeft = rq.untilNum === null ? null : rq.untilNum - todayNum + 1;
+  const vars = { n, mult: Q.multiplier, left: daysLeft, xp: rq.boostToday };
+  let label = null;
+  if (rq.stage === 'return') label = C.return;
+  else if (rq.stage === 'boost') label = fill(C.boost, vars);
+  else if (rq.stage === 'badge') label = fill(daysLeft <= 1 ? C.last : rq.badgeNum === todayNum ? C.badge : C.open, vars);
+  return {
+    stage: rq.stage, label, breakDays: rq.breakDays,
+    badgeDate: rq.badgeNum === null ? null : dayNumberToStr(rq.badgeNum),
+    boostDate: rq.boostNum === null ? null : dayNumberToStr(rq.boostNum),
+    multiplier: Q.multiplier,
+    boostUntil: rq.untilNum === null ? null : dayNumberToStr(rq.untilNum),
+    daysLeft,
+    boostXp: rq.boostToday,
+    badges: rq.badges, boosts: rq.boosts
+  };
+}
+
 function summarize(state, d, R) {
   const date = gameDate(d, R);
   const todayNum = dayNumber(date);
@@ -145,10 +207,10 @@ function summarize(state, d, R) {
   let sleepXp = 0;
   for (const v of sleepIdx.values()) sleepXp += v.score.total;
   const exploreXp = 0; // 探索本版未開放（探索紀錄的分鐘數也還沒有欄位）
-  const totalXp = moveXp + sleepXp + exploreXp;
 
-  const phase = phaseInfo(state, R, todayNum, sleepIdx);
+  const { info: phase, startNum } = phaseInfo(state, R, todayNum, sleepIdx);
   const pillarsOn = R.phases[phase.current].pillars;
+  const pillarsFor = pillarsTimeline(R, phase.current, startNum, todayNum);
   const unlock = unlockP2(R, sleepIdx, todayNum);
 
   const m = moveIdx.get(date) || null;
@@ -164,21 +226,31 @@ function summarize(state, d, R) {
   const exploreOn = R.explore.open && pillarsOn.includes('explore');
   const explore = { locked: !exploreOn, open: R.explore.open, xp: 0, max: R.pillars.explore.max, unlock };
 
-  /* 連續天數：train＝有練就算；life＝當日完成的已解鎖支柱 ≥ min(lifeMinPillars, 已解鎖支柱數) */
+  /* V2a：每日事實 → Perfect Day、回歸任務、bonus（今天以後的紀錄不算） */
+  const facts = dayFacts(moveIdx, sleepIdx, todayNum, pillarsFor);
+  const perfect = perfectDays(facts);
+  const rq = returnQuest(facts, todayNum, R);
+  const bonusXp = perfect.size * R.perfectDay.xp + rq.boostXp;
+  const totalXp = moveXp + sleepXp + exploreXp + bonusXp;
+  const perfectDay = perfectDayInfo(R, facts, perfect, date, todayNum, pillarsOn);
+
+  /* 連續天數：train＝有練就算；life＝當日完成的已解鎖支柱 ≥ min(lifeMinPillars, 已解鎖支柱數)。Freeze 接起空檔（d10） */
   const kind = R.streak.home;
-  const days = new Set();
+  const days = [];
   if (kind === 'train') {
-    for (const k of moveIdx.keys()) days.add(dayNumber(k));
+    for (const k of moveIdx.keys()) days.push(dayNumber(k));
   } else {
-    const need = Math.min(R.streak.lifeMinPillars, pillarsOn.length);
-    const all = new Set([...moveIdx.keys(), ...sleepIdx.keys()]);
-    for (const k of all) {
-      const n = (pillarsOn.includes('move') && moveIdx.has(k) ? 1 : 0) + (pillarsOn.includes('sleep') && sleepIdx.has(k) ? 1 : 0);
-      if (n >= need) days.add(dayNumber(k));
-    }
+    for (const [n, f] of facts) if (f.count >= Math.min(R.streak.lifeMinPillars, f.need.length)) days.push(n);
   }
-  const run = runInfo(days, todayNum);
-  const streak = { ...run, kind, label: fill(R.copy.streak, { n: run.days }) };
+  const fz = freezeStreak(days, todayNum, R);
+  const lastNum = fz.lastNum;
+  const streak = {
+    days: fz.days, best: fz.best,
+    lastDate: lastNum === null ? null : dayNumberToStr(lastNum),
+    todayDone: lastNum === todayNum,
+    kind, label: fill(R.copy.streak, { n: fz.days }),
+    frozenDays: fz.frozenDays
+  };
 
   /* 下一步：早上先打卡（時段內、還沒打）→ 還沒練：週日 Boss Day、其他日今日課表 → 都完成 */
   const checkIn = checkInWindow(state, d, R);
@@ -187,6 +259,7 @@ function summarize(state, d, R) {
   else if (!move.done) kindNext = weekday === R.move.bossWeekday ? 'boss' : 'workout';
   else kindNext = 'done';
 
+  const bonusToday = perfectDay.xp + rq.boostToday;
   return {
     date, weekday, phase,
     level: levelFromXp(totalXp, R),
@@ -194,7 +267,11 @@ function summarize(state, d, R) {
     pillars: { move, sleep, explore },
     nextAction: { kind: kindNext, label: R.copy.next[kindNext] },
     checkIn,
-    xp: { move: moveXp, sleep: sleepXp, explore: exploreXp, total: totalXp }
+    xp: { move: moveXp, sleep: sleepXp, explore: exploreXp, total: totalXp, bonus: bonusXp, today: move.xp + sleep.xp + explore.xp + bonusToday },
+    perfectDay,
+    freeze: freezeInfo(R, fz),
+    deload: deloadFor(state, date, s, move.done, R),
+    returnQuest: returnQuestInfo(R, rq, todayNum, pillarsOn)
   };
 }
 

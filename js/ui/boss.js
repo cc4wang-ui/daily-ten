@@ -1,21 +1,22 @@
 /* Daily Ten — Boss Day：十動作暖身 → HRP／Plank／2 英里測驗 → 成績輸入。M1 自 index.html 原樣搬出。
    B1：測驗計時（#train）與完成畫面的版面保持 M1；成績輸入畫面（#s-boss）換亮色樣式（class 取代 inline 琥珀色）。
-   PR 與訓練紀錄的日期用遊戲日（04:00 換日）；完成畫面顯示新尺度 XP 與「連續 N 天」，身分句改中性的「測驗完成，成績已記錄。」 */
+   PR 與訓練紀錄的日期用遊戲日（04:00 換日）；完成畫面顯示新尺度 XP 與「連續 N 天」，身分句改中性的「測驗完成，成績已記錄。」
+   V2a（D6）：十動作暖身用今天的強度 lv（runPlan 傳入；降量中降一級），測驗本身不變。 */
 import { getState, saveState } from '../state/store.js';
 import { $, showScreen } from './dom.js';
-import { todayKey } from './game.js';
+import { todayKey, planLevel } from './game.js';
 import { initAudio, beep, speak } from './audio.js';
 import { lockScreen, unlockScreen } from './wakelock.js';
 import { fullSeq } from './program.js';
 import { bossItem } from './session.js';
 import { setTrainDemo, stopDemo } from './demo.js';
-import { startWorkout, recordAndGain, streakDays } from './train.js';
+import { startWorkout, recordAndGain, streakDays, showBonusNote } from './train.js';
 import { renderHome } from './home.js';
 
 /* ================= BOSS FLOW ================= */
-export function startBoss(){
+export function startBoss(lv=planLevel()){
   const item=bossItem();
-  startWorkout(fullSeq(getState().level,'A'),'boss',()=>{ // 十動作完成 → 測驗
+  startWorkout(fullSeq(lv,'A'),'boss',()=>{ // 十動作完成 → 測驗
     if(item==='hrp')bossHRP();
     else if(item==='plank')bossPlank();
     else bossRun();
@@ -88,6 +89,7 @@ function bossInput(item,presetSec){
     saveState();
     $('d-identity').textContent='測驗完成，成績已記錄。';
     $('d-xp').textContent='+'+gain+' XP　·　連續 '+streakDays()+' 天';
+    showBonusNote();
     $('done').classList.add('active');
   }
 }

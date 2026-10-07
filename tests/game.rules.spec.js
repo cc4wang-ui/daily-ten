@@ -51,12 +51,14 @@ test.describe('data/game.json：數值符合 CLAUDE.md §6 與 B1 契約', () =>
     expect(R.move.unknownTypeTier).toBe('main');
   });
 
-  test('_notes 記錄 8 條拍板決定與各區塊理由', () => {
+  test('_notes 記錄 15 條拍板決定（B1 d1–d8、V2a d9–d15）與各區塊理由', () => {
     expect(Object.keys(RAW._notes.decisions)).toEqual([
-      'd1_gameDay', 'd2_moveTiers', 'd3_baseScore', 'd4_checkIn', 'd5_exploreGate', 'd6_derivedXp', 'd7_level', 'd8_homeStreak'
+      'd1_gameDay', 'd2_moveTiers', 'd3_baseScore', 'd4_checkIn', 'd5_exploreGate', 'd6_derivedXp', 'd7_level', 'd8_homeStreak',
+      'd9_perfectDay', 'd10_freeze', 'd11_deload', 'd12_returnQuest', 'd13_level', 'd14_sim', 'd15_noReverseDualWrite'
     ]);
     for (const v of Object.values(RAW._notes.decisions)) expect(v).toMatch(/理由/);
-    for (const k of ['day', 'move', 'sleep', 'checkIn', 'level', 'streak', 'phases', 'unlock', 'explore', 'aft', 'copy']) {
+    for (const k of ['day', 'move', 'sleep', 'checkIn', 'level', 'streak', 'phases', 'unlock', 'explore', 'aft', 'copy',
+      'perfectDay', 'freeze', 'deload', 'returnQuest', 'week']) {
       expect(typeof RAW._notes.sections[k]).toBe('string');
     }
   });

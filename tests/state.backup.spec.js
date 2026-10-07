@@ -324,11 +324,16 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
   test('每個好 fixture 都能匯入（含 v1、被改回 v2、空陣列、帶 BOM）', async () => {
     await loadCurrent();
     for (const name of ['v1-minimal.json', 'v2-real.json', 'v3.json', 'v3-reverted-to-v2.json', 'empty-arrays.json',
-      'v3-checkin.json', 'v3-checkin-reverted-to-v2.json']) {
+      'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-v2a.json', 'v3-v2a-reverted-to-v2.json']) {
       const r = parseImport(readFixture(name), { now: NOW });
       expect(r.ok, name).toBe(true);
       expect(r.incoming.version).toBe(3);
     }
+    /* V2a：被舊版改回 v2 的檔案匯入後，seen／deload 原樣 */
+    const v2a = parseImport(readFixture('v3-v2a-reverted-to-v2.json'), { now: NOW });
+    expect(v2a.incoming.game.seen).toStrictEqual({ level: 7, perfectDay: '2026-10-05' });
+    expect(v2a.incoming.game.deload).toStrictEqual({ restoredOn: '2026-10-05' });
+    expect(v2a.incoming.game.xp).toStrictEqual({ move: 424, sleep: 0, explore: 0, total: 424 });
     expect(parseImport('﻿' + readFixture('v2-real.json')).ok).toBe(true);
     const rev = parseImport(readFixture('v3-reverted-to-v2.json'), { now: NOW });
     expect(rev.incoming.game.xp).toStrictEqual({ move: 406, sleep: 0, explore: 0, total: 406 });
@@ -410,6 +415,21 @@ test.describe('fixtures/README.md 對照', () => {
       expect(needsBackupReminder(getState(), at('2026-10-10T21:05:00+09:00')), name).toBe(false);
       expect(needsBackupReminder(getState(), new Date(at('2026-10-10T21:05:00+09:00').getTime() + 1)), name).toBe(true);
     }
+  });
+
+  test('V2a fixture 的載入狀態與匯入結果', async () => {
+    for (const [name, status] of [['v3-v2a.json', 'ok'], ['v3-v2a-reverted-to-v2.json', 'migrated'], ['v3-v2a-bad-fields.json', 'repaired']]) {
+      const local = new MemoryStorage({ [STORAGE_KEY]: readFixture(name) });
+      installGlobals({ local });
+      const load = await loadState({ now: NOW });
+      expect(load.status, name).toBe(status);
+      expect(load.error ? load.error.backupKey : null, name).toBe(status === 'repaired' ? 'daily-ten-state.bak-v3' : null);
+    }
+    await loadCurrent();
+    const bad = parseImport(readFixture('v3-v2a-bad-fields.json'));
+    expect(bad.errors.map((e) => [e.code, e.path])).toStrictEqual([
+      ['invalid_type', 'game.seen.level'], ['out_of_range', 'game.seen.perfectDay'], ['invalid_type', 'game.deload']
+    ]);
   });
 
   test('載入用的 fixture 拿去匯入：v2-missing-fields、v2-wrong-types 被嚴格驗證擋下', async () => {

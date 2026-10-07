@@ -5,7 +5,9 @@
    2. 統計 #h-xp＝engine summary.xp.total、#h-best＝summary.streak.best；畫面上看不到第二種 XP（舊尺度 legacy xp）。
    3. AFT 卡用歷來最佳（engine aftGaps 的文字）。
    4. 遊戲日 04:00 換日：凌晨 2 點練完記在前一天；今日顯示前一天的日期與課表；PR 日期也用遊戲日。
-   5. 規則檔讀不到（404、不是 JSON）：不白屏、沒有未捕捉錯誤；三環、階段、早安打卡入口隱藏；下一步退回 M1 的今日課表；訓練照常。 */
+   5. 規則檔讀不到（404、不是 JSON）：不白屏、沒有未捕捉錯誤；三環、階段、早安打卡入口隱藏；下一步退回 M1 的今日課表；訓練照常。
+   V2a：連續天數含 Freeze（d10）——遊戲日 10-04 的 Boss Day 前一段只空了 10-02、10-03 兩天，2 張 Freeze 補得起 → 連續天數接上；
+   預期值由 engine 在 Node 對「fixture＋這筆 Boss 紀錄」算（不寫死）。 */
 import {
   test, expect, readFixture, readRepo, openApp, seedState, storedState, storageSnapshot, gotoTab, appSummary, nodeEngine,
   runWorkoutToEnd, tick, tickUntil, confirmImportTwice, NOW_ISO
@@ -200,7 +202,11 @@ test.describe('遊戲日：04:00 換日', () => {
     await expect(page.locator('#s-boss')).toHaveClass(/active/);
     await page.click('#bi-save');
     await expect(page.locator('#done')).toHaveClass(/active/);
-    await expect(page.locator('#d-xp')).toHaveText(`+${RULES.move.tiers.plus.xp} XP　·　連續 1 天`);
+    const s0 = JSON.parse(readFixture('v3.json'));
+    s0.sessions.push({ date: '2026-10-04', type: 'boss', xp: 20 });
+    const want = summaryOf(s0, '2026-10-05T01:00:00+09:00');
+    expect(want.freeze.usedDates.slice(-2), '10-02、10-03 由 Freeze 補上').toEqual(['2026-10-02', '2026-10-03']);
+    await expect(page.locator('#d-xp')).toHaveText(`+${RULES.move.tiers.plus.xp} XP　·　連續 ${want.streak.days} 天`);
     const s = await storedState(page);
     expect(s.prs.plank[s.prs.plank.length - 1]).toEqual({ date: '2026-10-04', sec: 70 });
     expect(s.sessions[s.sessions.length - 1]).toEqual({ date: '2026-10-04', type: 'boss', xp: 20 });

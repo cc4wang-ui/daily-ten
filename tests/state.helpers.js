@@ -12,7 +12,19 @@ export const DAY_MS = 86400000;
 
 export const GOOD_FIXTURES = ['v1-minimal.json', 'v2-real.json', 'v2-missing-fields.json', 'v2-wrong-types.json',
   'empty-arrays.json', 'v3.json', 'v3-reverted-to-v2.json',
-  'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json'];
+  'v3-checkin.json', 'v3-checkin-reverted-to-v2.json', 'v3-bad-sleep.json',
+  'v3-v2a.json', 'v3-v2a-reverted-to-v2.json', 'v3-v2a-bad-fields.json'];
+
+/* V2a fixture（v3-v2a.json＝v3-checkin.json 之後，V2a 第一次開啟的 10-05 一天）：
+   06:40 開 App → ensureSeenInitialized(7, '2026-10-05')（只改記憶體）→ 06:41 早安打卡（01:45 熄燈、06:41:20 起床：睡不到 6 小時、
+   熄燈晚於時段 90 分以上 → D6 降量）→ 按「恢復」setDeloadRestored('2026-10-05') → 晚上主課表 → Perfect Day 慶祝
+   markPerfectDaySeen('2026-10-05')。Lv 7（V1 engine：總 XP 2030 → 2115；Lv 8 要 2450）當天沒有升級。 */
+export const V2A_SEEN = Object.freeze({ level: 7, perfectDay: '2026-10-05' });
+export const V2A_DELOAD = Object.freeze({ restoredOn: '2026-10-05' });
+export const V2A_CHECKIN = Object.freeze({
+  date: '2026-10-05', lightsOut: '2026-10-05T01:45:00+09:00', wake: '2026-10-05T06:41:20+09:00', lightsOutEdited: true,
+  target: Object.freeze({ bedtime: '23:30', wakeTime: '07:00', windowMin: 30 })
+});
 
 /* B1 早安打卡 fixture 的 sleep log（v3-checkin.json 與 v3-checkin-reverted-to-v2.json 相同）
    10-03 晚上就寢目標從 23:00 改成 23:30：前兩筆的 target 仍是 23:00（改設定不重算過去） */

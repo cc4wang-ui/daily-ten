@@ -21,7 +21,10 @@ const P = {
   download: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
   up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  snow: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/>',
+  badge: '<circle cx="12" cy="9" r="6"/><path d="M8.5 13.9L7 22l5-3 5 3-1.5-8.1"/>',
+  spark: '<path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/>'
 };
 
 /* icon('sun', {size:18, cls:'x'}) → '<svg …>'；名稱不存在時回空的 svg（不丟錯） */

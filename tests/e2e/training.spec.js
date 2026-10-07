@@ -7,10 +7,15 @@
      N＝engine summary.streak.days；增加量另外對照 data/game.json 的分級（保底 30／主課表 50／加一輪與 Boss 60）。
      沒有「STREAK」、沒有「數據不說謊」；Boss 的身分句＝「測驗完成，成績已記錄。」
    - 加一輪記成當天的一般 type＋plus:true（不是 type 'plus'），engine 當天動＝60；legacy xp 仍是數字。
-   - 早上（04:00–12:00）還沒早安打卡時今日的「下一步」是打卡：早上的訓練從訓練分頁的「今日課表」開始（#tr-start）。 */
+   - 早上（04:00–12:00）還沒早安打卡時今日的「下一步」是打卡：早上的訓練從訓練分頁的「今日課表」開始（#tr-start）。
+   V2a：
+   - 連續天數含 Freeze（data/game.json d10：每滿 7 天得 1 張、最多 2 張，漏掉的日子整段補得起才自動用）。完成畫面的「連續 N 天」
+     預期值由 engine 在 Node 對「fixture＋這次應記下的訓練」算（engineAfter），不寫死；另外斷言意圖：當天第一次練、昨天有接上 → 比
+     練之前多 1；同一天再練 → 不變；中斷太久（空檔補不起）→ 從 1 開始。legacy streak（D12 雙寫）不受 Freeze 影響，數值照舊。
+   - 中斷後的今日是 D19 回歸任務卡（banner quest），取代 V1 的「上次訓練是 N 天前」。 */
 import {
   test, expect, readFixture, readRepo, openApp, seedState, storedState, rawMain, expectHome, gotoTab, appSummary,
-  tick, tickUntil, runWorkoutToEnd
+  tick, tickUntil, runWorkoutToEnd, nodeEngine, NOW_ISO
 } from './helpers.js';
 
 const IDENTITY = ['你是每天訓練的人。', '紀律就是自由。', '出席，就是勝利的八成。', '弱是選項，你沒選它。', '今天的你，比昨天強一點。'];
@@ -22,6 +27,15 @@ const doneText = (gain, days) => `+${gain} XP　·　連續 ${days} 天`;
 
 const phaseTotal = async (page) => Number((await page.locator('#t-phase').textContent()).split('/')[1]);
 const engine = async (page) => (await appSummary(page)).sum;
+/* V2a：engine（Node）對「fixture 原文＋這次應記下的訓練（同日取代）」在 now 的今日摘要——不經過 App 的資料 */
+function engineAfter(raw, records, now) {
+  const s = JSON.parse(raw);
+  for (const r of records) {
+    const i = s.sessions.findIndex((x) => x.date === r.date);
+    if (i >= 0) s.sessions[i] = r; else s.sessions.push(r);
+  }
+  return nodeEngine('return eng.todaySummary(args.state, new Date(args.now), rules);', { state: s, now });
+}
 
 /* 完成畫面：文字＝規則推得的增加量＋engine 連續天數；增加量也等於記錄前後 engine 累計 XP 的差 */
 async function expectDone(page, before, { gain, days, identity = 'normal' }) {
@@ -30,6 +44,8 @@ async function expectDone(page, before, { gain, days, identity = 'normal' }) {
   expect(gain, '規則推得的增加量＝engine 累計 XP 的差（不會是負數）').toBe(Math.max(0, after.xp.total - before.xp.total));
   expect(after.streak.days, '完成畫面的連續天數＝engine').toBe(days);
   await expect(page.locator('#d-xp')).toHaveText(doneText(gain, days));
+  /* V2a：這些訓練都沒有帶來 Perfect Day（沒有早安打卡）或回歸加成 → 完成畫面沒有 #d-bonus */
+  await expect(page.locator('#d-bonus')).toBeHidden();
   if (identity === 'boss') await expect(page.locator('#d-identity')).toHaveText(BOSS_IDENTITY);
   else expect(IDENTITY).toContain(await page.locator('#d-identity').textContent());
   const all = await page.locator('#done').innerText();
@@ -106,7 +122,11 @@ test.describe('訓練流程（假時鐘）', () => {
     await tick(page, 2);
     await expect(page.locator('#t-count')).toHaveText('5');
 
-    let after = await finishWorkout(page, before, { gain: TIER_XP('minimal'), days: 13 });
+    /* V2a Freeze：v3.json 在 09-19 有一天空檔，已有的 Freeze 補上 → engine 的連續天數比 legacy（12）長；預期值由 engine 算 */
+    const days1 = engineAfter(readFixture('v3.json'), [{ date: '2026-10-02', type: 'minimal', xp: 3 }], NOW_ISO).streak.days;
+    expect(days1, '當天第一次練、昨天（10-01）有練 → 比練之前多 1').toBe(before.streak.days + 1);
+    expect(days1, 'Freeze 只會讓連續天數變長，不會比 legacy 短').toBeGreaterThanOrEqual(13);
+    let after = await finishWorkout(page, before, { gain: TIER_XP('minimal'), days: days1 });
     expect(after.pillars.move).toMatchObject({ xp: TIER_XP('minimal'), tier: 'minimal', done: true });
     const streak13 = { current: 13, best: 13, lastDate: '2026-10-02' };
     let s = await storedState(page);
@@ -120,7 +140,7 @@ test.describe('訓練流程（假時鐘）', () => {
     /* 同日再跑今日課表：session 升級為 full，legacy XP 補差額 7、engine 動 30 → 50（+20），連續天數不變 */
     before = after;
     await page.click('#h-start');
-    after = await finishWorkout(page, before, { gain: TIER_XP('main') - TIER_XP('minimal'), days: 13 });
+    after = await finishWorkout(page, before, { gain: TIER_XP('main') - TIER_XP('minimal'), days: days1 }); // 同一天再練：不變
     expect(after.pillars.move).toMatchObject({ xp: TIER_XP('main'), tier: 'main' });
     s = await storedState(page);
     expectSynced(s, { xp: 406, streak: streak13, sessions: 36, lastSession: { date: '2026-10-02', type: 'full', xp: 10 } });
@@ -129,7 +149,7 @@ test.describe('訓練流程（假時鐘）', () => {
     /* 再跑保底版：較低一級，不降級、不加 XP（完成畫面 +0，不是負數） */
     before = after;
     await page.click('#h-minimal');
-    after = await finishWorkout(page, before, { gain: 0, days: 13 });
+    after = await finishWorkout(page, before, { gain: 0, days: days1 });
     expect(after.xp.total).toBe(before.xp.total);
     s = await storedState(page);
     expectSynced(s, { xp: 406, streak: streak13, sessions: 36, lastSession: { date: '2026-10-02', type: 'full', xp: 10 } });
@@ -155,7 +175,9 @@ test.describe('訓練流程（假時鐘）', () => {
     await page.click('#h-plus');
     const totalPlus = await phaseTotal(page);
     expect(totalPlus).toBeGreaterThan(totalStart);
-    const after = await finishWorkout(page, eBefore, { gain: TIER_XP('plus'), days: 13 });
+    const days = engineAfter(readFixture('v3.json'), [{ date: '2026-10-02', type: 'full', xp: 10, plus: true }], NOW_ISO).streak.days;
+    expect(days).toBe(eBefore.streak.days + 1);
+    const after = await finishWorkout(page, eBefore, { gain: TIER_XP('plus'), days });
     expect(after.pillars.move).toMatchObject({ xp: 60, max: 60, tier: 'plus', type: 'full' });
     const s = await storedState(page);
     expectSynced(s, {
@@ -172,8 +194,12 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'checkin'); // 早上：下一步是早安打卡
     await expect(page.locator('#h-banner')).toBeHidden(); // 昨天（9/28）有練
     let before = await engine(page);
+    const raw = readFixture('v2-real.json');
+    const rec29 = { date: '2026-09-29', type: 'full', xp: 10 };
+    const days29 = engineAfter(raw, [rec29], '2026-09-29T07:00:00+09:00').streak.days;
+    expect(days29, '昨天（9/28）有練 → 比練之前多 1').toBe(before.streak.days + 1);
     await startFromTrainTab(page, '開始今日課表');
-    await finishWorkout(page, before, { gain: TIER_XP('main'), days: 10 });
+    await finishWorkout(page, before, { gain: TIER_XP('main'), days: days29 });
     expectSynced(await storedState(page), {
       xp: 371, streak: { current: 10, best: 11, lastDate: '2026-09-29' }, sessions: 33,
       lastSession: { date: '2026-09-29', type: 'full', xp: 10 }
@@ -190,7 +216,9 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 拉系列與上背');
     before = await engine(page);
     await page.click('#h-plus');
-    const after = await finishWorkout(page, before, { gain: TIER_XP('plus'), days: 11 });
+    const days30 = engineAfter(raw, [rec29, { date: '2026-09-30', type: 'cycle', xp: 15, plus: true }], '2026-09-30T07:00:00+09:00').streak.days;
+    expect(days30, '跨日連續天數 +1').toBe(days29 + 1);
+    const after = await finishWorkout(page, before, { gain: TIER_XP('plus'), days: days30 });
     expect(after.pillars.move).toMatchObject({ xp: 60, tier: 'plus', type: 'cycle' });
     expectSynced(await storedState(page), {
       xp: 386, streak: { current: 11, best: 11, lastDate: '2026-09-30' }, sessions: 34,
@@ -205,7 +233,9 @@ test.describe('訓練流程（假時鐘）', () => {
     const before = await engine(page);
     await page.click('#h-rain');
     await expect(page.locator('#t-phase')).toHaveText('1 / 21');
-    await finishWorkout(page, before, { gain: TYPE_XP('rain'), days: 13 });
+    const days = engineAfter(readFixture('v3.json'), [{ date: '2026-10-02', type: 'rain', xp: 5 }], NOW_ISO).streak.days;
+    expect(days).toBe(before.streak.days + 1);
+    await finishWorkout(page, before, { gain: TYPE_XP('rain'), days });
     expect(TYPE_XP('rain')).toBe(TIER_XP('main'));
     expectSynced(await storedState(page), {
       xp: 401, streak: { current: 13, best: 13, lastDate: '2026-10-02' }, sessions: 36,
@@ -213,7 +243,7 @@ test.describe('訓練流程（假時鐘）', () => {
     });
   });
 
-  test('週六恢復日 rest → 週日 Boss Day（Plank）碼表 1:35 → 成績寫入 PR、boss（engine 60）、連續 15 天', async ({ page }) => {
+  test('週六恢復日 rest → 週日 Boss Day（Plank）碼表 1:35 → 成績寫入 PR、boss（engine 60）、legacy 連續 15 天（畫面＝engine，含 Freeze）', async ({ page }) => {
     const seen = dialogs(page);
     await openApp(page, { now: '2026-10-03T07:30:00+09:00', seed: seedState(readFixture('v3-reverted-to-v2.json')) });
     await expect(page.locator('#h-date')).toHaveText('週六 10/3');
@@ -221,8 +251,12 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(page.locator('#h-plus')).toBeHidden();
     await expect(page.locator('#h-mission')).toContainText('休息日：三組伸展全部走一遍，不做肌力。');
     let before = await engine(page);
+    const raw = readFixture('v3-reverted-to-v2.json');
+    const rest03 = { date: '2026-10-03', type: 'rest', xp: 5 };
+    const days03 = engineAfter(raw, [rest03], '2026-10-03T07:30:00+09:00').streak.days;
+    expect(days03).toBe(before.streak.days + 1);
     await startFromTrainTab(page, '開始恢復序列');
-    await finishWorkout(page, before, { gain: TYPE_XP('rest'), days: 14 });
+    await finishWorkout(page, before, { gain: TYPE_XP('rest'), days: days03 });
     expectSynced(await storedState(page), {
       xp: 411, streak: { current: 14, best: 14, lastDate: '2026-10-03' },
       lastSession: { date: '2026-10-03', type: 'rest', xp: 5 }
@@ -248,7 +282,9 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(page.locator('#b-title')).toHaveText('Plank 成績確認');
     await expect(page.locator('#b-card')).toContainText('1:35');
     await page.click('#bi-save');
-    await expectDone(page, before, { gain: TYPE_XP('boss'), days: 15, identity: 'boss' });
+    const days04 = engineAfter(raw, [rest03, { date: '2026-10-04', type: 'boss', xp: 20 }], '2026-10-04T07:30:00+09:00').streak.days;
+    expect(days04, '跨日連續天數 +1').toBe(days03 + 1);
+    await expectDone(page, before, { gain: TYPE_XP('boss'), days: days04, identity: 'boss' });
     const s = await storedState(page);
     expectSynced(s, {
       xp: 431, streak: { current: 15, best: 15, lastDate: '2026-10-04' },
@@ -267,9 +303,19 @@ test.describe('訓練流程（假時鐘）', () => {
   test('週日 Boss Day（HRP）：暖身 → 2:00 倒數 → 空白輸入被擋 → 18 下寫入 PR', async ({ page }) => {
     const seen = dialogs(page);
     await openApp(page, { now: '2026-10-18T08:00:00+09:00', seed: seedState(readFixture('v3.json')) });
-    /* 中斷提示：中性語氣（不扣分、不羞辱，原則 8），給保底版 */
-    await expect(page.locator('#h-banner')).toHaveClass('banner info'); // 上次 10/1
-    await expect(page.locator('#h-banner')).toHaveText(/^上次訓練是 17 天前。從保底版重新開始就好，約 \d+ 分鐘。$/);
+    /* V2a D19：中斷後的今日是回歸任務卡（取代 V1 的「上次訓練是 17 天前」）：只講今天完成任一支柱就有回歸徽章，
+       不提中斷幾天、不扣分（原則 8）；保底版連結照常在。文字＝engine 的 returnQuest.label（data/game.json copy） */
+    const v3raw = readFixture('v3.json');
+    const quest = engineAfter(v3raw, [], '2026-10-18T08:00:00+09:00').returnQuest;
+    expect(quest.stage).toBe('return');
+    const banner = page.locator('#h-banner');
+    await expect(banner).toHaveClass('banner quest'); // 上次 10/1
+    await expect(banner).toHaveAttribute('data-stage', 'return');
+    await expect(banner).toHaveText(quest.label);
+    expect(quest.label).toBe(RULES.copy.returnQuest.return);
+    await expect(banner).not.toContainText(/天前|中斷|\d+\s*天/);
+    await expect(page.locator('#h-minimal')).toBeVisible();
+    await expect(page.locator('#h-minimal')).toHaveText(/^只有 \d+ 分鐘？做保底版$/);
     await gotoTab(page, 's-train');
     await expect(page.locator('#h-mission')).toHaveText('今日測驗：HRP 伏地挺身 2 分鐘。先完成十動作暖身，測驗自動接續。');
     const before = await engine(page);
@@ -289,13 +335,23 @@ test.describe('訓練流程（假時鐘）', () => {
     expect(await rawMain(page)).toBe(raw);
     await page.fill('#bi-1', '18');
     await page.click('#bi-save');
-    await expectDone(page, before, { gain: TYPE_XP('boss'), days: 1, identity: 'boss' });
+    /* 16 天空檔，Freeze 最多 2 張補不起 → 不用（張數保留）、從 1 開始 */
+    const after18 = engineAfter(v3raw, [{ date: '2026-10-18', type: 'boss', xp: 20 }], '2026-10-18T08:00:00+09:00');
+    expect(after18.streak.days).toBe(1);
+    await expectDone(page, before, { gain: TYPE_XP('boss'), days: after18.streak.days, identity: 'boss' });
     const s = await storedState(page);
     expectSynced(s, {
       xp: 416, streak: { current: 1, best: 12, lastDate: '2026-10-18' },
       lastSession: { date: '2026-10-18', type: 'boss', xp: 20 }
     });
     expect(s.prs.hrp[s.prs.hrp.length - 1]).toEqual({ date: '2026-10-18', reps: 18 });
+    /* 回到今日：回歸當天（只有動）＝拿到回歸徽章，卡片改說接下來 3 天內完成 2 個支柱的加成 */
+    expect(after18.returnQuest).toMatchObject({ stage: 'badge', badgeDate: '2026-10-18' });
+    await page.click('#d-ok');
+    await expect(banner).toHaveClass('banner quest');
+    await expect(banner).toHaveAttribute('data-stage', 'badge');
+    await expect(banner).toHaveText(after18.returnQuest.label);
+    await expect(page.locator('#cele')).toBeHidden(); // P1 還沒早安打卡 → 不是 Perfect Day；Lv 沒變
   });
 
   test('週日 Boss Day（2 英里）：暖身 → 成績輸入 → 缺秒數被擋 → 18:30 寫入 PR', async ({ page }) => {
@@ -316,7 +372,9 @@ test.describe('訓練流程（假時鐘）', () => {
     expect(await rawMain(page)).toBe(raw);
     await page.fill('#bi-s', '30');
     await page.click('#bi-save');
-    await expectDone(page, before, { gain: TYPE_XP('boss'), days: 1, identity: 'boss' });
+    const days11 = engineAfter(readFixture('v3.json'), [{ date: '2026-10-11', type: 'boss', xp: 20 }], '2026-10-11T08:00:00+09:00').streak.days;
+    expect(days11, '9 天空檔補不起 → 從 1 開始').toBe(1);
+    await expectDone(page, before, { gain: TYPE_XP('boss'), days: days11, identity: 'boss' });
     const s = await storedState(page);
     expectSynced(s, {
       xp: 416, streak: { current: 1, best: 12, lastDate: '2026-10-11' },

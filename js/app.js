@@ -5,7 +5,9 @@
    D23：自動更新的頁面端（SW 通知 → 回 ACK → 閒置才重新載入；回到前景／恢復連線時檢查新版），見下方「自動更新」。
    B1：分頁「今日／訓練／統計」＋今日右上齒輪＝設定；畫面切換一律走 js/ui/nav.js 的 goTo()（同步）。
    遊戲層（engine、規則檔、早安打卡寫入）另外載入（loadGame），失敗只隱藏遊戲卡片，App 其他功能照常。
-   開機全部畫完後設 html[data-ready]（給測試等待用）。 */
+   開機全部畫完後設 html[data-ready]（給測試等待用）。
+   V2a：遊戲層一起載入 data-guardian 的 js/state/game.js（升級卡／Perfect Day 看過、D6 恢復）；開機第一次 render 前
+   ensureSeen()（只改記憶體、不存檔：開 App 不寫入），之後由 js/ui/celebrate.js 決定要不要播慶祝與升級卡。 */
 
 /* ===== 啟動失敗保護：純 DOM，不依賴任何其他 module ===== */
 const RAW_KEY='daily-ten-state'; // 與 store.js 的 STORAGE_KEY 相同；store 載入失敗時也要能下載
@@ -52,7 +54,8 @@ function showFatal(err){
    新版 SW 啟用後會送 {type:'DT_UPDATE_READY', version}，附一個 MessagePort：
    1. 立刻從 port 回 {type:'DT_UPDATE_ACK'}（3 秒內沒回，SW 會直接重新導向，那是給舊版頁面用的）。
    2. 閒置才重新載入：沒在訓練、沒有訓練／完成／示範畫面、匯入預覽沒開、不在 Boss 成績輸入、沒有正在輸入、
-      復原 toast 沒在顯示（打卡後 10 秒內可復原）、早安打卡的熄燈時間編輯沒開著；否則每 2 秒再看一次。
+      復原 toast 沒在顯示（打卡後、D6「恢復」後 10 秒內可復原）、早安打卡的熄燈時間編輯沒開著、
+      Perfect Day 慶祝與升級卡（#cele）沒開著；否則每 2 秒再看一次。
    3. 重新載入前把版本名存進 sessionStorage，開機後在 HOME 提示一次（畫面在 js/ui/update.js）。
    另外：回到前景（visibilitychange → visible）與恢復連線（online）時請瀏覽器檢查新版，60 秒內最多一次——
    iPhone 從背景切回 App 不算重開，不檢查就會一直停在舊版。 */
@@ -92,6 +95,8 @@ function isIdle(){
   const toast=document.getElementById('toast');
   if(toast&&!toast.hidden)return false;
   if(shown('ci-edit-row'))return false;
+  /* V2a：Perfect Day 慶祝、升級卡開著（按「領取」才記成看過，重新載入會再播一次） */
+  if(shown('cele'))return false;
   return !typing();
 }
 function reloadWhenIdle(){
@@ -142,11 +147,12 @@ function loadUpdateUi(){
    全部載入成功且 loadRules() 回規則物件才交給 js/ui/game.js；任何一步失敗 → 未就緒（隱藏三環、階段、早安打卡入口），不丟錯。 */
 async function loadGame(game){
   try{
-    const [rules,day,engine,sleep,habits]=await Promise.all([
-      import('./game/rules.js'),import('./game/day.js'),import('./game/engine.js'),import('./habits/sleep.js'),import('./state/habits.js')]);
+    const [rules,day,engine,sleep,habits,progress]=await Promise.all([
+      import('./game/rules.js'),import('./game/day.js'),import('./game/engine.js'),import('./habits/sleep.js'),import('./state/habits.js'),
+      import('./state/game.js')]);
     const r=await rules.loadRules();
     if(!r){console.warn('遊戲規則讀取失敗：隱藏遊戲卡片');return false;}
-    return game.setGame({rules:r,day,engine,sleep,habits});
+    return game.setGame({rules:r,day,engine,sleep,habits,progress});
   }catch(e){
     console.warn('遊戲層載入失敗：隱藏遊戲卡片',e);
     return false;
@@ -174,7 +180,8 @@ async function boot(){
   /* 分頁列、今日右上齒輪、統計的兩段：data-s＝要去的畫面；「‹ 今日」回今日 */
   document.querySelectorAll('[data-s]').forEach(b=>{b.onclick=()=>goTo(b.dataset.s);});
   document.querySelectorAll('[data-back]').forEach(b=>{b.onclick=()=>goTo('s-home');});
-  const minimal=()=>startWorkout(minimalSeq(getState().level),'minimal');
+  /* 保底版：今天課表的強度（D6 降量中＝降一級後的強度） */
+  const minimal=()=>startWorkout(minimalSeq(game.planLevel()),'minimal');
   $('h-minimal').onclick=minimal;
   $('tr-minimal').onclick=minimal;
   $('h-rain').onclick=()=>startWorkout(rainSeq(),'rain');
@@ -185,6 +192,7 @@ async function boot(){
   /* ================= INIT ================= */
   const loaded=await loadState();
   await loadGame(game);
+  game.ensureSeen(); // V2a：第一次開啟不補播舊的升級卡與慶祝（只改記憶體）
   wireBody();
   renderVideos();
   renderHome();renderSetup();renderStats();

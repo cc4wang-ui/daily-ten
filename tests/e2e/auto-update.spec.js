@@ -7,7 +7,8 @@
    - 有沒有重新載入：在文件上做記號（markDocument），記號消失＝換了新文件。
    - 每一項都比對 localStorage 全部 key 與值：沒有因為更新而掉資料或多寫東西（刻意存檔的項目另外斷言新增的那一筆）。
    V1：動作庫在訓練分頁；早上的訓練從訓練分頁的「今日課表」開始（今日的下一步是早安打卡）。
-   新增兩種「忙碌」：早安打卡後 10 秒內可復原的 toast 顯示中、早安打卡的「修改時間」列開著——都不重新載入。 */
+   新增兩種「忙碌」：早安打卡後 10 秒內可復原的 toast 顯示中、早安打卡的「修改時間」列開著——都不重新載入。
+   V2a 再加兩種：Perfect Day 慶祝／升級卡（#cele，按「領取」才記成看過，重新載入會再播）開著、D6「恢復 L{n}」後 10 秒內的復原 toast。 */
 import {
   test, expect, readFixture, fixturePath, openApp, seedState, waitReady, gotoTab, tick, tickUntil, runWorkoutToEnd,
   storageSnapshot, storedState, expectHome, swAssets, cacheNumber, makeDeployCopy, REPO_DIR, cacheNames, waitControlled,
@@ -354,6 +355,63 @@ test('早安打卡的「修改時間」列開著：不重新載入；按「恢�
   await expect(row).toBeHidden();
   await expectReloadToNext(page, token, '收起修改時間列後');
   expect(await storageSnapshot(page)).toEqual(before);
+});
+
+/* ---------- V2a ---------- */
+/* v3-v2a.json 把「慶祝看過」退回 10-04：開 App（10-05 20:00）就出現 10-05 的 Perfect Day 慶祝 */
+function v2aCeleDue() {
+  const s = JSON.parse(readFixture('v3-v2a.json'));
+  s.game.seen.perfectDay = '2026-10-04';
+  return JSON.stringify(s);
+}
+test('V2a：Perfect Day 慶祝卡開著（還沒按「領取」）：不重新載入；領取後才重新載入，看過有存、重新載入後不再播', async ({ page, deploy }) => {
+  deploy.setRoot(REPO_DIR);
+  await recordSwMessages(page);
+  await openApp(page, { now: '2026-10-05T20:00:00+09:00', seed: seedState(v2aCeleDue()), url: deploy.url() });
+  await waitControlled(page, CUR);
+  const cele = page.locator('#cele');
+  await expect(cele).toBeVisible();
+  await expect(cele).toHaveAttribute('data-kind', 'perfect');
+  const before = await storageSnapshot(page);
+  const token = await markDocument(page);
+  await deployNextWhileBusy(page, deploy);
+  await expectNoReload(page, token, '慶祝卡開著');
+  await expect(cele).toBeVisible();
+  expect(await storageSnapshot(page), '還沒領取：沒有寫入').toEqual(before);
+
+  await page.click('#cele-ok');
+  await expect(cele).toBeHidden();
+  const saved = await storageSnapshot(page);
+  expect(JSON.parse(saved[MAIN_KEY]).game.seen).toEqual({ level: 7, perfectDay: '2026-10-05' });
+  await expectReloadToNext(page, token, '領取後');
+  expect(await storageSnapshot(page), '重新載入前後 localStorage 相同').toEqual(saved);
+  await expect(cele, '看過了：重新載入後不再播').toBeHidden();
+});
+
+test('V2a：D6「恢復 L3」後 10 秒內（復原 toast 顯示中）：不重新載入；toast 收起後才重新載入，恢復有存', async ({ page, deploy }) => {
+  /* v3-checkin＋今天（10-05）06:41 熄燈 01:45 的早安打卡：睡不到 6 小時 → 降量卡 */
+  const s = JSON.parse(readFixture('v3-v2a.json'));
+  s.game.deload = { restoredOn: null };
+  s.sessions = s.sessions.filter((x) => x.date !== '2026-10-05');
+  deploy.setRoot(REPO_DIR);
+  await recordSwMessages(page);
+  await openApp(page, { now: '2026-10-05T07:30:00+09:00', seed: seedState(JSON.stringify(s)), url: deploy.url() });
+  await waitControlled(page, CUR);
+  await expect(page.locator('#h-deload')).toBeVisible();
+  await page.click('#h-deload-restore');
+  await expect(page.locator('#toast-text')).toHaveText('已恢復 L3');
+  const saved = await storageSnapshot(page);
+  expect(JSON.parse(saved[MAIN_KEY]).game.deload).toEqual({ restoredOn: '2026-10-05' });
+  const token = await markDocument(page);
+  await deployNextWhileBusy(page, deploy);
+  await expectNoReload(page, token, '恢復後的復原 toast 顯示中'); // 假時鐘 +6 秒：仍在 10 秒內
+  await expect(page.locator('#toast')).toBeVisible();
+  await page.clock.runFor(4_000);
+  await expect(page.locator('#toast')).toBeHidden();
+  await expectReloadToNext(page, token, '恢復的 toast 收起後');
+  expect(await storageSnapshot(page)).toEqual(saved);
+  await expect(page.locator('#h-deload-title')).toHaveText('已恢復 L3');
+  await expect(page.locator('#h-deload-restore')).toBeHidden();
 });
 
 test('回到前景：visibilitychange → registration.update() 並套用新版；60 秒內最多一次（online 共用節流）；背景時不檢查', async ({ page, deploy }) => {

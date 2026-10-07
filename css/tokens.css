@@ -46,6 +46,11 @@
   --info-bg:#F1EFEA;   --info-ink:#1B1D1A;                          /* 中斷提示（中性，不懲罰） */
   --amber-ink:#8A5A00;                                              /* 判讀「持平」 */
   --toast-bg:#1B1D1A;  --toast-ink:#FFFFFF;  --toast-action:#FFD3C7; /* 復原 toast（12.4:1） */
+  --quest-bg:#E3F7F1;  --quest-ink:#1B1D1A;  --quest-icon:#00795B;  /* V2a 回歸任務卡（正向；主文字 15.2:1、白圓底圖示 5.40:1） */
+  --quest-boost-bg:#FFF1EC; --quest-boost-icon:#B8401F;             /* 回歸加成日（×1.5；主文字 15.4:1、白圓底圖示 5.54:1） */
+  --deload-bg:#F5F4FF; --deload-ink:#1B1D1A; --deload-ink-2:#4A4570; /* V2a D6 降量卡（眠的淡色塊；主文字 15.6:1、第二行 8.1:1） */
+  --cele-scrim:rgba(27,29,26,.9);                                   /* V2a 慶祝／升級卡的遮罩 */
+  --cele-xp:#00795B;                                                /* 慶祝卡「+30 XP」（白底 5.40:1） */
 
   /* ---- 字型：系統字，離線可用（不用 Google Fonts） ---- */
   --font:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;
@@ -57,12 +62,13 @@
   --gap:14px;                        /* 畫面內區塊間距 */
   --pad-screen:20px;                 /* 畫面左右留白 */
   --pad-card:18px;                   /* 卡片內距 */
-  --r-card:20px; --r-btn:18px; --r-md:16px; --r-sm:12px; --r-xs:9px; --r-pill:999px;
+  --r-card:20px; --r-btn:18px; --r-md:16px; --r-sm:12px; --r-xs:9px; --r-pill:999px; --r-cele:28px;
   --shadow-card:0 1px 2px rgba(27,29,26,.04),0 6px 20px rgba(27,29,26,.06);
   --shadow-chip:0 1px 2px rgba(27,29,26,.06);
   --shadow-btn:0 8px 20px rgba(27,29,26,.18);
   --shadow-wake:0 6px 16px rgba(84,70,214,.28);
   --shadow-toast:0 10px 24px rgba(27,29,26,.25);
+  --shadow-cele:0 24px 60px rgba(0,0,0,.35);
   --touch:44px;                      /* 觸控最小尺寸 */
   --tabbar-h:64px;                   /* 底部分頁列高度（不含安全區；#app 底部留白也用它） */
   --maxw:520px;                      /* 內容最大寬度 */
@@ -74,6 +80,10 @@
   --toast-lift:12px;                 /* toast 出現時的位移 */
   --undo-ms:10000ms;                 /* 復原期限（10 秒） */
   --undone-ms:2500ms;                /* 「已復原」提示停留 */
+  --cele-in-ms:320ms;                /* V2a 慶祝／升級卡出現（上移＋淡入；減少動態時只淡入） */
+  --cele-lift:16px;                  /* 慶祝卡出現時的位移 */
+  --confetti-ms:1150ms;              /* 彩帶落下（每片 75–100%） */
+  --confetti-delay:300ms;            /* 彩帶最晚起跑；落下＋起跑 ≤1.5 秒 */
 
   /* ---- M1 暗色（訓練畫面家族沿用；數值不變）---- */
   --bg:#12140F; --panel:#1C1F17; --panel2:#242820; --line:#33382B;

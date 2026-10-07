@@ -5,7 +5,13 @@
    2. 執行（早安打卡 → toast；回今日 → 三環掃入）：no-preference → 每個動畫的關鍵影格只含 transform／opacity；
       reduce → 只含 opacity（淡入），沒有任何位移或旋轉。
    3. 訓練畫面（#train）蓋上來時，三環與 toast 的動畫一律暫停（animation-play-state: paused）；示範動畫（demos.js 以 rAF 繪製）不受影響。
-   4. M1 的資料保護元素（錯誤卡、匯入控制項、預覽）與啟動失敗卡仍沒有任何動畫或 transition（D27 起今日沒有備份提醒卡）。 */
+   4. M1 的資料保護元素（錯誤卡、匯入控制項、預覽）與啟動失敗卡仍沒有任何動畫或 transition（D27 起今日沒有備份提醒卡）。
+   V2a 新增 Perfect Day 慶祝／升級卡（#cele，js/ui/celebrate.js）：遮罩淡入（fade-in）、卡片上移＋淡入（cele-pop）、彩帶落下（cf-fall，
+   DOM 小片、不用 Canvas）。規則照舊只准 transform／opacity，另外要求：
+   5. 靜態：cele-pop、cf-fall 存在且只動 transform／opacity；reduce 時卡片與彩帶改播 fade-in；訓練畫面蓋上來時 .cele 暫停；
+      tokens.css 的出現時間 ≤ 1.5 秒、彩帶「落下＋最晚起跑」≤ 1.5 秒（§7 彩帶 ≤1.5 秒）。
+   6. 執行：no-preference → 每個動畫只含 transform／opacity、全部在 1.5 秒內結束（沒有無限動畫）；
+      reduce → 只有 fade-in、只有 opacity，卡片沒有位移（transform 計算值 none），彩帶是 .cf.still（靜止淡入）。 */
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test, expect, readFixture, readRepo, ROOT, openApp, seedState, gotoTab } from './helpers.js';
@@ -65,8 +71,18 @@ test('靜態：@keyframes 只動 transform／opacity、transition 只列 transfo
     }
   }
   expect(problems).toEqual([]);
-  expect([...names].sort()).toEqual(expect.arrayContaining(['fade-in', 'ring-sweep', 'toast-in']));
+  expect([...names].sort()).toEqual(expect.arrayContaining(['fade-in', 'ring-sweep', 'toast-in', 'cele-pop', 'cf-fall']));
   expect(keyframeBlocks(css).find((k) => k.name === 'fade-in').props).toEqual(['opacity']);
+  /* V2a 慶祝：卡片上移＋淡入、彩帶落下＋旋轉＋淡出——只有 transform／opacity（上面的迴圈已擋其他屬性，這裡再確認有位移才需要 reduce 規則） */
+  for (const k of ['cele-pop', 'cf-fall']) expect(keyframeBlocks(css).find((b) => b.name === k).props.sort()).toEqual(['opacity', 'transform']);
+  expect(reduceBlock).toMatch(/\.cele\.in \.cele-card\s*\{\s*animation-name\s*:\s*fade-in/);
+  expect(reduceBlock).toMatch(/\.cf\s*\{\s*animation-name\s*:\s*fade-in/);
+  expect(css).toMatch(/body:has\(#train\.active\)\s*\.cele[^{]*\{[^}]*animation-play-state\s*:\s*paused/);
+  /* 時間 token：出現 ≤ 1.5 秒；彩帶落下（每片 75–100%）＋最晚起跑 ≤ 1.5 秒 */
+  const tokens = stripComments(readRepo('css/tokens.css'));
+  const ms = (name) => { const m = new RegExp(`${name}\\s*:\\s*(\\d+(?:\\.\\d+)?)(ms|s)`).exec(tokens); return m ? Number(m[1]) * (m[2] === 's' ? 1000 : 1) : NaN; };
+  expect(ms('--cele-in-ms')).toBeLessThanOrEqual(1500);
+  expect(ms('--confetti-ms') + ms('--confetti-delay')).toBeLessThanOrEqual(1500);
   /* reduce：三環與 toast 改播 fade-in */
   expect(reduceBlock).toMatch(/\.ring-arc\.sweep/);
   expect(reduceBlock).toMatch(/\.toast\.in/);
@@ -141,6 +157,63 @@ for (const mode of ['no-preference', 'reduce']) {
     await expect(page.locator('#toast')).toBeVisible();
     expect(await page.evaluate(() => getComputedStyle(document.getElementById('toast')).animationPlayState)).toBe('running');
     await expect(page.locator('#h-rings-svg .ring-arc.sweep')).toHaveCount(0);
+  });
+}
+
+/* ---------- V2a 慶祝／升級卡（#cele）：開 App 時就該出現的 Perfect Day（v3-v2a.json 把「看過」退回前一天） ---------- */
+function celeDueRaw() {
+  const s = JSON.parse(readFixture('v3-v2a.json'));
+  s.game.seen.perfectDay = '2026-10-04'; // 10-05 的 Perfect Day（訓練＋早安打卡）還沒慶祝
+  return JSON.stringify(s);
+}
+const celeAnimations = (page) => page.evaluate(() => document.getAnimations().map((a) => {
+  const t = a.effect && a.effect.target;
+  const props = new Set();
+  for (const k of a.effect.getKeyframes()) for (const p of Object.keys(k)) props.add(p);
+  for (const meta of ['offset', 'computedOffset', 'easing', 'composite']) props.delete(meta);
+  const ct = a.effect.getComputedTiming();
+  return {
+    inCele: !!(t && t.closest && t.closest('#cele')),
+    target: t ? (t.id || t.getAttribute('class') || t.tagName) : null,
+    name: a.animationName || a.id || '',
+    props: [...props].sort(),
+    end: ct.endTime,
+    iterations: ct.iterations,
+    playState: a.playState
+  };
+}));
+
+for (const mode of ['no-preference', 'reduce']) {
+  test(`prefers-reduced-motion: ${mode} → Perfect Day 慶祝卡${mode === 'reduce' ? '只淡入（只有 opacity），彩帶靜止' : '只動 transform／opacity、1.5 秒內全部結束'}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: mode });
+    await openApp(page, { now: '2026-10-05T20:00:00+09:00', seed: seedState(celeDueRaw()) });
+    const cele = page.locator('#cele');
+    await expect(cele).toBeVisible();
+    await expect(cele).toHaveAttribute('data-kind', 'perfect');
+    const anims = (await celeAnimations(page)).filter((a) => a.inCele);
+    const byName = anims.reduce((o, a) => ({ ...o, [a.name]: (o[a.name] || 0) + 1 }), {});
+    await expect(page.locator('#cele-confetti .cf')).toHaveCount(26);
+    for (const a of anims) {
+      expect(a.iterations, `${a.target}：不是無限動畫`).toBe(1);
+      expect(a.end, `${a.target}：${a.name} ${a.end} ms ≤ 1500 ms`).toBeLessThanOrEqual(1500);
+    }
+    if (mode === 'reduce') {
+      expect(byName).toEqual({ 'fade-in': 28 }); // 遮罩、卡片、26 片彩帶
+      for (const a of anims) expect(a.props, `${a.target}：reduce 只淡入`).toEqual(['opacity']);
+      await expect(page.locator('#cele-confetti .cf.still')).toHaveCount(26);
+      expect(await page.evaluate(() => getComputedStyle(document.querySelector('#cele .cele-card')).transform)).toBe('none');
+    } else {
+      expect(byName).toEqual({ 'fade-in': 1, 'cele-pop': 1, 'cf-fall': 26 });
+      for (const a of anims) expect(a.props.every((p) => ['opacity', 'transform'].includes(p)), `${a.target}：${a.props}`).toBe(true);
+      await expect(page.locator('#cele-confetti .cf.still')).toHaveCount(0);
+    }
+    /* 1.5 秒後慶祝的動畫都結束（只剩靜止畫面）；按「領取」彩帶清掉。CSS 動畫走文件時間軸（真實時間，不受假時鐘影響） */
+    await page.waitForTimeout(1_700);
+    const left = (await celeAnimations(page)).filter((a) => a.inCele && a.playState === 'running');
+    expect(left, '1.6 秒後還在跑的慶祝動畫').toEqual([]);
+    await page.click('#cele-ok');
+    await expect(cele).toBeHidden();
+    await expect(page.locator('#cele-confetti .cf')).toHaveCount(0);
   });
 }
 

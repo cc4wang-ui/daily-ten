@@ -1,4 +1,5 @@
-/* game-designer：js/game/engine.js 單元測試——XP 分級、等級曲線、連續天數、階段與探索閘門、下一步、壞資料（純 Node） */
+/* game-designer：js/game/engine.js 單元測試——XP 分級、等級曲線、連續天數、階段與探索閘門、下一步、壞資料（純 Node）
+   V2a 的 Perfect Day、Freeze、D6、D19 另在 game.v2a.spec.js；這裡的連續天數已含 Freeze（d10）、總 XP 已含 bonus（d9、d12）。 */
 import { test, expect } from '@playwright/test';
 import { parseRules } from '../js/game/rules.js';
 import { todaySummary, levelFromXp, aftGaps } from '../js/game/engine.js';
@@ -59,9 +60,9 @@ test.describe('動：各分級 XP（保底 30／主課表 50／加一輪 60）',
 });
 
 test.describe('XP 由紀錄推導（可重算）', () => {
-  test('v3 fixture：35 筆訓練 → 動 1760 XP，Lv 6（260 / 450）', () => {
+  test('v3 fixture：35 筆訓練 → 動 1760 XP，Lv 6（260 / 450）；沒有早安打卡 → 沒有 Perfect Day、bonus 0', () => {
     const s = sum(loadFixture('v3.json'), '2026-10-02T15:30:00+09:00');
-    expect(s.xp).toEqual({ move: 1760, sleep: 0, explore: 0, total: 1760 });
+    expect(s.xp).toEqual({ move: 1760, sleep: 0, explore: 0, bonus: 0, total: 1760, today: 0 });
     expect(s.level).toEqual({ lv: 6, xpInto: 260, xpNeed: 450, totalXp: 1760, label: 'Lv 6' });
   });
 
@@ -71,13 +72,17 @@ test.describe('XP 由紀錄推導（可重算）', () => {
     expect(s.level).toMatchObject({ lv: 6, xpInto: 110, xpNeed: 450 });
   });
 
-  test('早安打卡的 XP 加進總 XP；舊的 xp／game.xp 欄位不影響結果', () => {
+  test('早安打卡的 XP 加進總 XP；10/01 有訓練＋打卡 → Perfect Day +30（bonus）；舊的 xp／game.xp 欄位不影響結果', () => {
     const st = loadFixture('v3.json');
     st.habits.sleep.log = [night('2026-10-01', '23:00', '06:58'), night('2026-10-02', '00:40', '06:58')];
     st.xp = 999999;
     st.game.xp = { move: 5, sleep: 5, explore: 5, total: 15 };
+    st.game.perfectDays = ['2026-09-01', '2026-09-02'];
+    st.game.freezeTokens = 99;
     const s = sum(st, '2026-10-02T15:30:00+09:00');
-    expect(s.xp).toEqual({ move: 1760, sleep: 95, explore: 0, total: 1855 });
+    expect(s.xp).toEqual({ move: 1760, sleep: 95, explore: 0, bonus: 30, total: 1885, today: 35 });
+    expect(s.perfectDay).toMatchObject({ done: false, count: 1, have: ['sleep'] });
+    expect(s.freeze.tokens).toBe(2); // 由紀錄推導，不讀 game.freezeTokens
     expect(s.pillars.sleep.xp).toBe(35);
     expect(s.pillars.sleep.checkedIn).toBe(true);
     expect(s.pillars.sleep.entry).toEqual(st.habits.sleep.log[1]);
@@ -125,16 +130,28 @@ test.describe('等級曲線：下一級需 200 + 50 ×（等級 − 1）', () =>
   });
 });
 
-test.describe('連續天數：首頁用 train（有練就算）', () => {
-  test('v3：昨天有練、今天還沒 → 連續 12 天（不算中斷）', () => {
+test.describe('連續天數：首頁用 train（有練就算），Freeze 接起空檔（d10）', () => {
+  /* v3 fixture：8/24–8/28（5 天）｜漏 8/29｜8/30–9/09（11 天，第 7 天得 1 張）｜漏 9/10–9/11（2 天 > 1 張 → 不用、保留）｜
+     9/12–9/18（7 天，得第 2 張）｜漏 9/19（用 1 張）｜9/20–10/01（12 天，實際第 14 天再得 1 張）→ 這一段實際 19 天 */
+  test('v3：昨天有練、今天還沒 → 連續 19 天（9/19 由 Freeze 接上，不加天數）', () => {
     expect(sum(loadFixture('v3.json'), '2026-10-02T15:30:00+09:00').streak).toEqual({
-      days: 12, best: 12, lastDate: '2026-10-01', todayDone: false, kind: 'train', label: '連續 12 天'
+      days: 19, best: 19, lastDate: '2026-10-01', todayDone: false, kind: 'train', label: '連續 19 天', frozenDays: 1
     });
-    expect(sum(loadFixture('v3.json'), '2026-10-01T20:00:00+09:00').streak).toMatchObject({ days: 12, todayDone: true });
+    expect(sum(loadFixture('v3.json'), '2026-10-01T20:00:00+09:00').streak).toMatchObject({ days: 19, todayDone: true, frozenDays: 1 });
   });
 
-  test('中斷超過一天 → 0，最佳紀錄保留', () => {
-    expect(sum(loadFixture('v3.json'), '2026-10-03T09:00:00+09:00').streak).toMatchObject({ days: 0, best: 12, lastDate: '2026-10-01', label: '連續 0 天' });
+  test('空檔超過持有張數 → 0，最佳紀錄保留；2 天以內的空檔由 Freeze 接上', () => {
+    expect(sum(loadFixture('v3.json'), '2026-10-03T09:00:00+09:00').streak).toMatchObject({ days: 19, frozenDays: 2 });
+    expect(sum(loadFixture('v3.json'), '2026-10-04T09:00:00+09:00').streak).toMatchObject({ days: 19, frozenDays: 3 });
+    expect(sum(loadFixture('v3.json'), '2026-10-05T09:00:00+09:00').streak).toMatchObject({
+      days: 0, best: 19, lastDate: '2026-10-01', label: '連續 0 天', frozenDays: 0
+    });
+  });
+
+  test('Freeze 關掉（max 0）→ 和 V1 一樣：中斷超過一天 → 0，最佳 12', () => {
+    const noFreeze = parseRules(variant(RAW, 'freeze.max', 0));
+    expect(sum(loadFixture('v3.json'), '2026-10-02T15:30:00+09:00', noFreeze).streak).toMatchObject({ days: 12, best: 12, frozenDays: 0 });
+    expect(sum(loadFixture('v3.json'), '2026-10-03T09:00:00+09:00', noFreeze).streak).toMatchObject({ days: 0, best: 12, lastDate: '2026-10-01' });
   });
 
   test('今天以後的紀錄（時鐘或時區造成）不算進連續天數', () => {
@@ -155,7 +172,7 @@ test.describe('連續天數：首頁用 train（有練就算）', () => {
       sleep: ['2026-10-02', '2026-10-03', '2026-10-04'].map((d) => night(d, '23:00', '07:00'))
     });
     expect(sum(st, '2026-10-04T20:00:00+09:00', life).streak).toEqual({
-      days: 3, best: 3, lastDate: '2026-10-04', todayDone: true, kind: 'life', label: '連續 3 天'
+      days: 3, best: 3, lastDate: '2026-10-04', todayDone: true, kind: 'life', label: '連續 3 天', frozenDays: 0
     });
   });
 });
@@ -369,7 +386,7 @@ test.describe('壞資料不丟例外、不改動 state、決定性', () => {
     };
     const s = sum(st, NOW);
     sane(s);
-    expect(s.xp).toEqual({ move: 200, sleep: 60, explore: 0, total: 260 });
+    expect(s.xp).toEqual({ move: 200, sleep: 60, explore: 0, bonus: 60, total: 320, today: 80 }); // 10/04、10/05 動＋眠都有 → Perfect Day ×2
     expect(s.pillars.move).toMatchObject({ tier: 'main', xp: 50, type: null });
     expect(s.pillars.sleep).toMatchObject({ checkedIn: true, xp: 0 });
     expect(s.streak).toMatchObject({ days: 4, best: 4 });
@@ -448,7 +465,7 @@ test.describe('純函式：engine／day／habits 不碰時鐘、DOM、儲存、�
     [/\bDate\.now\s*\(/, 'Date.now()'], [/new\s+Date\s*\(\s*\)/, 'new Date()'], [/\bMath\.random\b/, 'Math.random'],
     [/from\s+['"][^'"]*\/ui\//, 'import js/ui'], [/store\.js/, 'store.js'], [/\bindexedDB\b/, 'indexedDB']
   ];
-  for (const file of ['js/game/engine.js', 'js/game/day.js', 'js/habits/move.js', 'js/habits/sleep.js', 'js/game/rules.js']) {
+  for (const file of ['js/game/engine.js', 'js/game/day.js', 'js/game/timeline.js', 'js/habits/move.js', 'js/habits/sleep.js', 'js/habits/deload.js', 'js/game/rules.js']) {
     test(file, () => {
       const code = strip(readSource(file));
       for (const [re, name] of FORBIDDEN) expect(re.test(code), `${file} 不應出現 ${name}`).toBe(false);

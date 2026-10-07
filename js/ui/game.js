@@ -5,10 +5,12 @@
    engine 是純函式，不碰 localStorage：這裡每次用 getState() 取目前的 state（匯入後會換成新物件）。
    engine 丟例外時只記 console.warn 並回 null／預設值，畫面改走沒有遊戲層的版本。
    遊戲日（G 規則 1：04:00 換日）：todayKey()／todayWeekday() 是訓練紀錄、今日課表、Boss 輪替、日期標題共用的「今天」；
-   遊戲層未就緒時退回日曆日（M1 行為）。 */
+   遊戲層未就緒時退回日曆日（M1 行為）。
+   V2a：data-guardian 的進度標記（js/state/game.js：升級卡／Perfect Day 看過、D6 恢復）也由 app.js 一起載入成 mods.progress；
+   planLevel(sum)＝今天課表實際用的強度（D6 降量中＝summary.deload.planLevel，否則 state.level；state.level 本身不改）。 */
 import { getState } from '../state/store.js';
 
-let G = null; // { rules, day, engine, sleep, habits }
+let G = null; // { rules, day, engine, sleep, habits, progress }
 
 const pad = (n) => String(n).padStart(2, '0');
 const calendarKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -99,4 +101,36 @@ export function aftGaps() {
 export function ensurePhaseStarted(now = new Date()) {
   if (!G || !G.habits || typeof G.habits.ensurePhaseStarted !== 'function') return null;
   try { return G.habits.ensurePhaseStarted(now); } catch (e) { console.warn('遊戲層 ensurePhaseStarted 失敗', e); return null; }
+}
+
+/* ---------- V2a：進度標記（data-guardian 的 js/state/game.js；不丟例外，失敗回 {ok:false}） ---------- */
+function progressCall(name, args, fallback = { ok: false }) {
+  if (!G || !G.progress || typeof G.progress[name] !== 'function') return fallback;
+  try {
+    const r = G.progress[name](...args);
+    return r && typeof r === 'object' ? r : fallback;
+  } catch (e) { console.warn(`遊戲層 ${name} 失敗`, e); return fallback; }
+}
+/* 第一次開啟（與匯入後）：已看等級＝目前等級、今天之前（含開啟前就完成的今天）的 Perfect Day 不補播。只改記憶體、不存檔 */
+export function ensureSeen(sum = summary()) {
+  if (!sum || !sum.level || !Number.isInteger(sum.level.lv) || typeof sum.date !== 'string') return { ok: false };
+  return progressCall('ensureSeenInitialized', [sum.level.lv, sum.date, { perfectDayDone: !!(sum.perfectDay && sum.perfectDay.done) }]);
+}
+/* {level, perfectDay}；遊戲層未就緒回 null */
+export function readSeen() {
+  if (!G || !G.progress || typeof G.progress.readSeen !== 'function') return null;
+  try { return G.progress.readSeen(getState()); } catch (e) { console.warn('遊戲層 readSeen 失敗', e); return null; }
+}
+export const markLevelSeen = (lv) => progressCall('markLevelSeen', [lv]);
+export const markPerfectDaySeen = (date) => progressCall('markPerfectDaySeen', [date]);
+export const setDeloadRestored = (date) => progressCall('setDeloadRestored', [date]);
+export const clearDeloadRestored = (date) => progressCall('clearDeloadRestored', [date]);
+
+/* 今天課表的強度：D6 降量中（active：觸發、沒按恢復、今天還沒練）用 planLevel，否則 state.level。
+   sum 省略時現算；傳 null（遊戲層未就緒）直接用 state.level */
+export function planLevel(sum) {
+  const s = sum === undefined ? summary() : sum;
+  const base = getState().level;
+  const d = s && s.deload;
+  return d && d.active === true && Number.isInteger(d.planLevel) && d.planLevel >= 1 && d.planLevel <= base ? d.planLevel : base;
 }

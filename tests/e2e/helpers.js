@@ -229,6 +229,45 @@ export function nodeEngine(code, args = null) {
   return JSON.parse(out);
 }
 
+/* ---------- V2a：開 App 時只在記憶體補上的 game.seen（data-guardian ensureSeenInitialized，js/state/game.js 檔頭） ----------
+   開 App 不寫入；下一次存檔（或匯入前另存 pre-import）才連同 phase.startedAt 一起寫出。
+   level＝開啟當下的中央等級（總 XP 含 bonus）；perfectDay＝開啟當下今天已是 Perfect Day → 今天，否則前一天（不補播舊的）。
+   已有值不覆寫。預期值由 engine 在 Node 算（不經過 UI 轉接層與 data-guardian 的程式）。 */
+export function seenAtOpen(state, now) {
+  const st = typeof state === 'string' ? JSON.parse(state) : state;
+  return nodeEngine(`
+    const s = eng.todaySummary(args.state, new Date(args.now), rules);
+    const prev = day.dayNumberToStr(day.dayNumber(s.date) - 1);
+    return { level: s.level.lv, perfectDay: s.perfectDay.done ? s.date : prev };`, { state: st, now });
+}
+/* state（字串或物件）加上開 App 時補上的 game.seen（已有的子欄位保留） */
+export function withSeenAtOpen(raw, now) {
+  const o = typeof raw === 'string' ? JSON.parse(raw) : JSON.parse(JSON.stringify(raw));
+  const want = seenAtOpen(o, now);
+  const cur = (o.game && o.game.seen) || {};
+  o.game = { ...(o.game || {}), seen: { ...cur, level: cur.level ?? want.level, perfectDay: cur.perfectDay ?? want.perfectDay } };
+  return o;
+}
+/* App 記憶體中的 game.seen（還沒存檔也看得到） */
+export const liveSeen = (page) => page.evaluate(async () => {
+  const { getState } = await import(new URL('js/state/store.js', document.baseURI).href);
+  const g = getState().game;
+  return g && g.seen !== undefined ? JSON.parse(JSON.stringify(g.seen)) : null;
+});
+/* 今日的 Perfect Day 慶祝／升級卡（#cele）目前顯示的內容 */
+export const celeState = (page) => page.evaluate(() => {
+  const el = document.getElementById('cele');
+  const t = (id) => document.getElementById(id).textContent;
+  return {
+    open: !el.hidden && el.getClientRects().length > 0,
+    kind: el.dataset.kind || null,
+    eyebrow: t('cele-eyebrow'), title: t('cele-title'), xp: t('cele-xp'), xpHidden: document.getElementById('cele-xp').hidden,
+    vote: t('cele-vote'),
+    stats: [...document.querySelectorAll('#cele-stats .cele-stat')].map((x) => [x.querySelector('b').textContent, x.querySelector('span').textContent]),
+    ok: t('cele-ok')
+  };
+});
+
 /* 分頁列只有今日／訓練／統計；設定＝今日右上齒輪（#h-settings）；訓練紀錄／身體指標＝統計裡的兩段；早安打卡＝今日圖例的「眠」 */
 const TAB_SCREENS = new Set(['s-home', 's-train', 's-stats']);
 const STATS_PANELS = { 's-hist': '#st-tab-hist', 's-body': '#st-tab-body' };

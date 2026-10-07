@@ -29,9 +29,12 @@
       </div>
       <div class="top-actions">
         <p class="chip" id="h-streak-chip"><svg class="ic flame" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"/></svg><span class="sr-only">連續</span><b id="h-streak" class="num">0</b><span class="unit">天</span></p>
+        <!-- V2a Freeze（js/ui/home.js）：張數；點一下展開說明（#h-freeze-note）。0 張且從沒得過時隱藏 -->
+        <button type="button" class="chip-btn" id="h-freeze" aria-expanded="false" aria-controls="h-freeze-note" hidden><span class="chip"><svg class="ic snow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg><b id="h-freeze-n" class="num">0</b></span></button>
         <button type="button" class="icon-btn" id="h-settings" data-s="s-setup" aria-label="設定"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.14 5.05L10.5 2.52h3l.36 2.53 1.74.71 2.04-1.53 2.13 2.13-1.53 2.04.71 1.74 2.53.36v3l-2.53.36-.71 1.74 1.53 2.04-2.13 2.13-2.04-1.53-1.74.71-.36 2.53h-3l-.36-2.53-1.74-.71-2.04 1.53-2.13-2.13 1.53-2.04-.71-1.74-2.53-.36v-3l2.53-.36.71-1.74-1.53-2.04 2.13-2.13 2.04 1.53z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
     </header>
+    <p id="h-freeze-note" class="freeze-note" hidden></p>
     <div id="upd-note" class="banner" role="status" aria-live="polite"></div>
     <!-- D24 搬家卡（js/ui/relocate.js）：只在舊網址顯示；D27 起不含備份與匯入。其他網址一律維持 hidden -->
     <div id="mv-legacy" class="card mv-card" role="region" aria-labelledby="mv-legacy-title" hidden>
@@ -61,6 +64,12 @@
       <div class="legend" id="h-legend"></div>
     </section>
     <div id="h-banner" class="banner" role="status"></div>
+    <!-- V2a D6 降量卡（js/ui/home.js）：engine 的 deload.label 有值才顯示；「恢復 L{n}」只在降量中出現，10 秒內可復原 -->
+    <section class="deload-card" id="h-deload" aria-labelledby="h-deload-title" hidden>
+      <span class="dl-ic" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span>
+      <div class="dl-text"><p class="dl-title" id="h-deload-title"></p><p class="dl-sub" id="h-deload-sub" hidden></p></div>
+      <button type="button" class="dl-btn" id="h-deload-restore" hidden></button>
+    </section>
     <div class="next">
       <button type="button" class="btn-next" id="h-start">—</button>
       <button type="button" class="link-btn" id="h-minimal">保底版</button>
@@ -312,6 +321,21 @@
   <button type="button" id="toast-action" class="toast-btn" hidden></button>
 </div>
 
+<!-- V2a Perfect Day 慶祝／升級卡（js/ui/celebrate.js）：只在今日、沒有訓練／完成／示範畫面、復原 toast 收起後出現；
+     按「領取」／「繼續」才記成看過（一天最多一次、每個等級一次）。彩帶是 DOM 小片，只動 transform／opacity，≤1.5 秒 -->
+<div id="cele" class="cele" role="dialog" aria-modal="true" aria-labelledby="cele-title" aria-describedby="cele-vote" hidden>
+  <div class="cele-confetti" id="cele-confetti" aria-hidden="true"></div>
+  <section class="cele-card">
+    <div class="cele-art" id="cele-art" aria-hidden="true"></div>
+    <p class="cele-eyebrow" id="cele-eyebrow"></p>
+    <h2 class="cele-title" id="cele-title"></h2>
+    <p class="cele-xp num" id="cele-xp"></p>
+    <p class="cele-vote" id="cele-vote"></p>
+    <div class="cele-stats" id="cele-stats"></div>
+    <button type="button" class="cele-ok" id="cele-ok">領取</button>
+  </section>
+</div>
+
 <!-- TRAIN -->
 <div id="train">
   <div id="t-phase">—</div>
@@ -333,6 +357,7 @@
   <div class="eyebrow">MISSION COMPLETE</div>
   <div id="d-identity">—</div>
   <div id="d-xp">—</div>
+  <div id="d-bonus" hidden></div>
   <button class="btn-main" id="d-ok" style="max-width:320px">回報完成</button>
 </div>
 
