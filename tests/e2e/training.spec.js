@@ -44,6 +44,8 @@ async function expectDone(page, before, { gain, days, identity = 'normal' }) {
   expect(gain, '規則推得的增加量＝engine 累計 XP 的差（不會是負數）').toBe(Math.max(0, after.xp.total - before.xp.total));
   expect(after.streak.days, '完成畫面的連續天數＝engine').toBe(days);
   await expect(page.locator('#d-xp')).toHaveText(doneText(gain, days));
+  /* V2a：這些訓練都沒有帶來 Perfect Day（沒有早安打卡）或回歸加成 → 完成畫面沒有 #d-bonus */
+  await expect(page.locator('#d-bonus')).toBeHidden();
   if (identity === 'boss') await expect(page.locator('#d-identity')).toHaveText(BOSS_IDENTITY);
   else expect(IDENTITY).toContain(await page.locator('#d-identity').textContent());
   const all = await page.locator('#done').innerText();

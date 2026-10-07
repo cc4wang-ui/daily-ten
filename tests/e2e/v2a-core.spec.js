@@ -16,7 +16,7 @@
    9. 離線冷啟動（Service Worker）：V2a 新檔案由 SW 供應，慶祝照常。 */
 import {
   test, expect, readFixture, readRepo, openApp, seedState, storedState, rawMain, storageSnapshot, gotoTab, nodeEngine,
-  runWorkoutToEnd, tick, triggerSave, waitReady, celeState, liveSeen, confirmImportTwice, clickAndDownload,
+  runWorkoutToEnd, tick, tickUntil, triggerSave, waitReady, celeState, liveSeen, confirmImportTwice, clickAndDownload,
   contextOptions, watchContext, assertWatchClean, swAssets, expectGlossaryClean, MAIN_KEY
 } from './helpers.js';
 import { existsSync } from 'node:fs';
@@ -216,6 +216,27 @@ test.describe('Perfect Day 慶祝', () => {
     await page.clock.runFor(1_000);
     await expect(cele(page), '只有一張（沒有升級卡）').toBeHidden();
     expect((await storedState(page)).game.seen).toEqual({ level: want.level.lv, perfectDay: '2026-10-04' });
+  });
+
+  test('遊戲日邊界：10-06 03:59（遊戲日仍是 10-05）→ 播 10-05 的 Perfect Day；04:01（遊戲日 10-06）→ 不補播前一天的', async ({ browser }, testInfo) => {
+    const raw = JSON.stringify(celeDueState()); // 10-05 訓練＋打卡；seen.perfectDay 10-04
+    for (const [now, date, due] of [['2026-10-06T03:59:00+09:00', '2026-10-05', true], ['2026-10-06T04:01:00+09:00', '2026-10-06', false]]) {
+      const want = summaryOf(JSON.parse(raw), now);
+      expect(want.date).toBe(date);
+      expect(want.perfectDay.done).toBe(due);
+      await inFreshContext(browser, testInfo, async (p) => {
+        await openApp(p, { now, seed: seedState(raw) });
+        if (due) {
+          await expectPerfectCard(p, want);
+          await p.click('#cele-ok');
+          expect((await storedState(p)).game.seen.perfectDay).toBe('2026-10-05');
+        } else {
+          await p.clock.runFor(1_000);
+          await expect(p.locator('#cele')).toBeHidden();
+          expect(await rawMain(p), '不補播、不寫入').toBe(raw);
+        }
+      });
+    }
   });
 
   for (const [identity, perfect, level] of [
@@ -679,6 +700,49 @@ test.describe('D6 降量', () => {
     await expect(page.locator('#tr-start')).toHaveAttribute('data-level', '3');
     expect((await storedState(page)).level).toBe(3);
     expectGlossaryClean([sum.deload.label, sum.deload.restoreLabel, '已恢復 L3', '照原本的強度練', '已復原']);
+  });
+
+  test('週日 Boss Day（降量中）：暖身用 L2、測驗照常；早上已打卡 → Boss 完成＝Perfect Day：完成畫面「含 Perfect Day +30 XP」、回今日播一次', async ({ page }) => {
+    const s = fx('v3-checkin.json');
+    const e = s.habits.sleep.log.find((x) => x.date === '2026-10-04');
+    e.lightsOut = '2026-10-04T02:00:00+09:00'; // 熄燈改 02:00 → 06:45 起床：睡不到 6 小時
+    e.lightsOutEdited = true;
+    const now = '2026-10-04T07:30:00+09:00';
+    const want = summaryOf(s, now);
+    expect(want.deload).toMatchObject({ active: true, reason: 'short', planLevel: 2 });
+    expect(want.perfectDay.done).toBe(false);
+    await openApp(page, { now, seed: seedState(JSON.stringify(s)) });
+    await expect(page.locator('#h-deload')).toBeVisible();
+    await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'boss');
+    const steps = await page.evaluate(async () => {
+      const P = await import(new URL('js/ui/program.js', document.baseURI).href);
+      return { 2: P.addTransitions(P.fullSeq(2, 'A')).length, 3: P.addTransitions(P.fullSeq(3, 'A')).length };
+    });
+    expect(steps[2]).not.toBe(steps[3]);
+    const before = await storedSummary(page);
+    await page.click('#h-start');
+    await expect(page.locator('#train')).toHaveClass(/active/);
+    await expect(page.locator('#t-phase'), 'Boss 暖身＝L2 的十動作').toHaveText(`1 / ${steps[2]}`);
+    await tickUntil(page, () => document.getElementById('t-phase').textContent === 'BOSS · PLANK', { every: 1, maxSeconds: 2400, label: 'Plank 測驗開始' });
+    await tick(page, 60);
+    await page.click('#t-abort');
+    await expect(page.locator('#s-boss')).toHaveClass(/active/);
+    await expect(cele(page)).toBeHidden();
+    await page.click('#bi-save');
+    await expect(page.locator('#done')).toHaveClass(/active/);
+    await expect(cele(page), 'Boss 完成畫面開著不播').toBeHidden();
+    const after = await storedSummary(page);
+    expect(after.perfectDay.done).toBe(true);
+    const gain = await expectDoneScreen(page, before, after, { bonus: `含 Perfect Day +${PD_XP} XP` });
+    expect(gain).toBe(RULES.move.tiers.plus.xp + PD_XP);
+    await page.click('#d-ok');
+    await expectPerfectCard(page, after);
+    await page.click('#cele-ok');
+    await expect(cele(page)).toBeHidden();
+    await expect(page.locator('#h-deload'), '練完：降量卡收起').toBeHidden();
+    const st = await storedState(page);
+    expect(st.prs.plank[st.prs.plank.length - 1]).toEqual({ date: '2026-10-04', sec: 60 });
+    expect(st.level).toBe(3);
   });
 
   /* 邊界（engine 算的分鐘數）：時數 359 降、360 不降；熄燈晚於時段 89 不降、90 降。v3.json：就寢 23:00 ±30、起床 07:00 */
