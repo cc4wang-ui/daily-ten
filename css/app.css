@@ -164,6 +164,7 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .chip-btn{display:flex;align-items:center;min-height:var(--touch);padding:0;background:none;color:var(--c-ink);font-family:inherit}
 .chip-btn .chip{gap:var(--sp-1);padding:0 var(--sp-2h)}
 .chip .snow{color:var(--sleep)}
+.chip-btn.used .chip{background:var(--sleep-soft)} /* 剛自動用掉 Freeze 的那天：淡淡的眠色底（說明裡有一句話） */
 .chip-btn[aria-expanded="true"] .chip{box-shadow:0 0 0 2px var(--sleep-ink)}
 #app .freeze-note{font-size:13px;line-height:1.55;color:var(--c-ink);background:var(--sleep-soft);border-radius:var(--r-md);padding:var(--sp-2h) var(--sp-3h)}
 /* V2a 回歸任務卡（#h-banner）：正向語氣，只講接下來能拿到什麼 */

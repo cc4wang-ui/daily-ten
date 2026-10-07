@@ -46,9 +46,9 @@
   --info-bg:#F1EFEA;   --info-ink:#1B1D1A;                          /* 中斷提示（中性，不懲罰） */
   --amber-ink:#8A5A00;                                              /* 判讀「持平」 */
   --toast-bg:#1B1D1A;  --toast-ink:#FFFFFF;  --toast-action:#FFD3C7; /* 復原 toast（12.4:1） */
-  --quest-bg:#E3F7F1;  --quest-ink:#1B1D1A;  --quest-icon:#00795B;  /* V2a 回歸任務卡（正向；主文字 15.0:1、圖示 5.40:1） */
-  --quest-boost-bg:#FFF1EC; --quest-boost-icon:#B8401F;             /* 回歸加成日（×1.5；圖示 5.06:1） */
-  --deload-bg:#F5F4FF; --deload-ink:#1B1D1A; --deload-ink-2:#4A4570; /* V2a D6 降量卡（眠的淡色塊；第二行 8.9:1） */
+  --quest-bg:#E3F7F1;  --quest-ink:#1B1D1A;  --quest-icon:#00795B;  /* V2a 回歸任務卡（正向；主文字 15.2:1、白圓底圖示 5.40:1） */
+  --quest-boost-bg:#FFF1EC; --quest-boost-icon:#B8401F;             /* 回歸加成日（×1.5；主文字 15.4:1、白圓底圖示 5.54:1） */
+  --deload-bg:#F5F4FF; --deload-ink:#1B1D1A; --deload-ink-2:#4A4570; /* V2a D6 降量卡（眠的淡色塊；主文字 15.6:1、第二行 8.1:1） */
   --cele-scrim:rgba(27,29,26,.9);                                   /* V2a 慶祝／升級卡的遮罩 */
   --cele-xp:#00795B;                                                /* 慶祝卡「+30 XP」（白底 5.40:1） */
 
