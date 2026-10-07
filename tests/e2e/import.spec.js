@@ -4,11 +4,13 @@
    好檔：差異預覽列正確 → 第一次按確認不套用 → 第二次才套用 → pre-import 另存覆蓋前資料；取消 → 不變。
    預期值取自 tests/fixtures/README.md 第 2 節。
    V1：loadState() 在 phase.startedAt 缺少時以載入當下補上（只改記憶體）→ pre-import（覆蓋前的記憶體內容）帶著補上的起點；
-   匯入成功後 ensurePhaseStarted(new Date())：備份沒有起點時補上（今日顯示「第 1 天」，下次存檔寫入）。 */
+   匯入成功後 ensurePhaseStarted(new Date())：備份沒有起點時補上（今日顯示「第 1 天」，下次存檔寫入）。
+   V2a：開 App 時 ensureSeenInitialized 也只在記憶體補上 game.seen（不補播舊的升級卡與慶祝）→ pre-import 另外帶著它
+   （預期值＝fixture＋phase.startedAt＋engine 算的 game.seen，helpers.js 的 withSeenAtOpen）；匯入成功後對匯入的資料再補一次。 */
 import {
   test, expect, readFixture, fixturePath, openApp, seedState, storageSnapshot, storedState, rawMain,
   expectHome, gotoTab, expectGlossaryClean, identifierPaths, confirmImportTwice, seedOnce, waitReady,
-  appSummary, liveStartedAt, withStartedAt, triggerSave,
+  appSummary, liveStartedAt, withStartedAt, withSeenAtOpen, seenAtOpen, liveSeen, triggerSave,
   IMPORT_CONFIRM_TEXT as CONFIRM, IMPORT_ARMED_TEXT as ARMED, MAIN_KEY, PRE_IMPORT_KEY, NOW_ISO
 } from './helpers.js';
 
@@ -170,7 +172,8 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     await expect(page.locator('#imp-preview')).toBeHidden();
     const after = await storageSnapshot(page);
     expect(Object.keys(after).sort()).toEqual([MAIN_KEY, PRE_IMPORT_KEY].sort());
-    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(v3raw, NOW_ISO)); // 覆蓋前的資料（含載入時補上的起點）
+    /* 覆蓋前的資料（含載入時補上的起點與 V2a 的 game.seen） */
+    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withSeenAtOpen(withStartedAt(v3raw, NOW_ISO), NOW_ISO));
     const s = JSON.parse(after[MAIN_KEY]);
     expect(s.version).toBe(3);
     expect(s.xp).toBe(361);
@@ -185,6 +188,10 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     expect(JSON.parse(readFixture('v2-real.json')).phase).toBeUndefined();
     const IMPORTED_AT = '2026-10-02T15:30:01+09:00'; // 匯入當下＝NOW＋1.5 秒（第二次確認前推進的假時間；秒以下捨去）
     expect(await liveStartedAt(page)).toBe(IMPORTED_AT);
+    /* V2a：匯入的備份沒有 game.seen → 匯入成功後補上（記憶體；不補播匯入資料裡的升級卡與慶祝） */
+    const seenImported = seenAtOpen(readFixture('v2-real.json'), IMPORTED_AT);
+    expect(await liveSeen(page)).toEqual(seenImported);
+    await expect(page.locator('#cele')).toBeHidden();
     /* 四個分頁已重繪 */
     await gotoTab(page, 's-home');
     await expect(page.locator('#h-phase')).toHaveText('P1 睡飽 · 第 1 天');
@@ -195,6 +202,7 @@ test.describe('匯入：好檔 → 差異預覽 → 二次確認', () => {
     expectGlossaryClean(collectedTexts);
     await triggerSave(page);
     expect((await storedState(page)).phase).toEqual({ current: 'P1', startedAt: IMPORTED_AT, history: [] });
+    expect((await storedState(page)).game.seen, 'V2a：下一次存檔寫入匯入後補上的 game.seen').toEqual(seenImported);
   });
 
   test('貼上匯入 v1-minimal 與 v3：版本列 v1 → v3、沒有警告時不顯示警告區', async ({ page }) => {
@@ -301,7 +309,7 @@ test.describe('匯入：連點保護（待確認後 1 秒內的點擊忽略）',
     expect(Object.keys(after).sort()).toEqual([MAIN_KEY, PRE_IMPORT_KEY].sort());
     expect(JSON.parse(after[MAIN_KEY]).xp).toBe(xp);
     expect(JSON.parse(after[MAIN_KEY]).version).toBe(3);
-    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(before[MAIN_KEY], NOW_ISO));
+    expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withSeenAtOpen(withStartedAt(before[MAIN_KEY], NOW_ISO), NOW_ISO));
     await gotoTab(page, 's-home');
     /* 統計的累計 XP＝engine 對匯入後資料算的總 XP（legacy xp 另外比對） */
     const { legacy, sum } = await appSummary(page);
@@ -436,7 +444,8 @@ test('連點保護（真實時鐘）：真的雙擊不套用；真的等 1.2 秒
   await expect(page.locator('#io-msg')).toHaveText('匯入成功。');
   const after = await storageSnapshot(page);
   expect(JSON.parse(after[MAIN_KEY]).xp).toBe(361);
-  expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withStartedAt(before[MAIN_KEY], startedAt));
+  /* V2a：game.seen 依載入當下（真實時鐘＝startedAt）的等級與遊戲日 */
+  expect(JSON.parse(after[PRE_IMPORT_KEY])).toEqual(withSeenAtOpen(withStartedAt(before[MAIN_KEY], startedAt), startedAt));
 });
 
 test.afterAll(() => {

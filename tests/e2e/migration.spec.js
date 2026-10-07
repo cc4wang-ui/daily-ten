@@ -3,10 +3,14 @@
    → 觸發一次存檔（設定切換兩次）→ storage 為 v3 且 game 正確 → reload 再存一次 → 與第一次逐字相同；
    另開一個全新 context 再跑一次，結果也逐字相同。
    V1：loadState() 在 phase.startedAt 缺少時以載入當下（假時鐘 NOW）補上，第一次存檔時寫入；
-   B1 早安打卡 fixture（v3-checkin、v3-checkin-reverted-to-v2）另一組：打卡紀錄不重複、三環的眠＝engine 算的分數。 */
+   B1 早安打卡 fixture（v3-checkin、v3-checkin-reverted-to-v2）另一組：打卡紀錄不重複、三環的眠＝engine 算的分數。
+   V2a：開 App 時 ensureSeenInitialized 只在記憶體補上 game.seen（level＝當下中央等級、perfectDay＝今天已完成 Perfect Day
+   就是今天，否則前一天），第一次存檔一起寫入；game.deload 不會被新增（按「恢復」才有）。預期值由 engine 在 Node 算。
+   第一次開啟不補播：任何 fixture 開啟時都沒有慶祝／升級卡（#cele）。 */
 import {
   test, expect, readFixture, openApp, seedState, contextOptions, watchContext, assertWatchClean,
   expectHome, triggerSave, rawMain, storedState, storageSnapshot, gotoTab, waitReady, appSummary, nodeEngine, withStartedAt,
+  withSeenAtOpen, seenAtOpen,
   MAIN_KEY, BAK_V2, NOW_ISO
 } from './helpers.js';
 
@@ -56,6 +60,8 @@ async function migrateOnce(page, c) {
 
   /* 主 key 在存檔前沒有被覆寫（任何 status） */
   expect(await rawMain(page)).toBe(raw);
+  /* V2a：第一次開啟不補播舊的升級卡與慶祝 */
+  await expect(page.locator('#cele')).toBeHidden();
 
   /* 觸發一次存檔 → v3 */
   await triggerSave(page);
@@ -71,6 +77,11 @@ async function migrateOnce(page, c) {
   expect(s.game.freezeTokens).toBe(0);
   expect(s.game.achievements).toEqual({});
   expect(s.game.perfectDays).toEqual([]);
+  /* V2a：game.seen＝engine 對載入後資料算的（開啟當下的等級；今天不是 Perfect Day → 前一天）；沒有 game.deload */
+  const { seen, ...gameRest } = s.game;
+  expect(seen).toEqual(seenAtOpen({ ...s, game: gameRest }, NOW_ISO));
+  expect(seen.perfectDay).toBe('2026-10-01');
+  expect(s.game).not.toHaveProperty('deload');
   /* v3 新欄位（PLAN.md §4） */
   expect(s.habits.sleep.log).toEqual([]);
   expect(s.habits.explore.items).toHaveLength(1);
@@ -85,8 +96,8 @@ async function migrateOnce(page, c) {
   const hadGame = c.file.startsWith('v3');
   expect(s.habits.explore.items[0].createdAt).toBe(hadGame ? '2026-09-28T07:30:00+09:00' : NOW_ISO);
   if (c.file === 'v3.json') {
-    /* v3：遷移是 no-op，存檔後內容與 fixture 相同（只多了載入時補上的 phase.startedAt） */
-    expect(s).toEqual(withStartedAt(raw, NOW_ISO));
+    /* v3：遷移是 no-op，存檔後內容與 fixture 相同（只多了載入時補上的 phase.startedAt，與 V2a 的 game.seen） */
+    expect(s).toEqual(withSeenAtOpen(withStartedAt(raw, NOW_ISO), NOW_ISO));
   }
   if (c.status === 'migrated' || c.status === 'ok') {
     /* 舊資料不能壞：sessions、每一種 PR、每一種身體指標（含 body.sleep，D13 不併入 habits.sleep.log）、profile 原樣保留 */
@@ -197,8 +208,8 @@ test.describe('遷移：fixture 載入後畫面正常、XP 與連續天數正確
    載入兩次（各自全新 context）結果逐字相同；打卡紀錄 3 筆、日期不重複；今日三環的眠與圖例＝engine 對同一份紀錄算出的分數；
    被舊版改回 version 2（D12）：xp 414、game.xp.move 414（不是 411＋414），3 筆打卡與 plus 都保留。 */
 const B1_CASES = [
-  { file: 'v3-checkin.json', status: 'ok', xp: 411, streak: { current: 14, best: 14, lastDate: '2026-10-03' } },
-  { file: 'v3-checkin-reverted-to-v2.json', status: 'migrated', xp: 414, streak: { current: 15, best: 15, lastDate: '2026-10-04' } }
+  { file: 'v3-checkin.json', status: 'ok', xp: 411, streak: { current: 14, best: 14, lastDate: '2026-10-03' }, perfectDayAtOpen: '2026-10-03' },
+  { file: 'v3-checkin-reverted-to-v2.json', status: 'migrated', xp: 414, streak: { current: 15, best: 15, lastDate: '2026-10-04' }, perfectDayAtOpen: '2026-10-04' }
 ];
 const B1_NOW = '2026-10-04T07:30:00+09:00'; // README：今天已打卡
 
@@ -207,6 +218,7 @@ async function b1Once(page, c) {
   await openApp(page, { now: B1_NOW, seed: seedState(raw) });
   await expect(page.locator('#err-card')).toBeHidden();
   expect(await rawMain(page), '存檔前主 key 不變').toBe(raw);
+  await expect(page.locator('#cele'), 'V2a：第一次開啟不補播（reverted 今天已是 Perfect Day 也不播）').toBeHidden();
   /* 今日：打卡過了 → 下一步不是早安打卡；三環的眠＝engine 算的今天分數 */
   const { sum } = await appSummary(page);
   const want = nodeEngine('return eng.todaySummary(args.state, new Date(args.now), rules).pillars.sleep;', { state: JSON.parse(raw), now: B1_NOW });
@@ -228,6 +240,10 @@ async function b1Once(page, c) {
   expect(s.habits.sleep.log).toEqual(JSON.parse(raw).habits.sleep.log);
   expect(s.sessions.find((x) => x.date === '2026-10-02')).toEqual({ date: '2026-10-02', type: 'full', xp: 10, plus: true });
   expect(s.phase.startedAt, '已有的階段起點不覆寫').toBe('2026-10-02T06:50:10+09:00');
+  /* V2a：開啟當下今天已是 Perfect Day（reverted：舊版補記的保底＋早安打卡）→ seen.perfectDay＝今天；否則前一天 */
+  expect(s.game.seen).toEqual(seenAtOpen(raw, B1_NOW));
+  expect(s.game.seen.perfectDay).toBe(c.perfectDayAtOpen);
+  if (c.status === 'ok') expect(s, 'v3：存檔後除了 game.seen 之外與 fixture 逐欄相同').toEqual(withSeenAtOpen(raw, B1_NOW));
   /* 再開一次、再存一次：逐字相同（冪等） */
   await page.reload();
   await waitReady(page);

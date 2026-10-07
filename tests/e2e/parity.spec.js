@@ -381,7 +381,9 @@ test('新版保留基準 index.html 靜態 markup 的每一個 id', async ({ pag
    兩版各自在頁面內呼叫課表函式（基準：classic script 的全域函式；新版：import 同一個 module 實例），
    L1–L5 × 有／無彈力帶 × 三組伸展 × 三種區塊 × 一週七天的全部序列、加上過場後的完整步驟、時長估算、
    每個步驟名稱對應的示範 key、XP 表、身分句、SETUP 影片清單、每天的今日計畫文字（含三個週日的 Boss 輪替）、
-   升級條件在門檻上下的判定，全部要逐項相同。 */
+   升級條件在門檻上下的判定，全部要逐項相同。
+   V2a（D6）：新版 todayPlan() 多回一個 plan.lv（算這份計畫用的強度；降量中是降一級後的強度）。這裡沒有早安打卡、不會降量，
+   所以先斷言新版每一份計畫的 lv＝當時的 state.level，再拿掉 lv 與基準逐項比對（其餘欄位一個都不放過）。 */
 async function programDump(page, which) {
   return page.evaluate(async (which) => {
     /* eslint-disable no-undef */
@@ -492,5 +494,13 @@ test('課表資料與規則等價：所有序列、時長、示範對應、XP、
   expect(Object.values(a.levelUp).some(Boolean)).toBe(true);
   expect(Object.values(a.levelUp).some((v) => !v)).toBe(true);
   expect(dumps.B.program).toEqual(dumps.A.program);
-  expect(dumps.B.plans).toEqual(dumps.A.plans);
+  const plansB = {};
+  for (const [iso, byKey] of Object.entries(dumps.B.plans)) {
+    plansB[iso] = {};
+    for (const [key, { lv, ...rest }] of Object.entries(byKey)) {
+      expect(lv, `${iso} ${key}：plan.lv＝state.level（沒有降量）`).toBe(Number(key.split('-L')[1]));
+      plansB[iso][key] = rest;
+    }
+  }
+  expect(plansB).toEqual(dumps.A.plans);
 });
