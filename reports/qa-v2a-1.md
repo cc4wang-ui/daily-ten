@@ -17,7 +17,7 @@
 - 新增 46 項 e2e（`v2a-core.spec.js` 37、`v2a-a11y.spec.js` 5、`reduced-motion` +2、`auto-update` +2）。
 - `node tools/sim/run.mjs`：exit 0、10 條判準全部 PASS；跑兩次只有耗時那一行不同（決定性；`sim.log`、`sim-2.log`）。
 - `node .github/scripts/check-repo.mjs` exit 0（App 檔 51、預快取 52、CACHE v11、main v10）；`check-glossary --self-test` 108/108；`--ci --no-report` 掃 45 檔、1,000 筆：**新增 0、既有 0**。
-- 植入缺陷：見下方「植入缺陷」。
+- 植入 10 個缺陷（只改暫存副本）：**10/10 被抓到**；沒改的對照組 37/37 通過。
 - 產品缺陷 1 項（低，不擋）：連點兩下「領取」會把升級卡一起按掉（BUG-1）。另有 2 項規格觀察給 Cross／G 決定（觀察 1、2）。
 
 ## V2a 完成條件（CLAUDE.md §8 V2a 列）
@@ -91,7 +91,22 @@
 
 ## 植入缺陷（只改 `qa-v2a/mut/` 的副本，不碰 worktree）
 
-（執行中）
+腳本 `scripts/mutate.py`（複製 `8457452` 的樹、套一處字串替換）、`scripts/run-all-mut.sh`。每個副本跑 `v2a-core.spec.js`（m5 另加 `migration`、`import`）。對照組 `mut/base`（沒改）**37/37 passed**（`mut/base.log`）。**10/10 都被抓到。**
+
+| # | 缺陷 | 結果 | 抓到的位置（`v2a-core.spec.js` 行號，除非另註） |
+|---|---|---|---|
+| m1 | 慶祝播兩次（`celebrate.js` `dueKind` 的 `>` 改 `>=`） | 16 failed | `:134`（換頁回來又出現）、`:180`、`:199`、`:246`×2、`:332`、`:370`、`:427`、`:547`、`:705`、`:795`、`:818`、`:851`、`:956`、`:1063`、`:1106` |
+| m2 | 訓練／完成畫面開著也播（`screenBlocked` 拿掉 `#train`、`#done`） | 1 failed | `:314`（toast 在訓練中收起 → `#cele` 在訓練畫面底下被打開） |
+| m3 | 實際跑的序列不管降量（`trainhub.js` `runPlan` 用 `state.level`） | 2 failed | `:632`（步數＝L3）、`:705`（Boss 暖身） |
+| m4 | 回歸加成給兩次（`timeline.js` 拿掉 `boostNum === null`） | 1 failed | `:851`（第 3 天又加成） |
+| m5 | 開 App 就寫入 `seen`（`ensureSeenInitialized` 呼叫 `persist()`） | 18 failed／47 passed | `:180`、`:199`、`:401`、`:933`、`:1063`；`migration:139`×8（每個 fixture「存檔前主 key 不變」）、`:193`、`:257`×2；`import:109`×2 |
+| m6 | 空檔補不起也用 Freeze（`timeline.js` 張數不夠照用、接上） | 1 failed | `:507`（張數應保留 1、連續應為 0） |
+| m7 | 慶祝之後不接升級卡（`close()` 拿掉 `queueCelebrations`） | 5 failed | `:246`×2、`:370`、`:427`、`:851` |
+| m8 | D6 時數邊界錯一分（`<` 改 `<=`） | 2 failed | `:756`「睡 360 分 → 不降」、「熄燈晚 90 分」（360 分也被算成短） |
+| m9 | 慶祝蓋住復原 toast（拿掉 `toastVisible()` 等待） | 4 failed | `:265`、`:284`、`:298`、`:314` |
+| m10 | `#d-bonus` 每次都顯示 Perfect Day（拿掉「這次才達成」的判斷） | 2 failed | `:134`（同日第二次訓練）、`:332` |
+
+engine 的缺陷（m4、m6、m8）預期值雖然也由同一份 engine 算，但規則層面的斷言是絕對值，所以照樣抓得到。
 
 ## 產品缺陷
 
