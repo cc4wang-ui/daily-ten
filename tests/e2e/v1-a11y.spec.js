@@ -142,6 +142,7 @@ test.describe('對比、觸控目標、用語：V1 每個畫面', () => {
     await page.click('#ci-wake');
     await expect(page.locator('#ci-done')).toBeVisible();
     await expect(page.locator('#toast')).toBeVisible();
+    await expect(page.locator('#toast')).toHaveCSS('opacity', '1');
     all.push(await auditScreen(page, '早安打卡（已打卡＋toast）', testInfo));
     await gotoTab(page, 's-home');
     all.push(await auditScreen(page, '今日（打卡後＋toast）', testInfo));

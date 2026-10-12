@@ -1,7 +1,7 @@
-import { test, expect } from './helpers.js';
+import { test, expect, openApp } from './helpers.js';
 
 test('課表秒數完全由動作、節奏、休息、準備與換器材相加', async ({ page }) => {
-  await page.goto('/index.html');
+  await openApp(page);
   const result = await page.evaluate(async () => {
     const P = await import('/js/ui/program.js');
     const store = await import('/js/state/store.js');
@@ -32,7 +32,7 @@ test('課表秒數完全由動作、節奏、休息、準備與換器材相加',
 });
 
 test('週計畫有恢復日、推拉各兩次重點日，且所有版本不依賴門錨或牆', async ({ page }) => {
-  await page.goto('/index.html');
+  await openApp(page);
   const result = await page.evaluate(async () => {
     const P = await import('/js/ui/program.js');
     const store = await import('/js/state/store.js');
