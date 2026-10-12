@@ -16,11 +16,12 @@ import { renderHome } from './home.js';
 /* ================= BOSS FLOW ================= */
 export function startBoss(lv=planLevel()){
   const item=bossItem();
-  startWorkout(fullSeq(lv,'A'),'boss',()=>{ // 十動作完成 → 測驗
-    if(item==='hrp')bossHRP();
-    else if(item==='plank')bossPlank();
-    else bossRun();
-  });
+  startWorkout(fullSeq(lv,'A'),'boss',()=>continueBossWarmup(item),{bossItem:item});
+}
+export function continueBossWarmup(item){
+  if(item==='hrp')bossHRP();
+  else if(item==='plank')bossPlank();
+  else bossRun();
 }
 function bossHRP(){
   // 2:00 window，App 計時，Cross 自數次數，結束後輸入

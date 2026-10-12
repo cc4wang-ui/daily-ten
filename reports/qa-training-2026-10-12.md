@@ -6,6 +6,8 @@ Scope: independent read-only review of `codex/rework-training-mvp` against `main
 
 **FAIL for release as a safe, complete training rebuild.** The in-app help/checkpoint improvements are substantively covered, but two declared release gates remain open: reviewed complete motion media is absent, and an active workout cannot survive reload or iOS eviction.
 
+**Post-review integration note:** A later commit added a local active-workout checkpoint and a Playwright page-reload/resume test. This was not part of this independent read-only QA pass; iOS eviction, Boss test timing, and a separate QA rerun remain unverified. TypeSafe Jev was subsequently called; see [its report](./jev-training-2026-10-12.md).
+
 | Requirement | Result | Evidence and assessment |
 |---|---|---|
 | 1. Complete, safe exercise motion instead of stick figures | **FAIL** | The product explicitly says its line animation is only for identification/rhythm and that no reviewed complete video exists: [index.html](../index.html#L164) and [index.html](../index.html#L377). The current training modal renders an SVG, not local video, at [index.html](../index.html#L375). Five programmed movements are intentionally left without even a matching line animation in [tests/e2e/program.spec.js](../tests/e2e/program.spec.js#L67), including `臀橋走步` and `彈力帶划船 · 俯身`. The roadmap makes complete local MP4/WebM plus qualified review a P1 release requirement at [docs/TRAINING-REBUILD-ROADMAP.md](../docs/TRAINING-REBUILD-ROADMAP.md#L25). Offline complete-video coverage is therefore **0**. |

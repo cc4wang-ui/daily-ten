@@ -16,6 +16,28 @@ import { renderHome } from './home.js';
 
 /* ================= TIMER ENGINE ================= */
 let runner=null;
+const CHECKPOINT_KEY='daily-ten-active-workout';
+const CHECKPOINT_MAX_AGE=24*60*60*1000;
+function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e){}}
+function readCheckpoint(){
+  try{
+    const c=JSON.parse(localStorage.getItem(CHECKPOINT_KEY)||'null');
+    if(c&&c.v===1&&Array.isArray(c.seq)&&c.seq.length>0&&c.seq.length<500
+      &&Number.isInteger(c.idx)&&c.idx>=0&&c.idx<c.seq.length
+      &&typeof c.type==='string'&&Number.isFinite(c.savedAt)
+      &&Date.now()-c.savedAt<CHECKPOINT_MAX_AGE&&Date.now()-c.savedAt>-60000)return c;
+  }catch(e){}
+  clearCheckpoint();
+  return null;
+}
+/* 重載後停在原本的動作與計數，等待使用者主動按「繼續」。 */
+export async function resumeWorkout(){
+  const c=readCheckpoint();
+  if(!c)return false;
+  const after=c.type==='boss'?()=>import('./boss.js').then(m=>m.continueBossWarmup(c.bossItem)):undefined;
+  startWorkout(c.seq,c.type,after,{plus:c.plus,bossItem:c.bossItem,restore:c});
+  return true;
+}
 /* 訓練進行中（startWorkout 開始到 cleanup 之間）為 true；分頁切換用它擋住 */
 export function isTraining(){return !!runner;}
 /* 完成畫面的連續天數：遊戲層的連續天數（與今日 chip 相同），未就緒時用舊欄位 */
@@ -53,27 +75,37 @@ export function showBonusNote(){
   el.hidden=!lastBonus;
 }
 export function startWorkout(seq,type,after,opts){
-  seq=addTransitions(seq);
+  const restore=opts&&opts.restore;
+  seq=restore?seq:addTransitions(seq);
+  if(!restore)clearCheckpoint();
   initAudio(); lockScreen();
   $('train').classList.add('active');
-  let idx=-1,paused=false,timer=null,advanceTimer=null,pendingAdvance=false,skippedAction=false;
-  $('t-pause').textContent='暫停';
-  $('t-checkpoint').classList.remove('paused');
+  let idx=restore?restore.idx-1:-1,paused=!!restore,timer=null,advanceTimer=null,
+      pendingAdvance=false,skippedAction=!!(restore&&restore.skippedAction),left=null,done=null;
+  $('t-pause').textContent=paused?'繼續':'暫停';
+  $('t-checkpoint').classList.toggle('paused',paused);
   const total=seq.length;
   function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
+  function persist(){
+    if(idx<0||idx>=total)return;
+    const c={v:1,savedAt:Date.now(),seq,idx,type,plus:!!(opts&&opts.plus),
+      bossItem:opts&&opts.bossItem,paused,skippedAction,pendingAdvance,left,done};
+    try{localStorage.setItem(CHECKPOINT_KEY,JSON.stringify(c));}catch(e){}
+  }
   function nextStep(){
     if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null;}
     pendingAdvance=false;
     idx++;
     if(idx>=total){finish();return;}
     const st=seq[idx];
+    const prior=restore&&idx===restore.idx?restore:null;
     $('t-phase').textContent=(idx+1)+' / '+total;
     $('t-bar').style.width=Math.round(idx/total*100)+'%';
     $('t-name').textContent=st.name;
     $('t-sub').textContent=st.sub||'';
     const isRest=st.name.indexOf('休息')>=0;
     const isPrep=st.name==='預備'||st.name==='換組'||st.prep!==undefined;
-    $('t-checkpoint').textContent=isRest?'檢查點 · 組間休息':isPrep?'檢查點 · 準備下一步':'檢查點 · 進行動作';
+    $('t-checkpoint').textContent=(prior?'已恢復 · ':'')+(isRest?'檢查點 · 組間休息':isPrep?'檢查點 · 準備下一步':'檢查點 · 進行動作');
     const set=st.name.match(/第\s*(\d+)\s*組/);
     $('t-set').textContent=set?'第 '+set[1]+' 組':'';
     $('t-set').hidden=!set;
@@ -91,31 +123,39 @@ export function startWorkout(seq,type,after,opts){
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
     if(st.mode==='time'){
-      let left=st.secs; $('t-count').textContent=fmt(left);
+      left=prior&&Number.isInteger(prior.left)?Math.max(0,Math.min(st.secs,prior.left)):st.secs;
+      done=null;$('t-count').textContent=fmt(left);
       beep(660,.12);
       timer=setInterval(()=>{ if(paused)return;
-        left--; $('t-count').textContent=fmt(left);
+        left--; $('t-count').textContent=fmt(left);persist();
         if(left<=5&&left>0)beep(880,.08);
         if(left<=0){clearInterval(timer);beep(440,.5);queueNextStep();}
       },1000);
     }else{ // reps with tempo
-      let done=0; $('t-count').textContent=done+'/'+st.reps;
+      done=prior&&Number.isInteger(prior.done)?Math.max(0,Math.min(st.reps,prior.done)):0;
+      left=null;$('t-count').textContent=done+'/'+st.reps;
       beep(660,.12);
       timer=setInterval(()=>{ if(paused)return;
-        done++; $('t-count').textContent=done+'/'+st.reps; beep(760,.07);
+        done++; $('t-count').textContent=done+'/'+st.reps; beep(760,.07);persist();
         if(done>=st.reps){clearInterval(timer);beep(440,.5);queueNextStep();}
       },st.tempo*1000);
     }
+    if(prior&&(prior.pendingAdvance||(st.mode==='time'?left<=0:done>=st.reps))){
+      clearInterval(timer);timer=null;pendingAdvance=true;
+    }
+    persist();
   }
   function queueNextStep(){
     // A completed interval has no unlisted 600 ms gap: estSec() covers the
     // displayed work, rest and preparation time exactly.
-    advanceTimer=setTimeout(()=>{advanceTimer=null;if(paused)pendingAdvance=true;else nextStep();},0);
+    pendingAdvance=true;persist();
+    advanceTimer=setTimeout(()=>{advanceTimer=null;if(!paused)nextStep();},0);
   }
   function setPaused(value){
     paused=value;
     $('t-pause').textContent=paused?'繼續':'暫停';
     $('t-checkpoint').classList.toggle('paused',paused);
+    persist();
     if(demoCtl)demoCtl.setPaused(paused);
     if(!paused){
       if(pendingAdvance){nextStep();return;}
@@ -151,6 +191,7 @@ export function startWorkout(seq,type,after,opts){
     unlockScreen();
     $('train').classList.remove('active');
     runner=null;
+    clearCheckpoint();
   }
   $('t-pause').onclick=()=>setPaused(!paused);
   $('t-skip').onclick=()=>{

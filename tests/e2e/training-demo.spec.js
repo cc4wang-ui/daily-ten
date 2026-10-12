@@ -1,4 +1,4 @@
-import { test, expect, readFixture, openApp, seedState, storedState, tick, runWorkoutToEnd } from './helpers.js';
+import { test, expect, readFixture, openApp, seedState, storedState, tick, runWorkoutToEnd, waitReady } from './helpers.js';
 
 test('訓練中示範留在 App，暫停並返回同一步與剩餘時間', async ({ page }) => {
   await openApp(page, { seed: seedState(readFixture('v3.json')) });
@@ -35,6 +35,46 @@ test('略過實際動作後可繼續，但不會記為完成或發 XP', async ({
   await page.click('#t-skip'); // 實際動作
   await runWorkoutToEnd(page);
   await expect(page.locator('#d-identity')).toHaveText('這次略過了動作');
+  await expect(page.locator('#d-xp')).toHaveText('未記為完成');
+  const after = await storedState(page);
+  expect(after.sessions).toEqual(before.sessions);
+  expect(after.xp).toBe(before.xp);
+});
+
+test('重新整理後在同一步、同一計數暫停，可主動續練且完成後清掉檢查點', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await page.click('#h-minimal');
+  await tick(page, 3);
+  await expect(page.locator('#t-count')).toHaveText('7');
+  await page.reload();
+  await waitReady(page);
+  await expect(page.locator('#train')).toHaveClass(/active/);
+  await expect(page.locator('#t-checkpoint')).toContainText('已恢復');
+  await expect(page.locator('#t-name')).toHaveText('預備');
+  await expect(page.locator('#t-count')).toHaveText('7');
+  await expect(page.locator('#t-pause')).toHaveText('繼續');
+  await tick(page, 4);
+  await expect(page.locator('#t-count')).toHaveText('7');
+  await page.click('#t-pause');
+  await tick(page, 8);
+  await expect(page.locator('#t-name')).toHaveText('貓牛式');
+  await page.click('#t-skip');
+  await runWorkoutToEnd(page);
+  await expect(page.locator('#done')).toHaveClass(/active/);
+  expect(await page.evaluate(() => localStorage.getItem('daily-ten-active-workout'))).toBeNull();
+});
+
+test('略過動作後重載，略過標記仍在，完成也不會發 XP', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  const before = await storedState(page);
+  await page.click('#h-minimal');
+  await page.click('#t-skip'); // 預備
+  await page.click('#t-skip'); // 貓牛式
+  await page.reload();
+  await waitReady(page);
+  await expect(page.locator('#t-pause')).toHaveText('繼續');
+  await page.click('#t-pause');
+  await runWorkoutToEnd(page);
   await expect(page.locator('#d-xp')).toHaveText('未記為完成');
   const after = await storedState(page);
   expect(after.sessions).toEqual(before.sessions);
