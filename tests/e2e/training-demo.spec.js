@@ -80,3 +80,35 @@ test('略過動作後重載，略過標記仍在，完成也不會發 XP', async
   expect(after.sessions).toEqual(before.sessions);
   expect(after.xp).toBe(before.xp);
 });
+
+test('損壞的訓練檢查點不會讓 App 啟動失敗', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await page.evaluate(() => localStorage.setItem('daily-ten-active-workout', JSON.stringify({
+    v: 1, savedAt: Date.now(), type: 'minimal', idx: 0, seq: [{ name: '錯誤資料', mode: 'time', secs: -9 }]
+  })));
+  await page.reload();
+  await waitReady(page);
+  await expect(page.locator('#boot-error')).toHaveCount(0);
+  await expect(page.locator('#train')).not.toHaveClass(/active/);
+  expect(await page.evaluate(() => localStorage.getItem('daily-ten-active-workout'))).toBeNull();
+});
+
+test('計次動作重載後保留已完成次數，等待手動續練', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await page.click('#h-minimal');
+  await page.click('#t-skip'); // 預備
+  await expect(page.locator('#t-name')).toHaveText('貓牛式');
+  await tick(page, 6); // 每下 3 秒
+  const count = await page.locator('#t-count').textContent();
+  expect(count).toMatch(/^2\/\d+$/);
+  await page.reload();
+  await waitReady(page);
+  await expect(page.locator('#t-name')).toHaveText('貓牛式');
+  await expect(page.locator('#t-count')).toHaveText(count);
+  await expect(page.locator('#t-pause')).toHaveText('繼續');
+  await tick(page, 6);
+  await expect(page.locator('#t-count')).toHaveText(count);
+  await page.click('#t-pause');
+  await tick(page, 3);
+  await expect(page.locator('#t-count')).toHaveText(/^3\/\d+$/);
+});

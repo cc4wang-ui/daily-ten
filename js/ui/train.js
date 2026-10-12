@@ -23,6 +23,10 @@ function readCheckpoint(){
   try{
     const c=JSON.parse(localStorage.getItem(CHECKPOINT_KEY)||'null');
     if(c&&c.v===1&&Array.isArray(c.seq)&&c.seq.length>0&&c.seq.length<500
+      &&c.seq.every(st=>st&&typeof st.name==='string'&&st.name.length<200
+        &&(st.mode==='time'?Number.isInteger(st.secs)&&st.secs>0&&st.secs<3600
+          :st.mode==='reps'&&Number.isInteger(st.reps)&&st.reps>0&&st.reps<1000
+            &&Number.isFinite(st.tempo)&&st.tempo>0&&st.tempo<120))
       &&Number.isInteger(c.idx)&&c.idx>=0&&c.idx<c.seq.length
       &&typeof c.type==='string'&&Number.isFinite(c.savedAt)
       &&Date.now()-c.savedAt<CHECKPOINT_MAX_AGE&&Date.now()-c.savedAt>-60000)return c;
