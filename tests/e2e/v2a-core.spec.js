@@ -601,6 +601,7 @@ const planInfo = (page) => page.evaluate(async () => {
     return {
       min: plan.min,
       steps: plan.type === 'boss' ? null : P.addTransitions(P.planSeq(plan, lv)).length,
+      seconds: plan.type === 'boss' ? null : P.estSec(P.planSeq(plan, lv)),
       minimalMin: P.estMin(P.minimalSeq(lv)),
       catcow: P.minimalSeq(lv)[0].sub
     };
@@ -646,7 +647,7 @@ test.describe('D6 降量', () => {
     });
     expect(sum.deload.restoreLabel).toBe('恢復 L3');
     const P = await planInfo(page);
-    expect(P[2].steps, 'L2 與 L3 的序列長度不同（這一題才驗得出強度）').not.toBe(P[3].steps);
+    expect(P[2].seconds, '固定組數下，L2 劑量仍應比 L3 短').toBeLessThan(P[3].seconds);
     expect(P[2].catcow).not.toBe(P[3].catcow);
     /* 今日：下一步與保底版用 L2 */
     await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'workout');

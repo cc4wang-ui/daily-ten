@@ -397,6 +397,11 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(lu).toHaveText('強度升級條件達成 — 點此升到 L4');
     await gotoTab(page, 's-train');
     const plusL3 = await optMinutes(page, 'h-plus');
+    const exactL3 = await page.evaluate(async () => {
+      const P = await import('/js/ui/program.js');
+      const p = P.todayPlan();
+      return P.estSec(P.planSeq(p, p.lv).concat(P.blockSeq(p.block, p.lv)));
+    });
     await page.click('#h-plus');
     const firstRepsL3 = await page.evaluate(() => document.getElementById('t-sub').textContent);
     await page.click('#t-abort');
@@ -411,9 +416,15 @@ test.describe('訓練流程（假時鐘）', () => {
     /* L4 門檻 HRP 15 下：21 下仍達標 → 按鈕仍在（可再升 L5，同 main） */
     await expect(lu).toBeVisible();
     await expect(lu).toHaveText('強度升級條件達成 — 點此升到 L5');
-    /* 劑量隨等級變：加一輪的時長變長 */
+    /* 分鐘標籤四捨五入可能相同；精確秒數要增加，標籤不得縮短。 */
     await gotoTab(page, 's-train');
-    expect(await optMinutes(page, 'h-plus')).toBeGreaterThan(plusL3);
+    expect(await optMinutes(page, 'h-plus')).toBeGreaterThanOrEqual(plusL3);
+    const exactL4 = await page.evaluate(async () => {
+      const P = await import('/js/ui/program.js');
+      const p = P.todayPlan();
+      return P.estSec(P.planSeq(p, p.lv).concat(P.blockSeq(p.block, p.lv)));
+    });
+    expect(exactL4).toBeGreaterThan(exactL3);
     expect(firstRepsL3).toBe('手機放地上 · 就位');
   });
 });
