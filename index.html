@@ -161,7 +161,7 @@
     </section>
     <section class="card" aria-labelledby="tr-vids-title">
       <h2 class="card-title" id="tr-vids-title">動作庫</h2>
-      <p>「示範」是 App 內建的線條動畫，離線可看，訓練時也會自動顯示並跟著節拍動。「真人」開啟 YouTube 搜尋結果（需連網），選官方／高評價示範即可。</p>
+      <p>App 內的線條動畫只供辨認動作與節奏，不是完整教學。目前沒有經審核的完整動作影片；如果不熟悉動作，先暫停訓練並尋求合適的教學。</p>
       <div id="vids"></div>
     </section>
   </section>
@@ -338,16 +338,22 @@
 
 <!-- TRAIN -->
 <div id="train">
+  <div id="t-checkpoint" aria-live="polite">準備開始</div>
   <div id="t-phase">—</div>
   <div id="t-name">—</div>
   <div id="t-sub">—</div>
+  <div id="t-set" hidden></div>
   <div id="t-demo-wrap"><svg id="t-demo" aria-hidden="true"></svg><span id="t-demo-tag"></span></div>
   <div id="t-cue"></div>
+  <p id="t-demo-safety" hidden>線條動畫只供節奏參考，不是完整動作教學。</p>
+  <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作示範 · 計時會暫停</button>
+  <p id="t-no-demo" hidden>目前沒有此動作的完整示範；如果不熟悉，請略過這一步。</p>
   <div id="t-count">—</div>
   <div id="t-next"></div>
   <div id="t-prog"><i id="t-bar"></i></div>
   <div class="t-ctrl">
     <button id="t-pause">暫停</button>
+    <button id="t-skip">略過這一步</button>
     <button id="t-abort">結束</button>
   </div>
 </div>
@@ -368,8 +374,10 @@
     <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
     <svg id="dm-svg" aria-hidden="true"></svg>
     <div id="dm-cue"></div>
+    <p class="dm-safety">這是線條動畫，只供辨認動作與節奏，不能代替完整的動作教學。目前沒有經審核的完整示範影片；如果不熟悉動作，先暫停訓練。動作不舒服時請停下來。</p>
+    <p id="dm-training-note" hidden>計時已暫停。關閉後會回到同一步與剩餘時間，按「繼續」再開始。</p>
     <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
-    <button class="btn-main" id="dm-close" style="margin-bottom:0">關閉</button>
+    <button class="btn-main" id="dm-close" style="margin-bottom:0">返回訓練</button>
   </div>
 </div>
 

@@ -1,6 +1,6 @@
 /* Daily Ten — 樣式。顏色、間距、圓角、陰影、動效時間一律來自 tokens.css（這裡不寫字面值）。
    B1 亮色外觀（CLAUDE.md §7）：亮色規則限定在 #app（各畫面）、#tabs（分頁列）、#toast（復原提示）。
-   訓練畫面家族（#train、#done、#demo-modal；Boss 測驗計時也在 #train）沿用 M1 暗色：第 1 節的規則逐字保留、變數值不變。 */
+   訓練畫面家族（#train、#done、#demo-modal；Boss 測驗計時也在 #train）沿用暗色基底，訓練重整提高教學與狀態文字可讀性。 */
 
 /* ---------- 0. 基礎 ---------- */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -11,7 +11,7 @@ body{background:var(--c-bg);color:var(--c-ink);font-family:var(--font);
 button{font-family:inherit;border:none;cursor:pointer}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 
-/* ---------- 1. 訓練畫面家族：M1 暗色（規則與數值不變） ---------- */
+/* ---------- 1. 訓練畫面家族：暗色基底 ---------- */
 #train,#done,#demo-modal{color:var(--ink)} /* M1 由 body 繼承；body 改亮色後在這裡補回，畫面不變 */
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--ink-dim);text-transform:uppercase}
 .btn-main{width:100%;padding:18px;border-radius:10px;background:var(--amber);color:var(--on-amber);
@@ -21,23 +21,31 @@ button{font-family:inherit;border:none;cursor:pointer}
 .btn-danger-fill{background:var(--red);color:var(--on-red)}
 a{color:var(--amber);text-decoration:none;font-size:13px}
 #train{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
-  align-items:center;justify-content:center;text-align:center;padding:24px;z-index:50}
+  align-items:center;justify-content:center;text-align:center;padding:24px 24px 100px;z-index:50;overflow-y:auto}
 #train.active{display:flex}
+#t-checkpoint{font-size:13px;font-weight:800;letter-spacing:.08em;color:var(--amber);margin-bottom:5px}
+#t-checkpoint.paused{color:var(--ink-dim)}
 #t-phase{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:10px}
 #t-name{font-size:34px;font-weight:800;line-height:1.2;margin-bottom:4px}
 #t-sub{font-size:15px;color:var(--amber);margin-bottom:14px;font-family:var(--mono)}
 #t-demo-wrap{position:relative;width:min(78vw,300px);margin:0 auto 14px}
+#t-set{font-size:14px;font-weight:700;color:var(--ink);margin:-5px 0 8px}
 #t-demo{display:block;width:100%;aspect-ratio:20/13;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 #t-demo-wrap.next #t-demo{opacity:.55}
 #t-demo-tag{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim)}
-#t-cue{font-size:12px;color:var(--ink-dim);line-height:1.5;max-width:320px;margin:0 auto 10px;min-height:18px}
+#t-cue{font-size:14px;color:var(--ink);line-height:1.5;max-width:320px;margin:0 auto 10px;min-height:18px}
+#t-show-demo{width:auto;min-height:44px;padding:10px 16px;margin:0 auto 10px}
+#t-show-demo[hidden],#t-set[hidden],#t-no-demo[hidden],#t-demo-safety[hidden],#dm-training-note[hidden]{display:none}
+#t-demo-safety{font-size:13px;color:var(--ink-dim);line-height:1.45;margin:0 auto 8px;max-width:320px}
+#t-no-demo{font-size:14px;color:var(--ink);line-height:1.45;margin:0 auto 10px;max-width:320px}
 #t-count{font-family:var(--mono);font-size:88px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-#t-next{font-size:13px;color:var(--ink-dim);margin-top:22px;min-height:18px}
+#t-next{font-size:15px;color:var(--ink);margin-top:22px;min-height:18px}
 #t-prog{width:70%;height:4px;background:var(--panel2);border-radius:2px;margin-top:18px;overflow:hidden}
 #t-prog i{display:block;height:100%;background:var(--amber);width:0%}
 .t-ctrl{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;gap:12px;width:calc(100% - 48px);max-width:472px}
 .t-ctrl button{flex:1;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
 #t-pause{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+#t-skip{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 #t-abort{background:transparent;color:var(--red);border:1px solid var(--red)}
 #done{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;padding:32px;z-index:60}
@@ -55,7 +63,10 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #demo-modal.active{display:flex}
 #demo-modal .box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 #dm-svg{display:block;width:100%;aspect-ratio:20/13;background:var(--bg);border-radius:8px;margin:10px 0}
-#dm-cue{font-size:13px;color:var(--ink-dim);line-height:1.6;margin-bottom:12px}
+#dm-cue{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px}
+.dm-safety,#dm-training-note{font-size:14px;color:var(--ink);line-height:1.5;margin:0 0 12px}
+#dm-training-note{color:var(--amber)}
+@media(max-height:700px){#train{justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}#t-demo-wrap{width:min(56vw,220px)}#t-name{font-size:30px}#t-count{font-size:72px}#t-next{margin-top:12px}}
 
 /* ---------- 2. 亮色區域：M1 變數改指向亮色值（沿用舊變數的 inline style 也看得清楚） ---------- */
 #app,#tabs,#toast{

@@ -11,7 +11,7 @@ import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
 import { recordSession } from './session.js';
 import { summary } from './game.js';
-import { HAS_DEMO, demoCtl, stopDemo, setTrainDemo } from './demo.js';
+import { HAS_DEMO, demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
 import { renderHome } from './home.js';
 
 /* ================= TIMER ENGINE ================= */
@@ -56,10 +56,14 @@ export function startWorkout(seq,type,after,opts){
   seq=addTransitions(seq);
   initAudio(); lockScreen();
   $('train').classList.add('active');
-  let idx=-1,paused=false,timer=null;
+  let idx=-1,paused=false,timer=null,advanceTimer=null,pendingAdvance=false,skippedAction=false;
+  $('t-pause').textContent='暫停';
+  $('t-checkpoint').classList.remove('paused');
   const total=seq.length;
   function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
   function nextStep(){
+    if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null;}
+    pendingAdvance=false;
     idx++;
     if(idx>=total){finish();return;}
     const st=seq[idx];
@@ -67,10 +71,23 @@ export function startWorkout(seq,type,after,opts){
     $('t-bar').style.width=Math.round(idx/total*100)+'%';
     $('t-name').textContent=st.name;
     $('t-sub').textContent=st.sub||'';
-    $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
-    if(HAS_DEMO&&DT_DEMOS.keyFor(st.name))setTrainDemo(st.name,st.mode==='reps'?st.tempo:null,false);
-    else setTrainDemo(st.prep!==undefined?st.prep:(seq[idx+1]?seq[idx+1].name:''),null,true);
     const isRest=st.name.indexOf('休息')>=0;
+    const isPrep=st.name==='預備'||st.name==='換組'||st.prep!==undefined;
+    $('t-checkpoint').textContent=isRest?'檢查點 · 組間休息':isPrep?'檢查點 · 準備下一步':'檢查點 · 進行動作';
+    const set=st.name.match(/第\s*(\d+)\s*組/);
+    $('t-set').textContent=set?'第 '+set[1]+' 組':'';
+    $('t-set').hidden=!set;
+    $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
+    const nextMovement=seq.slice(idx+1).find((step)=>step.prep===undefined&&step.name!=='換組'&&step.name.indexOf('休息')<0);
+    const demoName=isRest||isPrep?(st.prep!==undefined?st.prep:(nextMovement?nextMovement.name:'')):st.name;
+    const demoKey=setTrainDemo(demoName,st.mode==='reps'&&demoName===st.name?st.tempo:null,demoName!==st.name);
+    $('t-show-demo').hidden=!demoKey;
+    $('t-demo-safety').hidden=!demoKey;
+    $('t-no-demo').hidden=!!demoKey||isRest||isPrep;
+    $('t-show-demo').onclick=demoKey?()=>{
+      setPaused(true);
+      openDemo(demoKey,demoName,()=>{ $('t-pause').focus(); });
+    }:null;
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
     if(st.mode==='time'){
@@ -79,19 +96,43 @@ export function startWorkout(seq,type,after,opts){
       timer=setInterval(()=>{ if(paused)return;
         left--; $('t-count').textContent=fmt(left);
         if(left<=5&&left>0)beep(880,.08);
-        if(left<=0){clearInterval(timer);beep(440,.5);setTimeout(nextStep,600);}
+        if(left<=0){clearInterval(timer);beep(440,.5);queueNextStep();}
       },1000);
     }else{ // reps with tempo
       let done=0; $('t-count').textContent=done+'/'+st.reps;
       beep(660,.12);
       timer=setInterval(()=>{ if(paused)return;
         done++; $('t-count').textContent=done+'/'+st.reps; beep(760,.07);
-        if(done>=st.reps){clearInterval(timer);beep(440,.5);setTimeout(nextStep,600);}
+        if(done>=st.reps){clearInterval(timer);beep(440,.5);queueNextStep();}
       },st.tempo*1000);
+    }
+  }
+  function queueNextStep(){
+    // A completed interval has no unlisted 600 ms gap: estSec() covers the
+    // displayed work, rest and preparation time exactly.
+    advanceTimer=setTimeout(()=>{advanceTimer=null;if(paused)pendingAdvance=true;else nextStep();},0);
+  }
+  function setPaused(value){
+    paused=value;
+    $('t-pause').textContent=paused?'繼續':'暫停';
+    $('t-checkpoint').classList.toggle('paused',paused);
+    if(demoCtl)demoCtl.setPaused(paused);
+    if(!paused){
+      if(pendingAdvance){nextStep();return;}
+      speak('繼續');
     }
   }
   function finish(){
     cleanup();
+    if(skippedAction){
+      $('d-identity').textContent='這次略過了動作';
+      $('d-xp').textContent='未記為完成';
+      $('d-bonus').hidden=true;
+      $('d-ok').textContent='返回今日';
+      $('done').classList.add('active');
+      return;
+    }
+    $('d-ok').textContent='回報完成';
     if(after){after();return;}
     const gain=recordAndGain(type,{plus:!!(opts&&opts.plus)});
     const days=streakDays();
@@ -103,15 +144,23 @@ export function startWorkout(seq,type,after,opts){
   }
   function cleanup(){
     if(timer)clearInterval(timer);
+    if(advanceTimer)clearTimeout(advanceTimer);
+    closeDemo();
     stopDemo();
     try{speechSynthesis.cancel();}catch(e){}
     unlockScreen();
     $('train').classList.remove('active');
     runner=null;
   }
-  $('t-pause').onclick=()=>{paused=!paused;$('t-pause').textContent=paused?'繼續':'暫停';
-    if(demoCtl)demoCtl.setPaused(paused);
-    if(!paused)speak('繼續');};
+  $('t-pause').onclick=()=>setPaused(!paused);
+  $('t-skip').onclick=()=>{
+    const st=seq[idx];
+    if(st&&st.name.indexOf('休息')<0&&st.name!=='預備'&&st.name!=='換組'&&st.prep===undefined)skippedAction=true;
+    if(timer)clearInterval(timer);
+    if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null;}
+    if(paused){paused=false;$('t-pause').textContent='暫停';$('t-checkpoint').classList.remove('paused');}
+    nextStep();
+  };
   $('t-abort').onclick=()=>{cleanup();renderHome();};
   runner={cleanup};
   nextStep();

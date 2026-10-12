@@ -24,12 +24,12 @@ test.describe('訓練分頁', () => {
     await expect(page.locator('#tr-title')).toHaveText('訓練');
     await expect(page.locator('#h-level')).toHaveText('L3');
     await expect(page.locator('#tr-day')).toHaveText('週五 · 今日課表');
-    await expect(page.locator('#tr-plan-title')).toHaveText('十動作＋下肢後鏈');
+    await expect(page.locator('#tr-plan-title')).toHaveText('活動度＋拉系列與上背');
     await expect(page.locator('#tr-start')).toHaveText('開始今日課表');
     await page.click('#tr-start');
     await abortTraining(page);
     await gotoTab(page, 's-train');
-    await expect(page.locator('#h-plus .opt-title')).toHaveText('加一輪 下肢後鏈');
+    await expect(page.locator('#h-plus .opt-title')).toHaveText('加一輪 拉系列與上背');
     await page.click('#h-plus');
     await abortTraining(page);
     await gotoTab(page, 's-train');
@@ -143,7 +143,7 @@ test.describe('設定（今日右上齒輪）', () => {
   test('語音／提示音／彈力帶開關會存檔；彈力帶開關改變訓練分頁的器材與課表', async ({ page }) => {
     await openApp(page, { seed: seedState(readFixture('v3.json')) }); // v3：settings.band = false
     await gotoTab(page, 's-train');
-    await expect(page.locator('#tr-plan-meta')).toContainText('沒帶彈力帶：徒手替代');
+    await expect(page.locator('#tr-plan-meta')).toContainText('徒手拉力較低，不用固定點');
     await gotoTab(page, 's-setup');
     for (const [id, key] of [['cfg-voice', 'voice'], ['cfg-beep', 'beep'], ['cfg-band', 'band']]) {
       const was = await page.isChecked(`#${id}`);
@@ -152,7 +152,7 @@ test.describe('設定（今日右上齒輪）', () => {
       expect((await storedState(page)).settings[key], key).toBe(!was);
     }
     await gotoTab(page, 's-train');
-    await expect(page.locator('#tr-plan-meta')).toContainText('瑜珈墊、彈力帶、一面牆');
+    await expect(page.locator('#tr-plan-meta')).toContainText('瑜珈墊、彈力帶（不用門錨或牆）');
   });
 
   test('就寢／起床時間：改了會存、早安打卡預填新的就寢時間；空白或格式不對不存、欄位改回、提示訊息', async ({ page }) => {

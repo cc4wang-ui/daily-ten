@@ -102,7 +102,7 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(next.locator('.nx-title')).toHaveText('開始今日課表');
     await expect(next.locator('.nx-meta')).toHaveText(/^強度 L3 · \d+ 分$/);
     await expect(page.locator('#h-minimal')).toHaveText(/^只有 \d+ 分鐘？做保底版$/);
-    await expect(page.locator('#tr-plan-title')).toHaveText('十動作＋下肢後鏈');
+    await expect(page.locator('#tr-plan-title')).toHaveText('活動度＋拉系列與上背');
 
     /* 保底版：開始、暫停、繼續 */
     let before = await engine(page);
@@ -169,7 +169,7 @@ test.describe('訓練流程（假時鐘）', () => {
 
     await gotoTab(page, 's-train');
     await expect(page.locator('#h-plus')).toBeVisible();
-    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 下肢後鏈');
+    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 拉系列與上背');
     expect(await optMinutes(page, 'h-plus')).toBeGreaterThan(0);
     const eBefore = await engine(page);
     await page.click('#h-plus');

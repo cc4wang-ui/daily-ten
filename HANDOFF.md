@@ -1,5 +1,7 @@
 # Daily Ten — 下一個對話接手
 
+> 2026-10-12 新優先序：Cross 指出動作動畫、跳 YouTube 重啟、秒數、肌群刺激與 checkpoint 五項問題，要求先重整訓練。開發分支 `codex/rework-training-mvp` 尚未發佈；看 [路線圖](./docs/TRAINING-REBUILD-ROADMAP.md)、[QA](./reports/qa-training-2026-10-12.md)。完整離線動作影片與專業審核缺席，iOS 重載續練未完成；不得把 P0 UI／課表修正說成安全訓練 MVP。Jev 未執行（缺 TypeSafe key），見 [fallback](./reports/jev-training-fallback.md)。原先 V2b 優先序讓位於訓練安全。以下是 2026-10-05 歷史快照。
+
 > 截至 2026-10-05（Asia/Tokyo）。直接把本檔貼到新對話。先對照 repo 最新 `main`，不要用舊 PR 描述或這份快照覆蓋更新後的實作。開發流程一律走 `.claude/skills/daily-ten-dev/SKILL.md`。
 
 ## 🎯 服務目標

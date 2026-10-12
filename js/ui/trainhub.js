@@ -27,7 +27,7 @@ export function runPlan(plan = todayPlan()) {
 export function planTitle(plan) {
   if (plan.type === 'boss') return 'Boss Day · 十動作暖身＋測驗';
   if (plan.type === 'rest') return '恢復日 · 三組伸展全走';
-  return `十動作＋${BLOCKS[plan.block]}${plan.type === 'cycle' ? '＋加練' : ''}`;
+  return `活動度＋${BLOCKS[plan.block]}${plan.type === 'cycle' ? '＋加練' : ''}`;
 }
 
 function opt(ic, title, meta, note) {
@@ -41,7 +41,7 @@ function renderWeek(lv, today, todayLv = lv) {
     const plv = i === today ? todayLv : lv;
     const name = p.type === 'boss' ? 'Boss Day · 十動作＋測驗'
       : p.type === 'rest' ? '恢復日 · 三組伸展全走'
-        : `十動作＋${BLOCKS[p.block]}${p.type === 'cycle' ? '＋加練' : ''}`;
+        : `活動度＋${BLOCKS[p.block]}${p.type === 'cycle' ? '＋加練' : ''}`;
     const min = p.type === 'boss' ? estMin(fullSeq(plv, p.mob))
       : p.type === 'rest' ? estMin(restSeq(plv)) : estMin(planSeq(p, plv));
     return `<div class="prline wk-row${i === today ? ' today' : ''}"${i === today ? ' aria-current="date"' : ''}>`
@@ -61,7 +61,7 @@ export function renderTrain(sum) {
   $('h-mission').textContent = plan.mission;
   $('tr-plan-meta').textContent = (plv !== lv ? `今天先改成 L${plv} · ` : '')
     + (plan.type === 'boss' ? `暖身約 ${plan.min} 分＋測驗另計` : `約 ${plan.min} 分`)
-    + ` · ${hasBand() ? '瑜珈墊、彈力帶、一面牆' : '瑜珈墊、一面牆（沒帶彈力帶：徒手替代）'}`;
+    + ` · ${hasBand() ? '瑜珈墊、彈力帶（不用門錨或牆）' : '瑜珈墊（徒手拉力較低，不用固定點）'}`;
   const start = $('tr-start');
   start.textContent = done ? '再練一次今日課表'
     : plan.type === 'boss' ? '開始 Boss Day' : plan.type === 'rest' ? '開始恢復序列' : '開始今日課表';

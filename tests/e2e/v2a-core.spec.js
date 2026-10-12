@@ -716,9 +716,14 @@ test.describe('D6 降量', () => {
     await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'boss');
     const steps = await page.evaluate(async () => {
       const P = await import(new URL('js/ui/program.js', document.baseURI).href);
-      return { 2: P.addTransitions(P.fullSeq(2, 'A')).length, 3: P.addTransitions(P.fullSeq(3, 'A')).length };
+      return {
+        2: P.addTransitions(P.fullSeq(2, 'A')).length,
+        3: P.addTransitions(P.fullSeq(3, 'A')).length,
+        seconds2: P.estSec(P.fullSeq(2, 'A')),
+        seconds3: P.estSec(P.fullSeq(3, 'A'))
+      };
     });
-    expect(steps[2]).not.toBe(steps[3]);
+    expect(steps.seconds2).toBeLessThan(steps.seconds3);
     const before = await storedSummary(page);
     await page.click('#h-start');
     await expect(page.locator('#train')).toHaveClass(/active/);

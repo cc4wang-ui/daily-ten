@@ -1,5 +1,18 @@
 # Daily Ten — 競品對標
 
+## 2026-10-12 更新：訓練體驗優先
+
+Cross 指出現有火柴人動作看不懂、YouTube 求助會打斷訓練、課表與 checkpoint 分散。原文下方 2026-09-28「以線條動畫為主體」的選擇已被使用者推翻，不再作為本輪產品決策。重整與發佈門檻見 [訓練重整路線圖](./docs/TRAINING-REBUILD-ROADMAP.md)。
+
+| 參考來源 | 可核對的產品做法 | Daily Ten 要採取的原則 |
+|---|---|---|
+| [BetterMe App Store 官方介紹](https://apps.apple.com/us/app/betterme-well-being-coach/id1264546236) | 以目標、時間安排與器材條件提供居家訓練計畫；部分課程不需器材 | 問清器材條件，再給明確的今日課表；不複製冗長問卷或體態承諾 |
+| [BetterMe 男性徒手訓練內容](https://betterme.world/articles/calisthenics-workout-for-men-2/) | 以程度和週計畫組織徒手動作 | 標明當天肌群與循序劑量；頁面內容不等於 App 實際效果或療效證據 |
+| [GRIT Calisthenics 官方 Google Play 頁](https://play.google.com/store/apps/details?id=com.gritathletics) | 列出影片輔助訓練、目標旅程、進度統計與肌群圖 | 先完成可理解的動作影片及單一路徑，再做肌群圖和遊戲化；不讓 XP 取代實際進步 |
+| [GRIT 官網](https://gritworkouts.com/) | 將訓練旅程、進度與每日課表放在清楚的路徑 | 今日首頁只有一個下一步；訓練畫面集中當前動作、下一步與求助 |
+
+`betterme.men` 指的是使用者看到的男性徒手訓練廣告／網站；本輪無法直接核對該廣告頁的完整互動流程，上表僅採 BetterMe 可驗證的官方內容，不推測未看到的轉化漏斗細節。
+
 整理：2026-09-28（Asia/Tokyo）。這是**新做的對標**，不是找回的 Codex 舊版（舊版未找回，見 [PROJECT_STATE.md](./PROJECT_STATE.md)）。
 
 > **資料界線**：本表資料來自 2026-09-28 的網路搜尋摘要與評測文章（來源列在文末）。本工作環境連不到 App Store／YouTube，**價格與功能未在商店頁逐項核對**；標「未確認」的欄位不代表沒有該功能。做付費或對外決策前，先到商店頁再核一次。

@@ -1,5 +1,9 @@
 # Daily Ten — Project State
 
+## 2026-10-12 訓練重整開發分支（尚未發佈）
+
+`codex/rework-training-mvp` 從 GitHub `main` @ `9cfe82f` 開始。依 Cross 五項訓練體驗回報，已修改訓練內求助暫停／返回、checkpoint、七日重點區塊、明確時間加總與無固定點替代；詳見 [訓練重整路線圖](./docs/TRAINING-REBUILD-ROADMAP.md) 與 [獨立 QA](./reports/qa-training-2026-10-12.md)。這個分支**未達發佈條件**：完整離線動作影片 0、未經真人專業審核，重新載入或 iOS 頁面回收後不能恢復訓練。線條動畫只作節奏參考；五個新動作因舊動畫不符而不顯示示範。TypeSafe Jev 憑證缺席，見 [fallback 報告](./reports/jev-training-fallback.md)。下方歷史記錄描述舊主線，不能當作本分支的安全驗收。
+
 更新：2026-10-05（Asia/Tokyo，V1 亮色＋三環＋早安打卡）。本檔描述 GitHub repo 的現況；開發原則、決策 D1–D26 與 Milestones 以 [CLAUDE.md](./CLAUDE.md)、[PLAN.md](./PLAN.md) 為準。Cross 記得的 Codex 版（有影片、對標其他 App）**沒有找回**；2026-09-28 Cross 決定把兩者當作**新功能重建**（內建示範動畫＋[COMPETITORS.md](./COMPETITORS.md)），不稱為恢復舊版。若日後找到舊版，只當參考比對，不覆蓋現有實作與資料遷移。部署狀態、個人訓練成果及真機表現若無證據，一律視為未驗證。
 
 ## 版本來源與待找回產物
