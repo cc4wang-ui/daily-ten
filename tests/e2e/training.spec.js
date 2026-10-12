@@ -102,7 +102,7 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(next.locator('.nx-title')).toHaveText('開始今日課表');
     await expect(next.locator('.nx-meta')).toHaveText(/^強度 L3 · \d+ 分$/);
     await expect(page.locator('#h-minimal')).toHaveText(/^只有 \d+ 分鐘？做保底版$/);
-    await expect(page.locator('#tr-plan-title')).toHaveText('活動度＋拉系列與上背');
+    await expect(page.locator('#tr-plan-title')).toHaveText('活動度＋下肢＋上背控制（拉力有限）');
 
     /* 保底版：開始、暫停、繼續 */
     let before = await engine(page);
@@ -169,7 +169,7 @@ test.describe('訓練流程（假時鐘）', () => {
 
     await gotoTab(page, 's-train');
     await expect(page.locator('#h-plus')).toBeVisible();
-    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 拉系列與上背');
+    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 下肢＋上背控制（拉力有限）');
     expect(await optMinutes(page, 'h-plus')).toBeGreaterThan(0);
     const eBefore = await engine(page);
     await page.click('#h-plus');
@@ -205,7 +205,7 @@ test.describe('訓練流程（假時鐘）', () => {
       lastSession: { date: '2026-09-29', type: 'full', xp: 10 }
     });
     await gotoTab(page, 's-train');
-    await expect(page.locator('#h-mission')).toContainText('伸展組 B：胸肩與上背　·　加強區塊：下肢後鏈');
+    await expect(page.locator('#h-mission')).toContainText('伸展組 B：胸肩與上背　·　加強區塊：下肢與髖伸');
 
     /* 隔天：切回 HOME 會依新的日期重畫 */
     await page.clock.pauseAt(new Date('2026-09-30T07:00:00+09:00'));
@@ -213,7 +213,7 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(page.locator('#h-date')).toHaveText('週三 9/30');
     await gotoTab(page, 's-train');
     await expect(page.locator('#h-mission')).toContainText('（本週唯一加練日）');
-    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 拉系列與上背');
+    await expect(optTitle(page, 'h-plus')).toHaveText('加一輪 上背控制（拉力有限）');
     before = await engine(page);
     await page.click('#h-plus');
     const days30 = engineAfter(raw, [rec29, { date: '2026-09-30', type: 'cycle', xp: 15, plus: true }], '2026-09-30T07:00:00+09:00').streak.days;

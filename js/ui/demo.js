@@ -21,7 +21,6 @@ export function setTrainDemo(name,period,isNext){
 export function openDemo(k,q,onClose,exactName,fallbackCue){
   const inf=HAS_DEMO?DT_DEMOS.info(k):null;
   const movementName=exactName||(onClose?q:(inf?inf.name:k));
-  if(!inf&&!getApprovedExerciseMedia(movementName)&&!onClose)return;
   $('dm-name').textContent=movementName;$('dm-cue').textContent=inf?inf.cue:(fallbackCue||'');
   const link=$('dm-yt');
   link.href='https://www.youtube.com/results?search_query='+encodeURIComponent(q||movementName);

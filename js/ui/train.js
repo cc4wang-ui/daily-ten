@@ -116,6 +116,12 @@ export function startWorkout(seq,type,after,opts){
     const isRest=st.name.indexOf('休息')>=0;
     const isPrep=st.name==='預備'||st.name==='換組'||st.prep!==undefined;
     $('t-checkpoint').textContent=(prior?'已恢復 · ':'')+(isRest?'檢查點 · 組間休息':isPrep?'檢查點 · 準備下一步':'檢查點 · 進行動作');
+    $('t-more-rest').hidden=!isRest;
+    $('t-more-rest').onclick=isRest?()=>{
+      left=Math.min(st.secs+300,left+20);
+      $('t-count').textContent=fmt(left);
+      persist();
+    }:null;
     const set=st.name.match(/第\s*(\d+)\s*組/);
     $('t-set').textContent=set?'第 '+set[1]+' 組':'';
     $('t-set').hidden=!set;
@@ -138,7 +144,7 @@ export function startWorkout(seq,type,after,opts){
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
     if(st.mode==='time'){
-      left=prior&&Number.isInteger(prior.left)?Math.max(0,Math.min(st.secs,prior.left)):st.secs;
+      left=prior&&Number.isInteger(prior.left)?Math.max(0,Math.min(st.secs+(isRest?300:0),prior.left)):st.secs;
       done=null;$('t-count').textContent=fmt(left);
       beep(660,.12);
       timer=setInterval(()=>{ if(paused)return;

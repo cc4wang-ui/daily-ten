@@ -271,7 +271,7 @@ test('SETUP 文字框有焦點（還沒打字）：不重新載入；離開文�
 test('示範視窗開著：不重新載入；關掉後才重新載入', async ({ page, deploy }) => {
   await openCurrent(page, deploy);
   await gotoTab(page, 's-train');
-  await page.locator('#vids button[data-demo]').first().click();
+  await page.locator('#vids button[data-i]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   const before = await storageSnapshot(page);
   const token = await markDocument(page);

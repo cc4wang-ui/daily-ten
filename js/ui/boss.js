@@ -31,16 +31,16 @@ function bossHRP(){
   setExternalTraining(true);
   initAudio();lockScreen();
   bossTimerControls();
-  speak('HRP測驗。兩分鐘，盡可能多下。預備，開始。');
+  speak('HRP測驗。兩分鐘，自行計數；姿勢維持不住就停止。預備，開始。');
   let left=120;const el=$('t-count');
   $('t-phase').textContent='BOSS · HRP';$('t-name').textContent='HRP 伏地挺身測驗';
-  $('t-sub').textContent='2:00 · 自己計數';$('t-next').textContent='';$('t-bar').style.width='0%';
+  $('t-sub').textContent='2:00 · 自己計數；姿勢失控就停止';$('t-next').textContent='';$('t-bar').style.width='0%';
   setTrainDemo('HRP',null,false);
   el.textContent='2:00';
   const tm=setInterval(()=>{ left--;
     el.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
     $('t-bar').style.width=Math.round((120-left)/120*100)+'%';
-    if(left===20)speak('你還有百分之六十。再兩下。');
+    if(left===20)speak('還有二十秒；姿勢維持不住就停止。');
     if(left<=5&&left>0)beep(880,.08);
     if(left<=0){clearInterval(tm);beep(440,.6);unlockScreen();setExternalTraining(false);
       stopDemo();$('train').classList.remove('active');bossInput('hrp');}
@@ -51,16 +51,16 @@ function bossPlank(){
   // 碼表直到撐不住按停 — 免持例外（不可避免）
   $('train').classList.add('active');setExternalTraining(true);initAudio();lockScreen();
   bossTimerControls();
-  speak('Plank測驗。撐到極限，落地時按結束。預備，開始。');
+  speak('Plank測驗。只維持能控制的姿勢；姿勢維持不住就按結束。預備，開始。');
   let sec=0;const el=$('t-count');
   $('t-phase').textContent='BOSS · PLANK';$('t-name').textContent='平板支撐測驗';
-  $('t-sub').textContent='撐到極限 · 落地按「結束」';$('t-next').textContent='';
+  $('t-sub').textContent='姿勢維持不住就按「結束」';$('t-next').textContent='';
   setTrainDemo('平板支撐',null,false);
   el.textContent='0:00';
   const tm=setInterval(()=>{ sec++;
     el.textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
-    if(sec===90)speak('一分半。朝兩分半訓練目標前進。');
-    if(sec===150)speak('兩分半。目標達成，繼續推。');
+    if(sec===90)speak('一分半。只在姿勢能維持時繼續。');
+    if(sec===150)speak('兩分半。姿勢維持不住就結束。');
   },1000);
   $('t-abort').textContent='結束';
   $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();setExternalTraining(false);$('train').classList.remove('active');
@@ -68,7 +68,7 @@ function bossPlank(){
 }
 function bossTimerControls(){
   $('t-checkpoint').textContent='檢查點 · 測驗計時';
-  for(const id of ['t-pause','t-skip','t-show-demo']){$(id).onclick=null;$(id).hidden=true;}
+  for(const id of ['t-pause','t-skip','t-show-demo','t-more-rest']){$(id).onclick=null;$(id).hidden=true;}
   $('t-demo-safety').hidden=false;
   $('t-no-demo').hidden=true;
 }

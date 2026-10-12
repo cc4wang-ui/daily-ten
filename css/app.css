@@ -42,6 +42,8 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #t-next{font-size:15px;color:var(--ink);margin-top:22px;min-height:18px}
 #t-prog{width:70%;height:4px;background:var(--panel2);border-radius:2px;margin-top:18px;overflow:hidden}
 #t-prog i{display:block;height:100%;background:var(--amber);width:0%}
+#t-more-rest{margin-top:16px;min-height:44px;padding:10px 16px}
+#t-more-rest[hidden]{display:none}
 .t-ctrl{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;gap:12px;width:calc(100% - 48px);max-width:472px}
 .t-ctrl button{flex:1;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
 #t-pause{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}

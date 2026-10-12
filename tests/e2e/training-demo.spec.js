@@ -1,4 +1,4 @@
-import { test, expect, readFixture, openApp, seedState, storedState, tick, runWorkoutToEnd, waitReady } from './helpers.js';
+import { test, expect, readFixture, openApp, seedState, storedState, tick, runWorkoutToEnd, waitReady, gotoTab } from './helpers.js';
 
 test('訓練中示範留在 App，暫停並返回同一步與剩餘時間', async ({ page }) => {
   await openApp(page, { seed: seedState(readFixture('v3.json')) });
@@ -133,4 +133,25 @@ test('切到背景時自動暫停，回到前景仍需手動續練', async ({ pa
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expect(page.locator('#t-count')).toHaveText(left);
+});
+
+test('組間休息可加 20 秒，重新整理後保留增加的剩餘時間', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await gotoTab(page, 's-train');
+  await page.click('#h-rain');
+  await page.click('#t-skip'); // 預備
+  await expect(page.locator('#t-name')).toContainText('原地快走');
+  await expect(page.locator('#t-more-rest')).toBeHidden();
+  await tick(page, 42);
+  await expect(page.locator('#t-name')).toHaveText('休息');
+  const before = Number(await page.locator('#t-count').textContent());
+  expect(before).toBeGreaterThan(0);
+  await page.click('#t-more-rest');
+  const extended = String(before + 20);
+  await expect(page.locator('#t-count')).toHaveText(extended);
+  await page.reload();
+  await waitReady(page);
+  await expect(page.locator('#t-name')).toHaveText('休息');
+  await expect(page.locator('#t-count')).toHaveText(extended);
+  await expect(page.locator('#t-pause')).toHaveText('繼續');
 });

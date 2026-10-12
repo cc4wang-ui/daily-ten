@@ -50,7 +50,7 @@ async function exerciseAllScreens(page, { xp, current, best }) {
   await expect(page.locator('#vids .vidline').first()).toBeVisible();
   await expect(page.locator('#week-tbl .prline')).toHaveCount(7);
   /* 離線示範視窗明確說明尚無經審核完整影片，不把火柴人當教學 */
-  await page.locator('#vids button[data-demo]').first().click();
+  await page.locator('#vids button[data-i]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   await expect(page.locator('#dm-name')).not.toHaveText('—');
   await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
