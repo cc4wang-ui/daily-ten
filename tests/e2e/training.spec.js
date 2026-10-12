@@ -324,6 +324,9 @@ test.describe('訓練流程（假時鐘）', () => {
       { every: 1, maxSeconds: 2400, label: 'HRP 測驗開始' });
     await expect(page.locator('#t-name')).toHaveText('HRP 伏地挺身測驗');
     await expect(page.locator('#t-count')).toHaveText('2:00');
+    await expect(page.locator('#t-pause')).toBeHidden();
+    await expect(page.locator('#t-skip')).toBeHidden();
+    await expect(page.locator('#t-show-demo')).toBeHidden();
     await tick(page, 30);
     await expect(page.locator('#t-count')).toHaveText('1:30');
     await tickUntil(page, () => document.getElementById('s-boss').classList.contains('active'),

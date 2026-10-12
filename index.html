@@ -345,8 +345,8 @@
   <div id="t-set" hidden></div>
   <div id="t-demo-wrap"><svg id="t-demo" aria-hidden="true"></svg><span id="t-demo-tag"></span></div>
   <div id="t-cue"></div>
-  <p id="t-demo-safety" hidden>線條動畫只供節奏參考，不是完整動作教學。</p>
-  <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作示範 · 計時會暫停</button>
+  <p id="t-demo-safety" hidden>文字提醒不能代替完整動作教學。</p>
+  <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作說明 · 計時會暫停</button>
   <p id="t-no-demo" hidden>目前沒有此動作的完整示範；如果不熟悉，請略過這一步。</p>
   <div id="t-count">—</div>
   <div id="t-next"></div>
@@ -370,11 +370,12 @@
 <!-- 動作示範 -->
 <div id="demo-modal" role="dialog" aria-modal="true">
   <div class="box">
-    <div class="eyebrow">DEMO · 動作示範</div>
+    <div class="eyebrow">動作說明 · 影片狀態</div>
     <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
-    <svg id="dm-svg" aria-hidden="true"></svg>
+    <div id="dm-video" class="exercise-video" aria-live="polite"></div>
+    <svg id="dm-svg" aria-hidden="true" hidden></svg>
     <div id="dm-cue"></div>
-    <p class="dm-safety">這是線條動畫，只供辨認動作與節奏，不能代替完整的動作教學。目前沒有經審核的完整示範影片；如果不熟悉動作，先暫停訓練。動作不舒服時請停下來。</p>
+    <p id="dm-safety" class="dm-safety">目前沒有經審核的完整動作影片。線條動畫不能代替動作教學；如果不熟悉，請先暫停訓練。</p>
     <p id="dm-training-note" hidden>計時已暫停。關閉後會回到同一步與剩餘時間，按「繼續」再開始。</p>
     <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
     <button class="btn-main" id="dm-close" style="margin-bottom:0">返回訓練</button>

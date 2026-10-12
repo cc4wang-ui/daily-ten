@@ -31,6 +31,9 @@ jobs:
       - name: 用語表檢查（台灣繁中，新增字串 0 違規）
         run: node tools/jev/check-glossary.js --self-test && node tools/jev/check-glossary.js --ci --no-report
 
+      - name: 離線影片核准表與失敗回退
+        run: npm run test:media
+
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
 

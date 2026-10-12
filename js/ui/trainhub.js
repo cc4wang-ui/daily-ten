@@ -8,6 +8,7 @@ import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { VIDEOS } from './content.js';
 import { HAS_DEMO, openDemo } from './demo.js';
+import { getApprovedExerciseMedia } from './exercise-media.js';
 import { hasBand, BLOCKS, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, bossItem } from './session.js';
 import { startWorkout } from './train.js';
@@ -82,17 +83,18 @@ export function renderTrain(sum) {
   renderWeek(lv, wd, plv);
 }
 
-/* 動作庫：「示範」開內建動畫（離線可看）；「真人」是 YouTube 搜尋連結（只是 href，點了才連網） */
+/* 動作庫：「說明」開本機影片狀態；「真人」是 YouTube 搜尋連結（只是 href，點了才連網） */
 export function renderVideos() {
   $('vids').innerHTML = VIDEOS.map((v, i) => {
     if (!v[1]) return `<h3 class="vid-group">${v[0].replace(/^—\s*|\s*—$/g, '')}</h3>`;
-    const k = HAS_DEMO ? DT_DEMOS.keyFor(v[0]) : null;
+    const k = (HAS_DEMO ? DT_DEMOS.keyFor(v[0]) : null)
+      || (getApprovedExerciseMedia(v[0]) ? v[0] : null);
     return `<div class="vidline"><span class="vid-name">${v[0]}</span><span class="vid-acts">`
-      + (k ? `<button type="button" class="vid-btn" data-demo="${k}" data-i="${i}" aria-label="${v[0]} 示範動畫">示範</button>` : '')
+      + (k ? `<button type="button" class="vid-btn" data-demo="${k}" data-i="${i}" aria-label="${v[0]} 動作說明">說明</button>` : '')
       + `<a class="vid-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(v[1])}" target="_blank" rel="noopener"`
       + ` aria-label="${v[0]} 真人影片（YouTube，需連網）">真人${icon('external', { size: 14 })}</a></span></div>`;
   }).join('');
   $('vids').querySelectorAll('button[data-demo]').forEach((b) => {
-    b.onclick = () => openDemo(b.dataset.demo, VIDEOS[+b.dataset.i][1]);
+    b.onclick = () => openDemo(b.dataset.demo, VIDEOS[+b.dataset.i][1], null, VIDEOS[+b.dataset.i][0]);
   });
 }

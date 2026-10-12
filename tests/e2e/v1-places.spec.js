@@ -78,10 +78,8 @@ test.describe('訓練分頁', () => {
     await expect(page.locator('#demo-modal')).toHaveClass(/active/);
     await expect(page.locator('#dm-name')).not.toHaveText('—');
     expect(await page.locator('#dm-yt').getAttribute('href')).toMatch(/^https:\/\/www\.youtube\.com\/results\?search_query=/);
-    const pose = () => page.locator('#dm-svg').evaluate((svg) => [...svg.querySelectorAll('polyline')].map((p) => p.getAttribute('points')).join('|'));
-    const p0 = await pose();
-    await page.clock.runFor(500);
-    expect(await pose()).not.toBe(p0);
+    await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
+    await expect(page.locator('#dm-svg')).toBeHidden();
     await page.click('#dm-close');
     await expect(page.locator('#demo-modal')).not.toHaveClass(/active/);
   });

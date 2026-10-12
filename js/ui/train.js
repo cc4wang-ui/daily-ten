@@ -11,11 +11,13 @@ import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
 import { recordSession } from './session.js';
 import { summary } from './game.js';
-import { HAS_DEMO, demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
+import { demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
+import { getApprovedExerciseMedia } from './exercise-media.js';
 import { renderHome } from './home.js';
 
 /* ================= TIMER ENGINE ================= */
 let runner=null;
+let externalTraining=false;
 const CHECKPOINT_KEY='daily-ten-active-workout';
 const CHECKPOINT_MAX_AGE=24*60*60*1000;
 function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e){}}
@@ -43,7 +45,9 @@ export async function resumeWorkout(){
   return true;
 }
 /* 訓練進行中（startWorkout 開始到 cleanup 之間）為 true；分頁切換用它擋住 */
-export function isTraining(){return !!runner;}
+export function isTraining(){return !!runner||externalTraining;}
+/* Boss 測驗在暖身後使用自己的碼表，仍須封鎖分頁跳轉。 */
+export function setExternalTraining(active){externalTraining=!!active;}
 /* 完成畫面的連續天數：遊戲層的連續天數（與今日 chip 相同），未就緒時用舊欄位 */
 export function streakDays(){
   const s=summary();
@@ -87,6 +91,8 @@ export function startWorkout(seq,type,after,opts){
   let idx=restore?restore.idx-1:-1,paused=!!restore,timer=null,advanceTimer=null,
       pendingAdvance=false,skippedAction=!!(restore&&restore.skippedAction),left=null,done=null;
   $('t-pause').textContent=paused?'繼續':'暫停';
+  $('t-pause').hidden=false;
+  $('t-skip').hidden=false;
   $('t-checkpoint').classList.toggle('paused',paused);
   const total=seq.length;
   function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
@@ -116,13 +122,18 @@ export function startWorkout(seq,type,after,opts){
     $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
     const nextMovement=seq.slice(idx+1).find((step)=>step.prep===undefined&&step.name!=='換組'&&step.name.indexOf('休息')<0);
     const demoName=isRest||isPrep?(st.prep!==undefined?st.prep:(nextMovement?nextMovement.name:'')):st.name;
+    const demoCue=isRest||isPrep?(nextMovement?nextMovement.sub:''):st.sub;
     const demoKey=setTrainDemo(demoName,st.mode==='reps'&&demoName===st.name?st.tempo:null,demoName!==st.name);
-    $('t-show-demo').hidden=!demoKey;
-    $('t-demo-safety').hidden=!demoKey;
-    $('t-no-demo').hidden=!!demoKey||isRest||isPrep;
-    $('t-show-demo').onclick=demoKey?()=>{
+    const approvedMedia=!!getApprovedExerciseMedia(demoName);
+    $('t-show-demo').hidden=!demoName;
+    $('t-demo-safety').hidden=true;
+    $('t-no-demo').hidden=approvedMedia||isRest;
+    $('t-no-demo').textContent=isPrep
+      ? '下一個動作尚無完整示範；如果不熟悉，請先查看說明，開始後可略過該動作。'
+      : '目前沒有此動作的完整示範；如果不熟悉，請略過這一步。';
+    $('t-show-demo').onclick=demoName?()=>{
       setPaused(true);
-      openDemo(demoKey,demoName,()=>{ $('t-pause').focus(); });
+      openDemo(demoKey||demoName,demoName,()=>{ $('t-pause').focus(); },demoName,demoCue);
     }:null;
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
@@ -166,6 +177,10 @@ export function startWorkout(seq,type,after,opts){
       speak('繼續');
     }
   }
+  const pauseWhenHidden=()=>{if(document.visibilityState==='hidden')setPaused(true);};
+  const pauseOnPageHide=()=>setPaused(true);
+  document.addEventListener('visibilitychange',pauseWhenHidden);
+  window.addEventListener('pagehide',pauseOnPageHide);
   function finish(){
     cleanup();
     if(skippedAction){
@@ -187,6 +202,8 @@ export function startWorkout(seq,type,after,opts){
     $('done').classList.add('active');
   }
   function cleanup(){
+    document.removeEventListener('visibilitychange',pauseWhenHidden);
+    window.removeEventListener('pagehide',pauseOnPageHide);
     if(timer)clearInterval(timer);
     if(advanceTimer)clearTimeout(advanceTimer);
     closeDemo();

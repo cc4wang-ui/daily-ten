@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
+    "test:media": "node --test tests/exercise-media.test.mjs tests/demo-modal.test.mjs",
     "serve": "node tools/serve.mjs . 4173",
     "check:repo": "node .github/scripts/check-repo.mjs",
     "check:glossary": "node tools/jev/check-glossary.js --ci",

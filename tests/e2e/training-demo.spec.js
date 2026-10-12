@@ -9,8 +9,11 @@ test('訓練中示範留在 App，暫停並返回同一步與剩餘時間', asyn
   await tick(page, 3);
   await expect(page.locator('#t-count')).toHaveText('7');
   await expect(page.locator('#t-show-demo')).toBeVisible();
+  await expect(page.locator('#t-demo-wrap')).toBeHidden();
+  await expect(page.locator('#t-no-demo')).toBeVisible();
   await page.click('#t-show-demo');
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
+  await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
   await expect(page.locator('#dm-training-note')).toBeVisible();
   await expect(page.locator('#dm-yt')).toBeHidden();
   await expect(page.locator('#t-pause')).toHaveText('繼續');
@@ -111,4 +114,23 @@ test('計次動作重載後保留已完成次數，等待手動續練', async ({
   await page.click('#t-pause');
   await tick(page, 3);
   await expect(page.locator('#t-count')).toHaveText(/^3\/\d+$/);
+});
+
+test('切到背景時自動暫停，回到前景仍需手動續練', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await page.click('#h-minimal');
+  await tick(page, 2);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('#t-pause')).toHaveText('繼續');
+  const left = await page.locator('#t-count').textContent();
+  await tick(page, 8);
+  await expect(page.locator('#t-count')).toHaveText(left);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('#t-count')).toHaveText(left);
 });

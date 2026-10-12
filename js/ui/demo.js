@@ -1,39 +1,45 @@
-/* Daily Ten — 動作示範（包裝 demos.js 的 window.DT_DEMOS）：訓練畫面示範與 SETUP 示範視窗。M1 自 index.html 原樣搬出。
-   demoCtl 以 live binding 匯出，train.js 讀到的永遠是目前的控制器。 */
+/* Daily Ten — 動作說明：舊 key 只保留文字提示與查表；完整教學只接受本機審核影片。 */
 import { $ } from './dom.js';
+import { getApprovedExerciseMedia, mountExerciseVideo } from './exercise-media.js';
 
-/* ================= 動作示範（demos.js） =================
-   訓練畫面：當前動作有示範就播，並把 reps 動作的週期對齊節拍（tempo），動畫一輪 = 一下。
-   休息／預備／換組沒有對應動作時，改播「下一個」動作。 */
+/* ================= 動作說明 =================
+   舊線條動畫不再在訓練畫面或求助視窗呈現為示範。
+   只有核准的本機完整影片可進求助播放器；沒有影片時顯示明確缺片狀態。 */
 export const HAS_DEMO=typeof window.DT_DEMOS!=='undefined';
 export let demoCtl=null;
 let demoCloseAction=null;
+let mediaCtl=null;
 export function stopDemo(){ if(demoCtl){demoCtl.stop();demoCtl=null;} }
 export function setTrainDemo(name,period,isNext){
   stopDemo();
-  const k=HAS_DEMO?DT_DEMOS.keyFor(name):null, wrap=$('t-demo-wrap');
-  if(!k){wrap.style.display='none';$('t-cue').textContent='';return null;}
-  wrap.style.display='';wrap.classList.toggle('next',!!isNext);
-  $('t-demo-tag').textContent=isNext?'NEXT':'';
-  demoCtl=DT_DEMOS.mount($('t-demo'),k,{period:period});
+  const k=HAS_DEMO?DT_DEMOS.keyFor(name):null, media=getApprovedExerciseMedia(name), wrap=$('t-demo-wrap');
+  if(!k){wrap.style.display='none';$('t-cue').textContent='';return media?name:null;}
+  wrap.style.display='none';
   $('t-cue').textContent=DT_DEMOS.info(k).cue;
   return k;
 }
-export function openDemo(k,q,onClose){
-  if(!HAS_DEMO||!DT_DEMOS.info(k))return;
-  const inf=DT_DEMOS.info(k);
-  $('dm-name').textContent=inf.name;$('dm-cue').textContent=inf.cue;
+export function openDemo(k,q,onClose,exactName,fallbackCue){
+  const inf=HAS_DEMO?DT_DEMOS.info(k):null;
+  const movementName=exactName||(onClose?q:(inf?inf.name:k));
+  if(!inf&&!getApprovedExerciseMedia(movementName)&&!onClose)return;
+  $('dm-name').textContent=movementName;$('dm-cue').textContent=inf?inf.cue:(fallbackCue||'');
   const link=$('dm-yt');
-  link.href='https://www.youtube.com/results?search_query='+encodeURIComponent(q||inf.name);
+  link.href='https://www.youtube.com/results?search_query='+encodeURIComponent(q||movementName);
   link.style.display=onClose?'none':'block';
   $('dm-training-note').hidden=!onClose;
   $('dm-close').textContent=onClose?'返回訓練':'關閉';
   demoCloseAction=onClose||null;
-  if(openDemo.ctl)openDemo.ctl.stop();
-  openDemo.ctl=DT_DEMOS.mount($('dm-svg'),k);
+  if(openDemo.ctl){openDemo.ctl.stop();openDemo.ctl=null;}
+  if(mediaCtl)mediaCtl.stop();
+  $('dm-svg').hidden=true;
+  mediaCtl=mountExerciseVideo($('dm-video'),movementName);
+  $('dm-safety').textContent=mediaCtl.available
+    ? '請對照影片與動作文字；若有疼痛或不確定姿勢，先停下來。'
+    : '目前沒有經審核的完整動作影片。線條動畫不能代替動作教學；如果不熟悉，請先暫停訓練。';
   $('demo-modal').classList.add('active');
 }
 export function closeDemo(){
+  if(mediaCtl){mediaCtl.stop();mediaCtl=null;}
   if(openDemo.ctl){openDemo.ctl.stop();openDemo.ctl=null;}
   $('demo-modal').classList.remove('active');
   const onClose=demoCloseAction; demoCloseAction=null;

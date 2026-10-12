@@ -1,12 +1,16 @@
 # Training rebuild QA — 2026-10-12
 
-Scope: independent read-only review of `codex/rework-training-mvp` against `main` at `9cfe82f`. Product code was not changed and no test suite was run by this QA pass. **Jev was not executed**: the actual TypeSafe Jev key is unavailable.
+Scope: historical independent read-only review of `codex/rework-training-mvp` against `main` at `9cfe82f`. Product code was not changed and no test suite was run by that QA pass. Its findings table below records the earlier implementation; see the current integration status immediately below before applying it to the present code.
+
+**Current integration status:** The active ordinary workout now persists its step, time/repetition count, pause state and skipped-action flag across reload; help and offline media remain inside the App. Old line animations are hidden in training and help. Boss stale controls were fixed, but Boss test timing still lacks background/reload recovery. The approved local motion-video catalog is empty, so the safe-release verdict remains **FAIL**. TypeSafe Jev was called later; see [its report](./jev-training-2026-10-12.md). Focused Chrome regression passed 25/26 before correcting a missing pre-exercise warning; that file then passed 7/7. The full browser suite was interrupted after 68 passed and 4 skipped because it advanced too slowly, so it has **not** been certified green for this integration.
 
 ## Verdict
 
-**FAIL for release as a safe, complete training rebuild.** The in-app help/checkpoint improvements are substantively covered, but two declared release gates remain open: reviewed complete motion media is absent, and an active workout cannot survive reload or iOS eviction.
+**FAIL for release as a safe, complete training rebuild.** At the original read-only review, reviewed complete motion media was absent and an active workout could not survive reload or iOS eviction. The ordinary workout reload gap was fixed later; reviewed motion media and real-device validation remain open.
 
 **Post-review integration note:** A later commit added a local active-workout checkpoint and a Playwright page-reload/resume test. This was not part of this independent read-only QA pass; iOS eviction, Boss test timing, and a separate QA rerun remain unverified. TypeSafe Jev was subsequently called; see [its report](./jev-training-2026-10-12.md).
+
+**Later independent code recheck:** A separate read-only agent reproduced stale Boss warmup handlers that could show the wrong exercise, keep counting during help, or start duplicate HRP intervals. The integration then hid and cleared those stale controls during Boss tests, marked the Boss timer as active training, and paused ordinary workouts on background/pagehide. The agent rechecked those fixes in a DOM/timer harness and found no new P1 regression. Focused browser tests passed as described above; iOS real-device validation remains pending. The offline media path is present, but the approved catalog is still empty, so the release FAIL verdict is unchanged.
 
 | Requirement | Result | Evidence and assessment |
 |---|---|---|
@@ -16,7 +20,7 @@ Scope: independent read-only review of `codex/rework-training-mvp` against `main
 | 4. Targeted weekly muscle progression with no fixed band anchor | **PARTIAL** | The seven-day schedule has two shoulder/push days, two pull days, one lower day, and one recovery day at [js/ui/program.js](../js/ui/program.js#L228); its test asserts this split and rejects door handles, door gaps, high anchors, and walls at [tests/e2e/program.spec.js](../tests/e2e/program.spec.js#L34). Band rows are foot-anchored ([js/ui/program.js](../js/ui/program.js#L135)) and the no-band pulling substitute candidly says its pulling load is limited ([js/ui/program.js](../js/ui/program.js#L153)). Progression is still a fixed level table, e.g. [js/ui/program.js](../js/ui/program.js#L17), rather than a response to recorded completed reps/RPE/pain. The required feedback-led progression and recovery measurement remain P2 work at [docs/TRAINING-REBUILD-ROADMAP.md](../docs/TRAINING-REBUILD-ROADMAP.md#L32). |
 | 5. Clear checkpoint path | **PASS (within a live session)** | The training surface exposes checkpoint state, phase/progress, current action, next action, set number, help, skip, and exit in [index.html](../index.html#L339). Runtime updates the checkpoint/current-next path at [js/ui/train.js](../js/ui/train.js#L70), and skipped actions cannot accidentally record completion or award XP at [js/ui/train.js](../js/ui/train.js#L124), covered by [tests/e2e/training-demo.spec.js](../tests/e2e/training-demo.spec.js#L29). This does not cure the reload-resume gap noted above. |
 
-## Critical blockers
+## Critical blockers at original review
 
 1. **Complete safe motion is not delivered.** There are no reviewed local full-motion videos and no professional review; line drawings are correctly labelled as insufficient, but the user requirement remains unmet.
 2. **Workout state is not durable.** Reload, background discard, or iOS process eviction loses the active step/time/paused state. A persistent checkpoint plus resume flow and coverage are needed.

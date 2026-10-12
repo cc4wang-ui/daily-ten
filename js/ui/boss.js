@@ -10,7 +10,7 @@ import { lockScreen, unlockScreen } from './wakelock.js';
 import { fullSeq } from './program.js';
 import { bossItem } from './session.js';
 import { setTrainDemo, stopDemo } from './demo.js';
-import { startWorkout, recordAndGain, streakDays, showBonusNote } from './train.js';
+import { startWorkout, setExternalTraining, recordAndGain, streakDays, showBonusNote } from './train.js';
 import { renderHome } from './home.js';
 
 /* ================= BOSS FLOW ================= */
@@ -28,7 +28,9 @@ function bossHRP(){
   const seq=[{name:'HRP 伏地挺身測驗',sub:'2 分鐘 · 盡可能多下 · 自己計數',mode:'time',secs:120}];
   // 40% rule 語音在 1:40 觸發
   $('train').classList.add('active');
+  setExternalTraining(true);
   initAudio();lockScreen();
+  bossTimerControls();
   speak('HRP測驗。兩分鐘，盡可能多下。預備，開始。');
   let left=120;const el=$('t-count');
   $('t-phase').textContent='BOSS · HRP';$('t-name').textContent='HRP 伏地挺身測驗';
@@ -40,15 +42,15 @@ function bossHRP(){
     $('t-bar').style.width=Math.round((120-left)/120*100)+'%';
     if(left===20)speak('你還有百分之六十。再兩下。');
     if(left<=5&&left>0)beep(880,.08);
-    if(left<=0){clearInterval(tm);beep(440,.6);unlockScreen();
+    if(left<=0){clearInterval(tm);beep(440,.6);unlockScreen();setExternalTraining(false);
       stopDemo();$('train').classList.remove('active');bossInput('hrp');}
   },1000);
-  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();$('train').classList.remove('active');renderHome();};
-  $('t-pause').onclick=null;
+  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();setExternalTraining(false);$('train').classList.remove('active');renderHome();};
 }
 function bossPlank(){
   // 碼表直到撐不住按停 — 免持例外（不可避免）
-  $('train').classList.add('active');initAudio();lockScreen();
+  $('train').classList.add('active');setExternalTraining(true);initAudio();lockScreen();
+  bossTimerControls();
   speak('Plank測驗。撐到極限，落地時按結束。預備，開始。');
   let sec=0;const el=$('t-count');
   $('t-phase').textContent='BOSS · PLANK';$('t-name').textContent='平板支撐測驗';
@@ -61,9 +63,14 @@ function bossPlank(){
     if(sec===150)speak('兩分半。目標達成，繼續推。');
   },1000);
   $('t-abort').textContent='結束';
-  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();$('train').classList.remove('active');
+  $('t-abort').onclick=()=>{clearInterval(tm);stopDemo();unlockScreen();setExternalTraining(false);$('train').classList.remove('active');
     $('t-abort').textContent='結束';bossInput('plank',sec);};
-  $('t-pause').onclick=null;
+}
+function bossTimerControls(){
+  $('t-checkpoint').textContent='檢查點 · 測驗計時';
+  for(const id of ['t-pause','t-skip','t-show-demo']){$(id).onclick=null;$(id).hidden=true;}
+  $('t-demo-safety').hidden=false;
+  $('t-no-demo').hidden=true;
 }
 function bossRun(){ bossInput('run2mi'); }
 function bossInput(item,presetSec){

@@ -49,15 +49,12 @@ async function exerciseAllScreens(page, { xp, current, best }) {
   await gotoTab(page, 's-train');
   await expect(page.locator('#vids .vidline').first()).toBeVisible();
   await expect(page.locator('#week-tbl .prline')).toHaveCount(7);
-  /* 示範視窗：離線可看、動畫會動 */
+  /* 離線示範視窗明確說明尚無經審核完整影片，不把火柴人當教學 */
   await page.locator('#vids button[data-demo]').first().click();
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   await expect(page.locator('#dm-name')).not.toHaveText('—');
-  const pose = () => page.locator('#dm-svg').evaluate((svg) => [...svg.querySelectorAll('polyline')].map((p) => p.getAttribute('points')).join('|'));
-  const p0 = await pose();
-  expect(p0.length).toBeGreaterThan(0);
-  await page.clock.runFor(500);
-  expect(await pose()).not.toBe(p0);
+  await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
+  await expect(page.locator('#dm-svg')).toBeHidden();
   await page.click('#dm-close');
   await expect(page.locator('#demo-modal')).not.toHaveClass(/active/);
 

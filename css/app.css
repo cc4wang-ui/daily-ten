@@ -61,8 +61,9 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .dm-band{stroke:var(--amber);stroke-width:1.8px;vector-effect:non-scaling-stroke}
 #demo-modal{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
 #demo-modal.active{display:flex}
-#demo-modal .box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+#demo-modal .box{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 #dm-svg{display:block;width:100%;aspect-ratio:20/13;background:var(--bg);border-radius:8px;margin:10px 0}
+#dm-svg[hidden]{display:none}
 #dm-cue{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px}
 .dm-safety,#dm-training-note{font-size:14px;color:var(--ink);line-height:1.5;margin:0 0 12px}
 #dm-training-note{color:var(--amber)}
@@ -430,6 +431,11 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
   box-shadow:var(--shadow-toast);font-size:14px;z-index:46}
 .toast-btn{display:inline-flex;align-items:center;gap:var(--sp-1h);flex:none;min-height:var(--touch);min-width:var(--touch);padding:0 var(--sp-3);
   background:none;color:var(--toast-action);font-size:14px;font-weight:700}
+.exercise-video{width:100%;min-height:96px;display:grid;place-items:center;text-align:center}
+.exercise-video video{display:block;width:100%;max-height:52vh;object-fit:contain;border-radius:var(--r-md);background:#111}
+.exercise-video p{margin:var(--sp-3) 0;color:var(--c-ink);font-size:16px;line-height:1.5}
+.exercise-video-actions{display:flex;gap:var(--sp-2);justify-content:center;flex-wrap:wrap;margin:var(--sp-2) 0}
+.exercise-video-actions button{min-height:44px;padding:0 var(--sp-3);border:1px solid var(--c-line);border-radius:var(--r-md);color:var(--c-ink);background:var(--c-card);font-size:14px}
 
 /* ---------- 13b. V2a Perfect Day 慶祝、升級卡（#cele，蓋在今日與 toast 之上、訓練畫面之下） ---------- */
 .cele{position:fixed;inset:0;z-index:48;display:flex;align-items:center;justify-content:center;padding:var(--sp-6);
