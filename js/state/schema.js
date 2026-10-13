@@ -171,6 +171,17 @@ const sessionEntry = obj({
   xp: num({ min: 0, max: LIMITS.xp, fill: false, def: 0 }),
   plus: bool({ fill: false, def: false })
 });
+/* 每組主動回報，與出席紀錄分開：疼痛中止也必須能保存，且不能算完成訓練。 */
+const trainingFeedbackEntry = obj({
+  id: text({ key: true, minLen: 1, maxLen: 60 }),
+  date: date({ key: true }),
+  name: text({ key: true, minLen: 1, maxLen: LIMITS.text }),
+  target: int({ min: 1, max: 999, key: true }),
+  actual: int({ min: 0, max: 999, key: true }),
+  effort: text({ minLen: 1, maxLen: LIMITS.shortText, oneOf: ['easy', 'okay', 'hard'], key: true }),
+  pain: bool({ key: true }),
+  form: bool({ key: true })
+});
 /* 打卡當時的目標（之後改設定不會重算過去）；三個欄位缺一或格式錯 → 整個 target 改成 null（不捏造歷史） */
 const sleepTarget = obj({
   bedtime: clock({ key: true }),
@@ -253,6 +264,7 @@ export const STATE_SPEC = obj({
     freezeTokens: int({ min: 0, max: LIMITS.streak }),
     achievements: dict(),
     perfectDays: list(any()),
+    trainingFeedback: list(trainingFeedbackEntry, { fill: false, maxLen: 2000 }),
     seen: seenSpec,
     deload: deloadSpec
   }),

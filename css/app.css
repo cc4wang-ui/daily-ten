@@ -1,6 +1,6 @@
 /* Daily Ten — 樣式。顏色、間距、圓角、陰影、動效時間一律來自 tokens.css（這裡不寫字面值）。
    B1 亮色外觀（CLAUDE.md §7）：亮色規則限定在 #app（各畫面）、#tabs（分頁列）、#toast（復原提示）。
-   訓練畫面家族（#train、#done、#demo-modal；Boss 測驗計時也在 #train）沿用 M1 暗色：第 1 節的規則逐字保留、變數值不變。 */
+   訓練畫面家族（#train、#done、#demo-modal；Boss 測驗計時也在 #train）沿用暗色基底，訓練重整提高教學與狀態文字可讀性。 */
 
 /* ---------- 0. 基礎 ---------- */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -11,7 +11,7 @@ body{background:var(--c-bg);color:var(--c-ink);font-family:var(--font);
 button{font-family:inherit;border:none;cursor:pointer}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 
-/* ---------- 1. 訓練畫面家族：M1 暗色（規則與數值不變） ---------- */
+/* ---------- 1. 訓練畫面家族：暗色基底 ---------- */
 #train,#done,#demo-modal{color:var(--ink)} /* M1 由 body 繼承；body 改亮色後在這裡補回，畫面不變 */
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--ink-dim);text-transform:uppercase}
 .btn-main{width:100%;padding:18px;border-radius:10px;background:var(--amber);color:var(--on-amber);
@@ -21,23 +21,45 @@ button{font-family:inherit;border:none;cursor:pointer}
 .btn-danger-fill{background:var(--red);color:var(--on-red)}
 a{color:var(--amber);text-decoration:none;font-size:13px}
 #train{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
-  align-items:center;justify-content:center;text-align:center;padding:24px;z-index:50}
+  align-items:center;justify-content:center;text-align:center;padding:24px 24px 100px;z-index:50;overflow-y:auto}
 #train.active{display:flex}
+#t-checkpoint{font-size:13px;font-weight:800;letter-spacing:.08em;color:var(--amber);margin-bottom:5px}
+#t-checkpoint.paused{color:var(--ink-dim)}
 #t-phase{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:10px}
 #t-name{font-size:34px;font-weight:800;line-height:1.2;margin-bottom:4px}
 #t-sub{font-size:15px;color:var(--amber);margin-bottom:14px;font-family:var(--mono)}
 #t-demo-wrap{position:relative;width:min(78vw,300px);margin:0 auto 14px}
+#t-set{font-size:14px;font-weight:700;color:var(--ink);margin:-5px 0 8px}
 #t-demo{display:block;width:100%;aspect-ratio:20/13;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 #t-demo-wrap.next #t-demo{opacity:.55}
 #t-demo-tag{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-dim)}
-#t-cue{font-size:12px;color:var(--ink-dim);line-height:1.5;max-width:320px;margin:0 auto 10px;min-height:18px}
+#t-cue{font-size:14px;color:var(--ink);line-height:1.5;max-width:320px;margin:0 auto 10px;min-height:18px}
+#t-show-demo{width:auto;min-height:44px;padding:10px 16px;margin:0 auto 10px}
+#t-show-demo[hidden],#t-set[hidden],#t-no-demo[hidden],#t-demo-safety[hidden],#dm-training-note[hidden]{display:none}
+#t-demo-safety{font-size:13px;color:var(--ink-dim);line-height:1.45;margin:0 auto 8px;max-width:320px}
+#t-no-demo{font-size:14px;color:var(--ink);line-height:1.45;margin:0 auto 10px;max-width:320px}
 #t-count{font-family:var(--mono);font-size:88px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-#t-next{font-size:13px;color:var(--ink-dim);margin-top:22px;min-height:18px}
+#t-feedback-open{width:auto;min-height:44px;margin:12px auto 0;padding:10px 16px}
+#t-feedback{width:100%;max-width:360px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px auto;display:grid;gap:10px}
+#t-feedback[hidden]{display:none}
+#t-feedback h3{font-size:19px}
+#t-feedback label{display:grid;gap:5px;font-size:14px;font-weight:700}
+#t-feedback input,#t-feedback select{width:100%;min-height:44px;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+#t-feedback p{font-size:13px;line-height:1.45;color:var(--ink-dim)}
+#t-feedback button{margin:0;min-height:44px}
+#train.feedback-open #t-demo-wrap,#train.feedback-open #t-cue,#train.feedback-open #t-show-demo,#train.feedback-open #t-no-demo,#train.feedback-open #t-next,#train.feedback-open #t-prog{display:none}
+#train.feedback-open #t-feedback-open{display:none}
+#train.feedback-open .t-ctrl{position:static;margin-top:12px}
+#train.feedback-open #t-pause,#train.feedback-open #t-skip{display:none}
+#t-next{font-size:15px;color:var(--ink);margin-top:22px;min-height:18px}
 #t-prog{width:70%;height:4px;background:var(--panel2);border-radius:2px;margin-top:18px;overflow:hidden}
 #t-prog i{display:block;height:100%;background:var(--amber);width:0%}
+#t-more-rest{margin-top:16px;min-height:44px;padding:10px 16px}
+#t-more-rest[hidden]{display:none}
 .t-ctrl{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;gap:12px;width:calc(100% - 48px);max-width:472px}
 .t-ctrl button{flex:1;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
 #t-pause{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+#t-skip{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 #t-abort{background:transparent;color:var(--red);border:1px solid var(--red)}
 #done{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;padding:32px;z-index:60}
@@ -53,9 +75,23 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .dm-band{stroke:var(--amber);stroke-width:1.8px;vector-effect:non-scaling-stroke}
 #demo-modal{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
 #demo-modal.active{display:flex}
-#demo-modal .box{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+#demo-modal .box{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 #dm-svg{display:block;width:100%;aspect-ratio:20/13;background:var(--bg);border-radius:8px;margin:10px 0}
-#dm-cue{font-size:13px;color:var(--ink-dim);line-height:1.6;margin-bottom:12px}
+#dm-svg[hidden]{display:none}
+#dm-cue{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px}
+.dm-safety,#dm-training-note{font-size:14px;color:var(--ink);line-height:1.5;margin:0 0 12px}
+#dm-training-note{color:var(--amber)}
+#dm-skip{min-height:48px;font-weight:800;border-color:var(--amber);color:var(--amber)}
+#dm-skip[hidden]{display:none}
+.exercise-storyboard{display:grid;gap:10px;margin:8px 0 14px}
+.exercise-video .exercise-storyboard p{font-size:13px;line-height:1.4;color:var(--ink);margin:0;text-align:left}
+.exercise-storyboard-frame{width:100%;aspect-ratio:3/2;background-repeat:no-repeat;border-radius:8px;background-color:var(--panel2)}
+.exercise-storyboard input[type=range]{width:100%;min-height:32px;accent-color:var(--amber)}
+.vid-ready{display:block;font-size:11px;font-weight:700;color:var(--amber);margin-top:2px}
+.strength-evidence{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.strength-evidence li{display:flex;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:10px;background:var(--c-fill);font-size:14px}
+.strength-evidence b{white-space:nowrap}
+@media(max-height:700px){#train{justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}#t-demo-wrap{width:min(56vw,220px)}#t-name{font-size:30px}#t-count{font-size:72px}#t-next{margin-top:12px}}
 
 /* ---------- 2. 亮色區域：M1 變數改指向亮色值（沿用舊變數的 inline style 也看得清楚） ---------- */
 #app,#tabs,#toast{
@@ -419,6 +455,11 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
   box-shadow:var(--shadow-toast);font-size:14px;z-index:46}
 .toast-btn{display:inline-flex;align-items:center;gap:var(--sp-1h);flex:none;min-height:var(--touch);min-width:var(--touch);padding:0 var(--sp-3);
   background:none;color:var(--toast-action);font-size:14px;font-weight:700}
+.exercise-video{width:100%;min-height:96px;display:grid;place-items:center;text-align:center}
+.exercise-video video{display:block;width:100%;max-height:52vh;object-fit:contain;border-radius:var(--r-md);background:#111}
+.exercise-video p{margin:var(--sp-3) 0;color:var(--c-ink);font-size:16px;line-height:1.5}
+.exercise-video-actions{display:flex;gap:var(--sp-2);justify-content:center;flex-wrap:wrap;margin:var(--sp-2) 0}
+.exercise-video-actions button{min-height:44px;padding:0 var(--sp-3);border:1px solid var(--c-line);border-radius:var(--r-md);color:var(--c-ink);background:var(--c-card);font-size:14px}
 
 /* ---------- 13b. V2a Perfect Day 慶祝、升級卡（#cele，蓋在今日與 toast 之上、訓練畫面之下） ---------- */
 .cele{position:fixed;inset:0;z-index:48;display:flex;align-items:center;justify-content:center;padding:var(--sp-6);

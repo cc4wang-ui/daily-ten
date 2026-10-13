@@ -1,4 +1,7 @@
 /* qa-checker：拆 module 前後等價比對（PLAN.md §2 #3、#4、§5 #3；M1 完成條件「功能與 main 等價」）。
+   D29 deliberately changes the training display, workout schedule and timing.
+   Their old exact-parity assertions are retired; direct behavioral coverage is
+   in training-demo.spec.js, program.spec.js and training.spec.js.
    只在 PARITY_BASE_DIR 有設時執行（playwright.config 會在 BASE_PORT 起基準伺服器，基準 = ec87e03）。
    V1（D26）起今日／統計／設定畫面刻意改變（亮色、三環、分頁重組），畫面層的逐像素比對退役；保留：
    1. 訓練畫面家族逐像素比對（訓練計時開始、暫停、Boss 測驗計時、動作示範視窗）：V1 不改訓練計時畫面（契約「本版不做」）。
@@ -259,7 +262,7 @@ async function compare(left, right, label, testInfo) {
   return { problems, shots: names.length, facts: left.facts.size };
 }
 
-test.describe('等價比對（訓練畫面家族）：基準 ec87e03 vs 新版（A/A 後 A/B）', () => {
+test.describe.skip('舊訓練畫面像素等價：D29 已刻意改版', () => {
   for (const scenario of SCENARIOS) {
     test(scenario.name, async ({ browser }, testInfo) => {
       const B1 = await runOnce(browser, 'B', scenario);
@@ -332,7 +335,7 @@ async function planMinutes(page, which) {
   }, which);
 }
 
-test('統計（熱力圖、PR）、身體指標（判讀、指標卡、營養目標、圍度、肌力）的計算結果與基準相同；今日課表時長相同', async ({ browser }) => {
+test('統計（熱力圖、PR）、身體指標（判讀、指標卡、營養目標、圍度、肌力）的計算結果與基準相同', async ({ browser }) => {
   const result = {};
   for (const which of ['A', 'B']) {
     result[which] = {};
@@ -349,8 +352,7 @@ test('統計（熱力圖、PR）、身體指標（判讀、指標卡、營養目
         const page = await ctx.newPage();
         page.on('dialog', (d) => d.accept());
         await openFor(page, which, { now, seed: seed ? seedState(seed()) : null });
-        const minutes = await planMinutes(page, which);
-        result[which][label] = { minutes, ...(await recordsAndBody(page, which)) };
+        result[which][label] = await recordsAndBody(page, which);
       } finally {
         await ctx.close();
       }
@@ -358,10 +360,9 @@ test('統計（熱力圖、PR）、身體指標（判讀、指標卡、營養目
     }
   }
   const a = result.A['週五 v2'];
-  console.log(`[qa] 計算結果等價：熱力圖 ${a.heat.length} 格（有練 ${a.heat.filter(Boolean).length} 天）、PR ${a.prs.hrp.length + a.prs.plank.length + a.prs.run.length} 筆、BODY 指標卡 ${a.body.tiles.length} 張；時長 ${JSON.stringify(a.minutes)}`);
+  console.log(`[qa] 計算結果等價：熱力圖 ${a.heat.length} 格（有練 ${a.heat.filter(Boolean).length} 天）、PR ${a.prs.hrp.length + a.prs.plank.length + a.prs.run.length} 筆、BODY 指標卡 ${a.body.tiles.length} 張`);
   expect(a.heat).toHaveLength(56);
   expect(a.body.tiles.length).toBeGreaterThan(0);
-  expect(a.minutes.start).toBeGreaterThan(0);
   expect(result.B).toEqual(result.A);
 });
 
@@ -469,7 +470,7 @@ async function todayPlans(page, which, days) {
   return out;
 }
 
-test('課表資料與規則等價：所有序列、時長、示範對應、XP、影片清單、今日計畫、升級條件', async ({ browser }) => {
+test.skip('舊課表序列等價：D29 已刻意調整肌群、動作與秒數', async ({ browser }) => {
   const DAYS = ['2026-10-04T09:00:00+09:00', '2026-10-05T09:00:00+09:00', '2026-10-06T09:00:00+09:00', '2026-10-07T09:00:00+09:00',
     '2026-10-08T09:00:00+09:00', '2026-10-09T09:00:00+09:00', '2026-10-10T09:00:00+09:00', '2026-10-11T09:00:00+09:00',
     '2026-10-18T09:00:00+09:00'];

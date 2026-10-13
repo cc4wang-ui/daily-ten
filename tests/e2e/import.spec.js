@@ -74,6 +74,16 @@ async function expectBadImport(page, c, route) {
   const err = page.locator('#imp-error');
   await expect(err).toHaveClass('banner danger');
   await expect(err).toBeVisible();
+  // The prior bad file leaves the same danger banner visible while FileReader
+  // loads the next file. Wait for this file's validation result, not the old one.
+  await expect.poll(async () => {
+    const current = (await errorLines(page)).slice(1).map((l) => l.replace(/^・/, ''));
+    if (c.lines) return JSON.stringify(current) === JSON.stringify(c.lines);
+    if (c.count && current.length !== c.count) return false;
+    if ((c.paths || []).some((p) => !current.some((m) => m.includes(p)))) return false;
+    if ((c.includes || []).some((m) => !current.includes(m))) return false;
+    return true;
+  }).toBe(true);
   const lines = await errorLines(page);
   expect(lines[0]).toBe(HEADER);
   const msgs = lines.slice(1).map((l) => l.replace(/^・/, ''));

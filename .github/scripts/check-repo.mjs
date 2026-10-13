@@ -6,6 +6,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { execSync } from 'node:child_process';
+import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, isApprovedExerciseMedia } from '../../js/ui/exercise-media.js';
 
 const ROOT = process.cwd();
 const BASE_REF = process.env.CHECK_BASE_REF || 'origin/main'; // 比對 CACHE 版號的基準（CI 需 fetch-depth: 0）
@@ -44,7 +45,8 @@ for (const rel of files) {
 /* 2. Service Worker 版號與預快取 */
 const appFiles = files.filter((f) =>
   ['index.html', 'demos.js', 'mockup.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].includes(f) ||
-  /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f));
+  /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f) ||
+  /^media\/exercises\/[a-z0-9][a-z0-9-]*\.(mp4|webm|png)$/.test(f));
 const sw = existsSync(join(ROOT, 'sw.js')) ? read('sw.js') : '';
 const cache = (sw.match(/const\s+CACHE\s*=\s*'([^']+)'/) || [])[1];
 const cacheNum = Number(((cache || '').match(/^daily-ten-v(\d+)$/) || [])[1]);
@@ -55,7 +57,7 @@ const baseNum = baseSw ? Number((baseSw.match(/const\s+CACHE\s*=\s*'daily-ten-v(
 const mergeBase = baseSw ? git(`merge-base ${BASE_REF} HEAD`) : null;
 // 分支自 merge-base 以來的變更（含尚未 commit 的修改），不含 main 之後的新 commit
 const changed = mergeBase ? (git(`diff --name-only ${mergeBase}`) || '').split('\n').filter(Boolean) : [];
-const isAppPath = (f) => /^(index\.html|demos\.js|mockup\.html|manifest\.webmanifest|icon-\d+\.png)$/.test(f) || /^(css|js)\//.test(f) || /^data\/[^/]+\.json$/.test(f);
+const isAppPath = (f) => /^(index\.html|demos\.js|mockup\.html|manifest\.webmanifest|icon-\d+\.png)$/.test(f) || /^(css|js)\//.test(f) || /^data\/[^/]+\.json$/.test(f) || /^media\/exercises\//.test(f);
 const appChanged = changed.filter(isAppPath);
 if (baseNum && appChanged.length && !(cacheNum > baseNum)) {
   fail('sw', `App 檔有變更（${appChanged.slice(0, 3).join('、')}${appChanged.length > 3 ? '…' : ''}），CACHE 須大於 ${BASE_REF} 的 v${baseNum}（目前 v${cacheNum || '?'}）`);
@@ -70,6 +72,46 @@ for (const a of assets) {
   const rel = a.replace(/^\.\//, '');
   if (!existsSync(join(ROOT, rel))) fail('sw', `預快取清單的 ${a} 不存在`);
   else if (!appFiles.includes(rel)) fail('sw', `預快取清單的 ${a} 不是 App 檔（測試／工具檔不應快取）`);
+}
+const approvedPaths = new Set();
+const approvedNames = new Set();
+for (const entry of EXERCISE_MEDIA) {
+  if (!isApprovedExerciseMedia(entry)) { fail('media', '影片核准表有無效或未審核項目'); continue; }
+  if (approvedPaths.has(entry.src)) fail('media', `影片重複登錄：${entry.src}`);
+  approvedPaths.add(entry.src);
+  if (!existsSync(join(ROOT, entry.src))) fail('media', `影片檔案不存在：${entry.src}`);
+  if (!assets.includes(entry.src)) fail('media', `影片未加入離線預快取：${entry.src}`);
+  for (const name of entry.names) {
+    if (approvedNames.has(name)) fail('media', `動作名稱重複對應影片：${name}`);
+    approvedNames.add(name);
+  }
+}
+for (const file of files.filter(f => /^media\/exercises\/.*\.(mp4|webm)$/.test(f))) {
+  if (!approvedPaths.has(`./${file}`)) fail('media', `未核准的影片不應進入正式 App：${file}`);
+}
+const storyboardPaths = new Set();
+const storyboardNames = new Set();
+for (const entry of EXERCISE_STORYBOARDS) {
+  if (!/^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.png$/.test(entry.src) ||
+      !Number.isInteger(entry.columns) || entry.columns < 2 ||
+      !Number.isInteger(entry.frames) || entry.frames < 8 || entry.frames > entry.columns ** 2 ||
+      (entry.frameMs && (!Array.isArray(entry.frameMs) || entry.frameMs.length !== entry.frames ||
+        entry.frameMs.some(ms => !Number.isInteger(ms) || ms < 50 || ms > 2000))) ||
+      !Array.isArray(entry.names) || !entry.names.length) {
+    fail('media', '連續影格登錄資料無效');
+    continue;
+  }
+  if (storyboardPaths.has(entry.src)) fail('media', `連續影格重複登錄：${entry.src}`);
+  storyboardPaths.add(entry.src);
+  if (!existsSync(join(ROOT, entry.src))) fail('media', `連續影格檔案不存在：${entry.src}`);
+  if (!assets.includes(entry.src)) fail('media', `連續影格未加入離線預快取：${entry.src}`);
+  for (const name of entry.names) {
+    if (storyboardNames.has(name)) fail('media', `動作名稱重複對應連續影格：${name}`);
+    storyboardNames.add(name);
+  }
+}
+for (const file of files.filter(f => /^media\/exercises\/.*\.png$/.test(f))) {
+  if (!storyboardPaths.has(`./${file}`)) fail('media', `未登錄的連續影格不應進入正式 App：${file}`);
 }
 
 /* 2b. Vercel 只上線 App 檔（D24）：.vercelignore 不得排除任何預快取的檔案，否則新網址離線冷啟動會缺檔 */

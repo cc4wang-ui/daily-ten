@@ -23,10 +23,11 @@ test('走過所有分頁、早安打卡、示範視窗、訓練、Boss、匯出�
 
   await gotoTab(page, 's-train');
   const links = await page.locator('#vids a').evaluateAll((as) => as.map((a) => a.href));
-  expect(links.length).toBeGreaterThan(40);
+  const listedMovements = await page.evaluate(async () => (await import('/js/ui/content.js')).VIDEOS.filter(item => item[1]).length);
+  expect(links.length).toBe(listedMovements);
   expect(links.filter((h) => !h.startsWith(YT))).toEqual([]);
   /* 開幾個示範視窗：YouTube 連結只是 href */
-  const demos = page.locator('#vids button[data-demo]');
+  const demos = page.locator('#vids button[data-i]');
   for (const i of [0, 5, 20]) {
     await demos.nth(i).click();
     await expect(page.locator('#demo-modal')).toHaveClass(/active/);

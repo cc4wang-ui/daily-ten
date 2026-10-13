@@ -264,7 +264,10 @@ const MAP=[[/貓牛/,'catcow'],[/穿針/,'needle'],[/靠牆滑臂/,'wallslide'],
   [/死蟲/,'deadbug'],[/毛巾划船/,'towelrow'],[/超人式划船/,'smrow'],[/超人式停留/,'smhold'],[/毛巾直臂下拉/,'towelpd'],
   [/彈力帶划船/,'bandrow'],[/直臂下拉/,'bandpd'],[/面拉/,'facepull'],[/開肩/,'pullapart'],[/肩外旋/,'extrot'],
   [/二頭/,'curl'],[/波比/,'burpee'],[/開合跳/,'jack']];
-function keyFor(name){ if(!name)return null; for(const m of MAP)if(m[0].test(name))return m[1]; return null; }
+/* A related drawing is not a valid demonstration of a different movement. Keep
+   newly introduced variants unavailable until their own motion is reviewed. */
+const NO_MATCHING_DEMO=/俯臥半程雪天使|派克撐體|深蹲靜態停留|臀橋走步|彈力帶划船\s*·\s*俯身/;
+function keyFor(name){ if(!name||NO_MATCHING_DEMO.test(name))return null; for(const m of MAP)if(m[0].test(name))return m[1]; return null; }
 
 /* 預處理 */
 const BAKED={};

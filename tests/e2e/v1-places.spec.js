@@ -24,12 +24,12 @@ test.describe('訓練分頁', () => {
     await expect(page.locator('#tr-title')).toHaveText('訓練');
     await expect(page.locator('#h-level')).toHaveText('L3');
     await expect(page.locator('#tr-day')).toHaveText('週五 · 今日課表');
-    await expect(page.locator('#tr-plan-title')).toHaveText('十動作＋下肢後鏈');
+    await expect(page.locator('#tr-plan-title')).toHaveText('活動度＋下肢＋上背控制（拉力有限）');
     await expect(page.locator('#tr-start')).toHaveText('開始今日課表');
     await page.click('#tr-start');
     await abortTraining(page);
     await gotoTab(page, 's-train');
-    await expect(page.locator('#h-plus .opt-title')).toHaveText('加一輪 下肢後鏈');
+    await expect(page.locator('#h-plus .opt-title')).toHaveText('加一輪 下肢＋上背控制（拉力有限）');
     await page.click('#h-plus');
     await abortTraining(page);
     await gotoTab(page, 's-train');
@@ -65,23 +65,21 @@ test.describe('訓練分頁', () => {
     await page.click('#t-abort');
   });
 
-  test('動作庫：每個動作有「真人」YouTube 連結（新分頁、noopener）；有示範的動作開內建動畫，動畫會動、離線可看', async ({ page }) => {
+  test('動作庫：每個項目有站內說明與真人搜尋；缺片不顯示舊動畫', async ({ page }) => {
     await openApp(page, { seed: seedState(readFixture('v2-real.json')) });
     await gotoTab(page, 's-train');
     const expectedLinks = await page.evaluate(async () => (await import('/js/ui/content.js')).VIDEOS.filter((v) => v[1]).length);
     const links = await page.locator('#vids a.vid-link').evaluateAll((as) => as.map((a) => ({ href: a.href, target: a.target, rel: a.rel })));
     expect(links).toHaveLength(expectedLinks);
     expect(links.filter((l) => !l.href.startsWith(YT) || l.target !== '_blank' || !/noopener/.test(l.rel))).toEqual([]);
-    const demos = page.locator('#vids button[data-demo]');
-    expect(await demos.count()).toBeGreaterThan(30);
+    const demos = page.locator('#vids button[data-i]');
+    expect(await demos.count()).toBe(expectedLinks);
     await demos.first().click();
     await expect(page.locator('#demo-modal')).toHaveClass(/active/);
     await expect(page.locator('#dm-name')).not.toHaveText('—');
     expect(await page.locator('#dm-yt').getAttribute('href')).toMatch(/^https:\/\/www\.youtube\.com\/results\?search_query=/);
-    const pose = () => page.locator('#dm-svg').evaluate((svg) => [...svg.querySelectorAll('polyline')].map((p) => p.getAttribute('points')).join('|'));
-    const p0 = await pose();
-    await page.clock.runFor(500);
-    expect(await pose()).not.toBe(p0);
+    await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
+    await expect(page.locator('#dm-svg')).toBeHidden();
     await page.click('#dm-close');
     await expect(page.locator('#demo-modal')).not.toHaveClass(/active/);
   });
@@ -143,7 +141,7 @@ test.describe('設定（今日右上齒輪）', () => {
   test('語音／提示音／彈力帶開關會存檔；彈力帶開關改變訓練分頁的器材與課表', async ({ page }) => {
     await openApp(page, { seed: seedState(readFixture('v3.json')) }); // v3：settings.band = false
     await gotoTab(page, 's-train');
-    await expect(page.locator('#tr-plan-meta')).toContainText('沒帶彈力帶：徒手替代');
+    await expect(page.locator('#tr-plan-meta')).toContainText('上背低阻力，不能取代負重拉力');
     await gotoTab(page, 's-setup');
     for (const [id, key] of [['cfg-voice', 'voice'], ['cfg-beep', 'beep'], ['cfg-band', 'band']]) {
       const was = await page.isChecked(`#${id}`);
@@ -152,7 +150,7 @@ test.describe('設定（今日右上齒輪）', () => {
       expect((await storedState(page)).settings[key], key).toBe(!was);
     }
     await gotoTab(page, 's-train');
-    await expect(page.locator('#tr-plan-meta')).toContainText('瑜珈墊、彈力帶、一面牆');
+    await expect(page.locator('#tr-plan-meta')).toContainText('瑜珈墊、彈力帶（不用門錨或牆）');
   });
 
   test('就寢／起床時間：改了會存、早安打卡預填新的就寢時間；空白或格式不對不存、欄位改回、提示訊息', async ({ page }) => {

@@ -8,6 +8,19 @@ import { todayKey, keyToDate } from './game.js';
 
 /* ================= SESSION / STREAK LOGIC ================= */
 export function sessionOn(date){return getState().sessions.find(x=>x.date===date);}
+export async function recordSetFeedback({ id, name, target, actual, effort, pain, form }){
+  if(typeof id!=='string'||!id||id.length>60||typeof name!=='string'||!name||!Number.isInteger(target)||target<1||target>999
+    ||!Number.isInteger(actual)||actual<0||actual>999
+    ||!['easy','okay','hard'].includes(effort)||typeof pain!=='boolean'||typeof form!=='boolean')return {ok:false,saved:false};
+  const game=getState().game;
+  if(!Array.isArray(game.trainingFeedback))game.trainingFeedback=[];
+  const entry={id,date:todayKey(),name,target,actual,effort,pain,form};
+  const existing=game.trainingFeedback.findIndex(f=>f&&f.id===id);
+  if(existing>=0)game.trainingFeedback[existing]=entry;
+  else game.trainingFeedback.push(entry);
+  if(game.trainingFeedback.length>2000)game.trainingFeedback.splice(0,game.trainingFeedback.length-2000);
+  return {ok:true,saved:await saveState()};
+}
 export function recordSession(type,opts){
   const t=todayKey(),plus=!!(opts&&opts.plus);
   if(!sessionOn(t)){
@@ -29,12 +42,45 @@ export function recordSession(type,opts){
 }
 /* Boss rotation: ISO week % 3 → 0 HRP / 1 Plank / 2 Run */
 export function bossItem(){return ['hrp','plank','run2mi'][isoWeek(keyToDate(todayKey()))%3];}
-/* Level-up: last 7 days all sessions + any PR in last 21 days meets threshold */
+/* 只計有完成紀錄、主動回報且動作穩定的工作組。徒手上背控制沒有足夠阻力，不算負重拉力。 */
+export const STRENGTH_GROUPS=['push','pull','squat','hip'];
+export function movementGroup(name){
+  if(typeof name!=='string'||!/第\s*\d+\s*組/.test(name))return null;
+  if(/^(?:伏地挺身|派克伏地挺身|彈力帶肩上推)/.test(name))return 'push';
+  if(/^彈力帶划船/.test(name))return 'pull';
+  if(/^分腿蹲/.test(name))return 'squat';
+  if(/^(?:臀橋|彈力帶羅馬尼亞硬舉)/.test(name))return 'hip';
+  return null;
+}
+export function weeklyStrengthEvidence(state=getState(),asOf=todayKey()){
+  const from=dateOffset(asOf,-6),sessions=new Set((state.sessions||[])
+    .filter(s=>s&&s.date>=from&&s.date<=asOf&&['full','cycle'].includes(s.type)).map(s=>s.date));
+  const byGroup=Object.fromEntries(STRENGTH_GROUPS.map(group=>[group,new Map()]));
+  for(const f of state.game?.trainingFeedback||[]){
+    const group=movementGroup(f?.name);
+    if(!group||!sessions.has(f.date)||typeof f.id!=='string'||!f.id
+      ||f.pain!==false||f.form!==true||f.effort==='hard'
+      ||!Number.isInteger(f.target)||!Number.isInteger(f.actual)||f.actual<f.target)continue;
+    if(!byGroup[group].has(f.date))byGroup[group].set(f.date,new Set());
+    byGroup[group].get(f.date).add(f.id);
+  }
+  return Object.fromEntries(STRENGTH_GROUPS.map(group=>{
+    const dates=[...byGroup[group]].filter(([,ids])=>ids.size>=2);
+    return [group,{days:dates.length,sets:dates.reduce((n,[,ids])=>n+ids.size,0)}];
+  }));
+}
+/* Level-up: recent sessions, PR and repeated verified work for every primary strength group. */
 const LV_TARGET={2:{hrp:8,plank:60,run2mi:1500},3:{hrp:12,plank:90,run2mi:1320},4:{hrp:15,plank:150,run2mi:1197}};
 export function levelUpEligible(){
   if(getState().level>=5)return false;
   const t=todayKey();
+  const recent=dateOffset(t,-6);
+  const feedback=getState().game?.trainingFeedback;
+  if(Array.isArray(feedback)&&feedback.some(f=>f&&f.date>=recent&&f.date<=t
+    &&(f.pain===true||f.form===false||f.actual<f.target||f.effort==='hard')))return false;
   for(let i=0;i<7;i++){ if(!sessionOn(dateOffset(t,-i)))return false; }
+  const volume=weeklyStrengthEvidence(getState(),t);
+  if(STRENGTH_GROUPS.some(group=>volume[group].days<2))return false;
   const tg=LV_TARGET[getState().level]; if(!tg)return false;
   const cut=dateOffset(t,-21);
   const hit=(arr,key,pass)=>arr.some(p=>p.date>=cut&&pass(p));

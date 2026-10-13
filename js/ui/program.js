@@ -7,18 +7,19 @@ import { todayWeekday, planLevel } from './game.js';
 /* 有彈力帶時走加載版課表；出差沒帶就關掉，自動退回徒手版 */
 export function hasBand(){return getState().settings.band!==false;}
 /* ================= EXERCISE DATA ================= */
-/* dose(level): stretches scale +15s/+2reps per level from L2 base, capped */
+/* 活動度維持短段落；力量進階以受控次數為主，不靠拉長靜態停留。 */
 function dose(lv){
-  const st=n=>Math.min(n+(lv-2)*15,90);      // seconds for stretches
+  const st=n=>Math.min(Math.max(20,n+(lv-2)*5),35);
   const rp=n=>Math.min(n+(lv-2)*2,15);       // reps for stretches
   return {
-    catcow:rp(10), nineok:st(45), squatHold:Math.min(40+(lv-2)*20,120),
-    wall:rp(10), needle:Math.min(6+(lv-2),10),
+    catcow:rp(10), nineok:st(30), squatHold:Math.min(20+(lv-1)*3,30),
+    wall:rp(10), needle:Math.max(5,Math.min(6+(lv-2),10)),
     bridge:[12,15,20,20,20][lv-1], bridgeSingle:lv>=4,
-    pushSets:lv>=3?3:2, pushReps:[8,10,12,15,15][lv-1], pushKnee:lv===1,
-    squatSets:lv>=3?3:2, squatReps:[12,15,20,20,20][lv-1],
+    pushReps:[8,10,12,15,15][lv-1], pushKnee:lv===1,
+    squatReps:[12,15,20,20,20][lv-1],
     calf:[15,20,25,25,25][lv-1], calfSingle:lv>=4,
-    plankSec:[30,45,60,90,150][lv-1], plankSets:lv>=2?2:1
+    /* 不在每日課表反覆做到 Boss Day 的極限時數。 */
+    plankSec:[20,30,45,60,75][lv-1], plankSets:lv>=4?2:1
   };
 }
 /* 步驟建構小工具 */
@@ -35,7 +36,7 @@ function mobSeq(set,lv){
     R('貓牛式','Cat-Cow ×'+d.catcow,d.catcow,3),
     R('穿針式 · 左','Thread the Needle L ×'+d.needle,d.needle,4),
     R('穿針式 · 右','Thread the Needle R ×'+d.needle,d.needle,4),
-    R('靠牆滑臂','Wall Slides ×'+d.wall,d.wall,4),
+    R('俯臥半程雪天使','Prone Floor Angel ×'+d.wall+' · 手臂離地',d.wall,4),
     T('嬰兒式側伸展','Side Child’s Pose · 左右各半',d.nineok)
   ];
   if(set==='C')return[
@@ -53,134 +54,144 @@ function mobSeq(set,lv){
     T('鴿式','Pigeon Pose · 左右各半',d.nineok)
   ];
 }
-/* ===== 十動作本體 = 伸展 5 槽（輪替）＋ 肌力 5 槽（固定，含 AFT 三項的兩項） ===== */
+/* ===== Boss Day 十動作暖身：5 個活動度＋5 個低量啟動，不在測驗前堆疲勞 ===== */
 export function fullSeq(lv,mob){
   const d=dose(lv), s=mobSeq(mob||'A',lv).slice();
-  s.push(R('臀橋'+(d.bridgeSingle?' · 單腳輪替':''),'Glute Bridge ×'+d.bridge,d.bridge,3));
-  for(let i=1;i<=d.pushSets;i++){ s.push(R('伏地挺身 第'+i+'組'+(d.pushKnee?' · 跪姿':''),'Push-up ×'+d.pushReps,d.pushReps,3));
-    if(i<d.pushSets)s.push(REST(30)); }
-  for(let i=1;i<=d.squatSets;i++){ s.push(R('深蹲 第'+i+'組','Squat ×'+d.squatReps,d.squatReps,3));
-    if(i<d.squatSets)s.push(REST(30)); }
-  s.push(R('提踵'+(d.calfSingle?' · 單腳輪替':''),'Calf Raise ×'+d.calf,d.calf,2));
-  for(let i=1;i<=d.plankSets;i++){ s.push(T('平板支撐 第'+i+'組','Plank '+d.plankSec+'s',d.plankSec));
-    if(i<d.plankSets)s.push(REST(20)); }
+  const bridge=Math.min(d.bridge,10), push=Math.min(d.pushReps,8), squat=Math.min(d.squatReps,10), calf=Math.min(d.calf,12);
+  s.push(R('臀橋','Glute Bridge ×'+bridge,bridge,3));
+  s.push(R('伏地挺身'+(d.pushKnee?' · 跪姿':''),'Push-up ×'+push,push,3));
+  s.push(R('深蹲','Squat ×'+squat,squat,3));
+  s.push(R('提踵','Calf Raise ×'+calf,calf,2));
+  s.push(T('平板支撐','Plank 20s',20));
   return s;
 }
 /* ===== 加強區塊（Block B）— 主課表的後半段 =====
-   預設使用彈力帶；關閉時改用毛巾與徒手動作。三種區塊依星期輪替。 */
-export const BLOCKS={shoulder:'肩推鏈',lower:'下肢後鏈',pull:'拉系列與上背'};
-/* 肩：後三角＋肩胛先做（多數人的弱點在後側），再進垂直推的漸進階梯 */
+   預設使用彈力帶；關閉時改用不需固定點的徒手動作。三種區塊依星期輪替。 */
+export const BLOCKS={shoulder:'推與肩',lower:'下肢與髖伸',pull:'拉與上背',lowerPull:'下肢＋拉力補強'};
+export function blockLabel(kind){
+  if(!hasBand()&&kind==='pull')return '上背控制（拉力有限）';
+  if(!hasBand()&&kind==='lowerPull')return '下肢＋上背控制（拉力有限）';
+  return BLOCKS[kind];
+}
+/* 推日：兩組水平推、兩組垂直推，加少量肩胛控制；不在疲勞後加高難度收尾。 */
 function shoulderSeq(lv){
-  const pike=[0,6,8,10,12,15][lv], hold=[0,15,20,30,40,45][lv],
-        /* 有彈力帶時肩上推已補了推的量，派克降到 2 組；動作越難每組負荷越高，組數也往下調 */
-        sets=hasBand()?2:(lv<=3?3:2),
-        name=lv<=2?'派克伏地挺身':(lv<=4?'腳抬高派克伏地挺身':'靠牆倒立肩推'),
-        en=lv<=2?'Pike Push-up':(lv<=4?'Elevated Pike Push-up · 腳踩牆或沙發':'Wall Handstand Push-up'),
-        s=[];
-  s.push(R('俯臥 Y 舉','Prone Y Raise ×12 · 拇指朝天',12,3));
-  s.push(R('俯臥 T 舉','Prone T Raise ×12',12,3));
-  s.push(R('俯臥 W 舉','Prone W Raise ×12 · 夾緊肩胛',12,3));
-  s.push(REST(30));
-  for(let i=1;i<=sets;i++){ s.push(R(name+' 第'+i+'組',en+' ×'+pike,pike,4)); s.push(REST(40)); }
-  if(hasBand()){
-    /* 徒手練不到的兩塊：加載的垂直推、以及被孤立的中三角 */
-    const ohp=[0,12,15,15,15,15][lv];
-    s.push(R('彈力帶肩上推','Band Overhead Press ×'+ohp+' · 踩住帶子',ohp,3));
-    s.push(REST(35));
-    /* L4 起主課表本身已經很重，配件動作讓位給時間預算 */
-    if(lv<=3){ s.push(R('彈力帶側平舉','Band Lateral Raise ×15 · 舉到肩高',15,3)); s.push(REST(25)); }
+  const d=dose(lv), pike=[0,4,6,8,10,10][lv], s=[];
+  for(let i=1;i<=2;i++){
+    s.push(R('伏地挺身 第'+i+'組'+(d.pushKnee?' · 跪姿':''),'Push-up ×'+d.pushReps,d.pushReps,3));
+    s.push(REST(60));
   }
-  s.push(T('靠牆倒立撐','Wall Handstand Hold '+hold+'s · 面牆',hold));
-  s.push(REST(30));
-  s.push(R('反向雪天使','Reverse Snow Angel ×15 · 俯臥',15,2));
-  if(hasBand()&&lv<=3)s.push(R('彈力帶三頭下壓','Band Triceps Extension ×15',15,3));
-  s.push(R('平板肩點','Plank Shoulder Tap ×20',20,2));
-  if(lv===3)s.push(T('熊爬定位','Bear Crawl Hold 30s',30));
-  if(lv>=4)s.push(R('假直立伏地挺身','Pseudo Planche Push-up ×'+Math.max(5,pike-4)+' · 身體前傾',Math.max(5,pike-4),4));
+  if(hasBand()){
+    const ohp=[0,8,10,10,12,12][lv];
+    for(let i=1;i<=2;i++){
+      s.push(R('彈力帶肩上推 第'+i+'組','Band Overhead Press ×'+ohp+' · 雙腳踩穩帶子、先用輕阻力',ohp,3));
+      s.push(REST(60));
+    }
+    s.push(R('彈力帶側平舉','Band Lateral Raise ×12 · 輕阻力、舉到肩高',12,3));
+  }else{
+    for(let i=1;i<=2;i++){
+      s.push(R('派克伏地挺身 第'+i+'組','Pike Push-up ×'+pike+' · 自選可控制的活動範圍',pike,4));
+      s.push(REST(60));
+    }
+  }
+  s.push(R('俯臥 Y 舉','Prone Y Raise ×10 · 小幅度、拇指朝天',10,3));
+  s.push(R('俯臥 T 舉','Prone T Raise ×10 · 小幅度',10,3));
   return s;
 }
-/* 下肢：單邊化是徒手唯一有效的漸進超負荷路徑 */
+/* 下肢日：膝主導與髖主導各有工作組，移除疲勞後的自動跳躍。 */
 function lowerSeq(lv){
-  const sp=[0,8,10,12,15,15][lv], wall=[0,30,40,50,60,75][lv],
-        nord=Math.min(4+lv,10), s=[];
-  const sets=lv<=3?2:2;
-  for(let i=1;i<=sets;i++){
+  const sp=[0,6,8,10,12,12][lv], bridge=[0,10,12,12,15,15][lv], s=[];
+  for(let i=1;i<=2;i++){
     s.push(R('分腿蹲 第'+i+'組 · 左','Split Squat L ×'+sp,sp,3));
     s.push(R('分腿蹲 第'+i+'組 · 右','Split Squat R ×'+sp,sp,3));
-    s.push(REST(40));
+    s.push(REST(60));
   }
-  s.push(R('單腳臀橋 · 左','Single-Leg Glute Bridge L ×'+sp,sp,3));
-  s.push(R('單腳臀橋 · 右','Single-Leg Glute Bridge R ×'+sp,sp,3));
-  s.push(REST(30));
+  for(let i=1;i<=2;i++){
+    s.push(R('臀橋 第'+i+'組','Glute Bridge ×'+bridge+' · 頂點停 1 秒',bridge,3));
+    s.push(REST(45));
+  }
   if(hasBand()){
-    /* 徒手最難加載的後鏈 —— 髖鉸鏈有了阻力才練得到 */
-    s.push(R('彈力帶羅馬尼亞硬舉','Band RDL ×15 · 髖鉸鏈、背打直',15,3));
-    s.push(REST(35));
+    for(let i=1;i<=2;i++){
+      s.push(R('彈力帶羅馬尼亞硬舉 第'+i+'組','Band RDL ×'+bridge+' · 雙腳踩穩、從髖部折疊',bridge,3));
+      s.push(REST(60));
+    }
   }
-  s.push(T('靠牆深蹲靜態','Wall Sit '+wall+'s',wall));
-  s.push(R('跪姿離心腿後彎舉','Kneeling Eccentric Hamstring ×'+nord+' · 5 秒下放',nord,5));
-  s.push(REST(20));
+  s.push(R('控制深蹲','Controlled Squat ×10 · 3 秒蹲下、1 秒站起',10,4));
+  s.push(REST(40));
   s.push(R('單腳提踵 · 左','Single-Leg Calf Raise L ×15',15,2));
   s.push(R('單腳提踵 · 右','Single-Leg Calf Raise R ×15',15,2));
-  if(lv>=3)s.push(R('深蹲跳','Squat Jump ×10 · 輕落地',10,2));
-  s.push(T('死蟲式','Dead Bug 40s',40));
+  s.push(T('死蟲式','Dead Bug 30s · 緩慢交替',30));
   return s;
 }
-/* 拉：有彈力帶就是真正的水平＋垂直拉；沒帶則退回俯臥等長版 */
+/* 拉：有彈力帶可做水平拉；沒有固定點時無法提供等效垂直拉。 */
 function pullSeq(lv){
   if(!hasBand())return pullSeqBodyweight(lv);
-  const rows=[0,12,15,15,15,15][lv], sets=lv<=2?2:(lv<=3?3:2), s=[];
+  const rows=[0,8,10,12,12,15][lv], sets=lv<=2?2:3, s=[];
   for(let i=1;i<=sets;i++){
-    s.push(R('彈力帶划船 第'+i+'組','Band Row ×'+rows+' · 帶子繞腳底或門縫、夾緊肩胛',rows,3));
-    s.push(REST(40));
+    s.push(R('彈力帶划船 第'+i+'組','Band Row ×'+rows+' · 帶子繞腳底、確認踩穩、輕阻力開始',rows,3));
+    s.push(REST(60));
   }
-  s.push(R('彈力帶直臂下拉','Band Lat Pulldown ×'+rows+' · 高處固定、手肘打直下壓',rows,3));
-  s.push(REST(30));
-  s.push(R('彈力帶面拉','Band Face Pull ×15 · 拉到額頭高度、外旋到底',15,3));
-  s.push(R('彈力帶開肩','Band Pull-apart ×20 · 手肘打直',20,2));
-  s.push(REST(25));
-  s.push(R('彈力帶肩外旋 · 左','Band External Rotation L ×15',15,3));
-  s.push(R('彈力帶肩外旋 · 右','Band External Rotation R ×15',15,3));
-  s.push(REST(25));
-  s.push(R('彈力帶二頭彎舉','Band Biceps Curl ×'+rows,rows,3));
-  s.push(REST(20));
-  s.push(T('側平板 · 左','Side Plank L 30s',30));
-  s.push(T('側平板 · 右','Side Plank R 30s',30));
+  for(let i=1;i<=2;i++){
+    s.push(R('彈力帶開肩 第'+i+'組','Band Pull-apart ×12 · 輕阻力、小幅度',12,3));
+    s.push(REST(45));
+  }
+  s.push(R('彈力帶肩外旋 · 左','Band External Rotation L ×10 · 輕阻力',10,3));
+  s.push(R('彈力帶肩外旋 · 右','Band External Rotation R ×10 · 輕阻力',10,3));
+  s.push(T('側平板 · 左','Side Plank L 20s',20));
+  s.push(T('側平板 · 右','Side Plank R 20s',20));
   return s;
 }
-/* 出差／沒帶彈力帶的替代版 —— 強度上限較低，但比不做好 */
+/* 無帶版是低阻力的上背控制，不能視為等效的拉力肌力訓練。 */
 function pullSeqBodyweight(lv){
-  const rows=[0,10,12,15,15,15][lv], sup=[0,20,25,30,40,45][lv], s=[];
-  const sets=lv<=3?3:2;
+  const rows=[0,8,10,12,12,15][lv], s=[];
+  const sets=2;
   for(let i=1;i<=sets;i++){
-    s.push(R('毛巾划船 第'+i+'組','Towel Row ×'+rows+' · 毛巾繞門把、身體後傾',rows,3));
+    s.push(R('超人式划船 第'+i+'組','Superman Row ×'+rows+' · 徒手上背控制，不能取代負重拉力',rows,3));
+    s.push(REST(60));
+  }
+  s.push(R('俯臥 T 舉 · 慢速','Prone T Raise ×10 · 小幅度控制',10,4));
+  s.push(REST(40));
+  for(let i=1;i<=2;i++){
+    s.push(R('毛巾直臂下拉 第'+i+'組','Towel Pull-down ×10 · 雙手互相對抗，不固定在物體上',10,4));
+    s.push(REST(45));
+  }
+  s.push(T('側平板 · 左','Side Plank L 20s',20));
+  s.push(T('側平板 · 右','Side Plank R 20s',20));
+  return s;
+}
+/* 週五用短版下肢＋拉力補強，避免把兩堂完整課表硬接在一起。 */
+function lowerPullSeq(lv){
+  const sp=[0,6,8,10,10,12][lv], rows=[0,8,10,12,12,15][lv], s=[];
+  for(let i=1;i<=2;i++){
+    s.push(R('分腿蹲 第'+i+'組 · 左','Split Squat L ×'+sp,sp,3));
+    s.push(R('分腿蹲 第'+i+'組 · 右','Split Squat R ×'+sp,sp,3));
+    s.push(REST(45));
+  }
+  for(let i=1;i<=2;i++){
+    s.push(R('臀橋 第'+i+'組','Glute Bridge ×12 · 頂點停 1 秒',12,3));
     s.push(REST(40));
   }
-  s.push(R('俯臥 T 舉 · 慢速','Prone T Raise ×15 · 頂點停 3 秒',15,4));
-  s.push(R('超人式划船','Superman Row ×15',15,3));
-  s.push(REST(20));
-  s.push(T('超人式停留','Superman Hold '+sup+'s',sup));
-  s.push(R('毛巾直臂下拉','Towel Pull-down ×12 · 雙手互相對抗',12,4));
-  s.push(REST(20));
-  s.push(T('反向平板','Reverse Plank '+sup+'s',sup));
-  s.push(T('側平板 · 左','Side Plank L 30s',30));
-  s.push(T('側平板 · 右','Side Plank R 30s',30));
+  for(let i=1;i<=2;i++){
+    s.push(hasBand()
+      ? R('彈力帶划船 第'+i+'組','Band Row ×'+rows+' · 帶子繞腳底、確認踩穩',rows,3)
+      : R('超人式划船 第'+i+'組','Superman Row ×'+rows+' · 低阻力上背控制，不能取代負重拉力',rows,3));
+    s.push(REST(60));
+  }
   return s;
 }
 export function blockSeq(kind,lv){
   if(kind==='shoulder')return shoulderSeq(lv);
   if(kind==='lower')return lowerSeq(lv);
   if(kind==='pull')return pullSeq(lv);
+  if(kind==='lowerPull')return lowerPullSeq(lv);
   return [];
 }
-/* 週三是一週唯一的加練日。加的量跟著當天的區塊走 ——
-   有彈力帶時週三是拉日，就加拉；否則補推的量。不要在拉日堆推。 */
+/* 週三是加練日，維持當天的拉／上背主題。 */
 function cycleExtra(lv){
-  const d=dose(lv);
-  if(hasBand())return [R('彈力帶划船 加練','Band Row ×'+[0,12,15,15,15,15][lv],[0,12,15,15,15,15][lv],3),
-    REST(30),R('彈力帶面拉 加練','Band Face Pull ×15',15,3)];
-  return [R('伏地挺身 加練','Push-up ×'+d.pushReps,d.pushReps,3),REST(30),
-          R('派克伏地挺身 加練','Pike Push-up ×8',8,4)];
+  const rows=[0,8,10,10,12,12][lv];
+  if(hasBand())return [R('彈力帶划船 加練','Band Row ×'+rows+' · 帶子繞腳底、確認踩穩、輕阻力開始',rows,3),
+    REST(60),R('彈力帶開肩 加練','Band Pull-apart ×10 · 輕阻力、小幅度',10,3)];
+  return [R('超人式划船 加練','Superman Row ×'+rows+' · 低阻力上背控制，不能取代負重拉力',rows,3),REST(60),
+          R('反向雪天使 加練','Reverse Snow Angel ×10 · 小幅度控制',10,3)];
 }
 /* 恢復日：三組伸展全部走一遍，不做肌力；不再額外乘時長。 */
 export function restSeq(lv){
@@ -197,22 +208,29 @@ export function minimalSeq(lv){
   ];
 }
 export function rainSeq(){
-  const s=[]; // 10 min: 5 rounds of (burpee 40s / rest 20s / jumping jack 40s / rest 20s)
+  const s=[]; // 低衝擊 5 輪；加上 10 秒預備後約 10 分鐘。
   for(let i=1;i<=5;i++){
-    s.push({name:'波比跳 R'+i,sub:'Burpees',mode:'time',secs:40});
-    s.push({name:'休息',sub:'Rest',mode:'time',secs:20});
-    s.push({name:'開合跳 R'+i,sub:'Jumping Jacks',mode:'time',secs:40});
-    s.push({name:'休息',sub:'Rest',mode:'time',secs:20});
+    s.push(T('原地快走 R'+i,'地面乾燥防滑、留出空間；不舒服就降速',40));
+    s.push(T('休息','原地輕鬆走、放慢呼吸',20));
+    s.push(T('側步開合 R'+i,'左右跨步，不跳躍；不確定就原地走',40));
+    s.push(T('休息','原地輕鬆走、放慢呼吸',20));
   }
   return s;
 }
 export function addTransitions(seq){
   const out=[{name:'預備',sub:'手機放地上 · 就位',mode:'time',secs:10,prep:seq[0]?seq[0].name:''}];
+  let previousGear='徒手';
   for(let i=0;i<seq.length;i++){
     const st=seq[i],isRest=st.name.indexOf('休息')>=0;
     const prevIsGap=out.length&&(out[out.length-1].name.indexOf('休息')>=0||out[out.length-1].prep!==undefined);
-    if(!isRest&&!prevIsGap&&i>0)out.push({name:'準備',sub:st.name,mode:'time',secs:8,prep:st.name});
+    const gear=st.name.indexOf('彈力帶')>=0?'彈力帶':'徒手';
+    if(!isRest&&i>0&&gear!==previousGear){
+      out.push({name:'換器材',sub:gear==='彈力帶'?'拿好彈力帶、確認踩穩':'放下彈力帶、回到墊上',mode:'time',secs:15,prep:st.name});
+    }else if(!isRest&&!prevIsGap&&i>0){
+      out.push({name:'準備',sub:st.name,mode:'time',secs:8,prep:st.name});
+    }
     out.push(st);
+    if(!isRest)previousGear=gear;
   }
   return out;
 }
@@ -225,14 +243,14 @@ export const WEEK=[
   {type:'full', mob:'B', block:'lower'},
   {type:'cycle',mob:'C', block:'pull'},
   {type:'full', mob:'B', block:'shoulder'},
-  {type:'full', mob:'A', block:'lower'},
+  {type:'full', mob:'A', block:'lowerPull'},
   {type:'rest', mob:'C', block:null}
 ];
 /* 時長一律由序列算出，不手寫 —— 劑量隨等級長大，標籤才不會說謊 */
-export function estMin(seq){
-  const sec=addTransitions(seq).reduce((a,x)=>a+(x.mode==='time'?x.secs:x.reps*x.tempo)+0.6,0);
-  return Math.round(sec/60);
+export function estSec(seq){
+  return addTransitions(seq).reduce((a,x)=>a+(x.mode==='time'?x.secs:x.reps*x.tempo),0);
 }
+export function estMin(seq){return Math.round(estSec(seq)/60);}
 /* 今日計畫：星期取遊戲日（04:00 前仍是前一天的課表）；lv＝今天的強度（預設 planLevel()：D6 降量中降一級） */
 export function todayPlan(lv=planLevel()){
   const p=WEEK[todayWeekday()], plan=Object.assign({},p);
@@ -248,16 +266,18 @@ export function todayPlan(lv=planLevel()){
     plan.mission='休息日：三組伸展全部走一遍，不做肌力。白天散步 20–30 分鐘，晚上熱水澡、7 小時睡眠 — 明天 Boss Day 滿血。';
   }else{
     plan.min=estMin(planSeq(plan,lv));
-    plan.label='開始 · 十動作＋'+BLOCKS[p.block]+'（'+plan.min+' min）';
-    plan.mission='伸展組 '+p.mob+'：'+MOB_SETS[p.mob]+'　·　加強區塊：'+BLOCKS[p.block]
-      +(p.type==='cycle'?'（本週唯一加練日）':'')+'。按下開始後手機放地上，聽指令即可。';
+    plan.label='開始 · 活動度＋'+blockLabel(p.block)+'（'+plan.min+' min）';
+    plan.mission='伸展組 '+p.mob+'：'+MOB_SETS[p.mob]+'　·　加強區塊：'+blockLabel(p.block)
+      +(p.type==='cycle'?'（本週唯一加練日）':'')+'。肌力組保留約 2 下餘力；彈力帶依此選阻力。按下開始後手機放地上，聽指令即可。';
+    if(!hasBand()&&(p.block==='pull'||p.block==='lowerPull'))plan.mission+=' 徒手上背動作阻力有限，不能等同負重拉力訓練。';
   }
   return plan;
 }
 /* 今天要跑的完整序列 */
 export function planSeq(plan,lv){
   if(plan.type==='rest')return restSeq(lv);
-  const s=fullSeq(lv,plan.mob);
+  if(plan.type==='boss')return fullSeq(lv,plan.mob);
+  const s=mobSeq(plan.mob,lv).slice();
   if(plan.block)s.push.apply(s,blockSeq(plan.block,lv));
   if(plan.type==='cycle')s.push.apply(s,cycleExtra(lv));
   return s;

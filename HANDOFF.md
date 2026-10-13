@@ -1,5 +1,9 @@
 # Daily Ten — 下一個對話接手
 
+> 2026-10-13 最新補充：使用者決定自行判斷動作示範，專業審核不再阻擋本輪交付。開發分支加入四套 AI 生成的 16 格本地連續影格：標準伏地挺身、控制深蹲、臀橋、腳底固定彈力帶划船；可播放、慢速、逐格及重播，快取 v18。正式完整影片仍 0，其他動作依然缺片。以下舊段落的專業審核閘門說法已由本段取代。
+
+> 2026-10-13 最新：開發分支 `codex/rework-training-mvp` 尚未發佈；課表已改為推／下肢／拉／推／短版下肢＋拉、恢復、Boss，移除自動跳蹲與高難度肩推收尾，雨天改低衝擊，組間休息可延長。每組次數動作可選擇回報完成量、費力、姿勢與疼痛；疼痛或姿勢不穩會停止且不計 XP。訓練分頁新增近七日推／負重拉／蹲／髖伸工作組證據，四類各兩個達標日才可通過新的升級閘門；無帶上背不算負重拉。缺片求助可在同視窗安全略過當前動作，略過後無完成紀錄或 XP。[候選影片](./reports/media-candidates-2026-10-13.md)僅供審核。影片清單共有 73 個精確名稱、0 個已審核影片。看 [路線圖](./docs/TRAINING-REBUILD-ROADMAP.md)、[最新 QA](./reports/qa-training-2026-10-13.md)、[先前 Jev 判斷](./reports/jev-training-2026-10-12.md)。完整離線影片與專業審核缺席，iOS 真機恢復未驗證；不得把 UI／課表修正說成安全訓練 MVP。原先 V2b 優先序讓位於訓練安全。以下是 2026-10-05 歷史快照。
+
 > 截至 2026-10-05（Asia/Tokyo）。直接把本檔貼到新對話。先對照 repo 最新 `main`，不要用舊 PR 描述或這份快照覆蓋更新後的實作。開發流程一律走 `.claude/skills/daily-ten-dev/SKILL.md`。
 
 ## 🎯 服務目標
@@ -26,7 +30,7 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 - **state v3**：V1 起畫面上的 XP、等級、連續天數都由 engine 從紀錄推導（`js/game/engine.js` 的 `todaySummary`），不寫入 state；legacy `xp`、`streak` 仍照舊表累加並**複製**到 `game`（D12，給舊版 App），和畫面數字不同。睡眠紀錄存打卡當下的 `target`；加一輪記 `sessions[].plus`；新的訓練紀錄用 04:00 遊戲日。`body.sleep` 與 `habits.sleep.log` 並存不合併（D13）。
 - **SW**：新增或改名 App 檔 → 更新 `sw.js` 的 `ASSETS`＋CACHE 版號 +1；CI `check-repo` 會擋漏列。
 - **CI**：`npm test` 在 push 時跑；等價比對以 `ec87e03` 為基準，V1 起只比訓練畫面家族（計時、暫停、Boss 測驗、示範視窗）與課表規則；V5 改訓練畫面時再退役。用語表 baseline（`tools/jev/glossary-baseline.json`）只能在新增違規為 0 時重產，不得拿來吸收新違規。
-- **課表**：新增或改名動作 → `demos.js` 的 `MAP`／`def` 與 SETUP 的 `VIDEOS`（`js/ui/content.js`）都要補。
+- **課表／影片**：新增或改名動作 → 更新動作庫 `js/ui/content.js`，執行 `npm run report:media` 並檢查精確名稱覆蓋；`demos.js` 的舊線條動畫已停用，不能充當教學。只有逐片授權與專業審核的本機完整影片可登錄 `EXERCISE_MEDIA`。
 - **Jev**：只在 build time（M3）；前端零 AI 呼叫、零 API key。
 - 官方計分表：[AFT 2025 表](https://www.army.mil/e2/downloads/rv7/aft/AFT_Scoring_Scales_250601.pdf)。17–21 歲男性 Plank 60 分是 1:30；不能重新引入 1:25。
 

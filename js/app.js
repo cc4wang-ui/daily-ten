@@ -165,7 +165,7 @@ async function boot(){
     import('./ui/train.js'),import('./ui/home.js'),import('./ui/stats.js'),import('./ui/body.js'),
     import('./ui/setup.js'),import('./ui/backup.js'),import('./ui/trainhub.js'),import('./ui/checkin.js'),import('./ui/game.js')]);
   const {loadState,getState}=store, {$}=dom, {goTo,onScreen,setNavGuard}=nav, {minimalSeq,rainSeq}=program, {closeDemo}=demo,
-        {startWorkout,isTraining}=train, {renderHome}=home, {renderStats}=stats, {renderBody,wireBody}=body,
+        {startWorkout,isTraining,resumeWorkout}=train, {renderHome}=home, {renderStats}=stats, {renderBody,wireBody}=body,
         {renderSetup}=setup, {showLoadError}=backupUi, {renderTrain,renderVideos}=trainhub, {renderCheckIn,wireCheckIn}=checkin;
   trainingNow=isTraining;
   /* ================= WIRE ================= */
@@ -196,6 +196,7 @@ async function boot(){
   wireBody();
   renderVideos();
   renderHome();renderSetup();renderStats();
+  await resumeWorkout();
   if(loaded&&(loaded.status==='repaired'||loaded.status==='recovered'))showLoadError(loaded.error);
   document.documentElement.dataset.ready='1';
   loadUpdateUi();

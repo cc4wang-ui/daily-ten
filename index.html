@@ -146,22 +146,26 @@
       <div id="week-tbl"></div>
       <p class="small">時間依你目前強度的劑量算出，會隨升級變長。
       伸展組 A 髖與後鏈／B 胸肩與上背／C 全身流動，依星期自動輪替 —— 你不需要選。
-      全部早上進行，錨定在刷牙後。預設課表需瑜珈墊、彈力帶、一面牆；關閉彈力帶時改用毛巾替代。</p>
+      全部早上進行，錨定在刷牙後。預設課表使用瑜珈墊與彈力帶；帶子由雙腳踩穩，不需門錨或牆。關閉彈力帶時改做低阻力上背控制，不能等同負重拉力。</p>
+    </section>
+    <section class="card" aria-labelledby="tr-strength-title">
+      <h2 class="card-title" id="tr-strength-title">近 7 天力量證據</h2>
+      <ul class="strength-evidence" id="tr-strength-evidence"></ul>
+      <p class="small" id="tr-strength-note"></p>
     </section>
     <section class="card" aria-labelledby="tr-band-title">
       <h2 class="card-title" id="tr-band-title">彈力帶怎麼加負荷</h2>
-      <p>彈力帶沒有重量刻度，加負荷靠三件事，順序照這樣走：</p>
+      <p>先確認帶子完整、雙腳踩穩，再逐步調整阻力；不熟悉動作時先暫停並看教學。</p>
       <ol class="steps">
-        <li><b>縮短</b>　手握位置往固定端靠近，張力立刻變大 —— 最快、最可控。</li>
-        <li><b>疊帶</b>　兩條一起拉。</li>
-        <li><b>換磅數</b>　次數輕鬆做到 15 下以上才換下一條。</li>
+        <li><b>踩穩</b>　帶子繞過腳底，先用輕阻力做幾下，確認不滑動。</li>
+        <li><b>調握距</b>　在腳的位置不變時少量調整握距，仍要能控制全程。</li>
+        <li><b>換阻力</b>　能穩定完成目標次數、並保留約 2 下餘力時，再考慮更強的帶子。</li>
       </ol>
-      <p class="small">同一個原則：次數上限鎖在 15，到了就加張力，不是加次數。
-      彈力帶補掉的是「拉」與「加載的垂直推」—— 也就是徒手唯一練不到的兩塊。</p>
+      <p class="small">帶子的阻力取決於伸長幅度；如果帶子滑動、姿勢變形或疼痛，就停止該組並降低阻力。徒手上背動作不能替代負重拉力。</p>
     </section>
     <section class="card" aria-labelledby="tr-vids-title">
       <h2 class="card-title" id="tr-vids-title">動作庫</h2>
-      <p>「示範」是 App 內建的線條動畫，離線可看，訓練時也會自動顯示並跟著節拍動。「真人」開啟 YouTube 搜尋結果（需連網），選官方／高評價示範即可。</p>
+      <p>伏地挺身、控制深蹲、臀橋、腳底固定彈力帶划船已有可逐格查看的 16 格示範；其他動作仍缺完整示範。訓練中的說明會暫停計時。</p>
       <div id="vids"></div>
     </section>
   </section>
@@ -338,16 +342,35 @@
 
 <!-- TRAIN -->
 <div id="train">
+  <div id="t-checkpoint" aria-live="polite">準備開始</div>
   <div id="t-phase">—</div>
   <div id="t-name">—</div>
   <div id="t-sub">—</div>
+  <div id="t-set" hidden></div>
   <div id="t-demo-wrap"><svg id="t-demo" aria-hidden="true"></svg><span id="t-demo-tag"></span></div>
   <div id="t-cue"></div>
+  <p id="t-demo-safety" hidden>文字提醒不能代替完整動作教學。</p>
+  <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作說明 · 計時會暫停</button>
+  <p id="t-no-demo" hidden>目前沒有此動作的完整示範；如果不熟悉，請略過這一步。</p>
   <div id="t-count">—</div>
+  <button type="button" id="t-feedback-open" class="btn-sub" hidden>回報這組 · 計時會暫停</button>
+  <form id="t-feedback" hidden aria-labelledby="t-feedback-title">
+    <h3 id="t-feedback-title">這組做得如何？</h3>
+    <label>實際完成次數 <input id="t-actual" type="number" inputmode="numeric" min="0" max="999" required></label>
+    <label>主觀難度 <select id="t-effort"><option value="okay">剛好</option><option value="easy">輕鬆</option><option value="hard">吃力</option></select></label>
+    <label>動作穩定嗎？ <select id="t-form"><option value="yes">穩定</option><option value="no">姿勢不穩</option></select></label>
+    <label>有疼痛嗎？ <select id="t-pain"><option value="no">沒有</option><option value="yes">有疼痛，停止訓練</option></select></label>
+    <p>有疼痛就停止這次訓練。動作不熟悉或姿勢不穩時，請停止或略過；未達次數及吃力回報都不會讓強度升級。</p>
+    <p id="t-feedback-error" role="status" hidden></p>
+    <button type="submit" class="btn-main">儲存回報</button>
+    <button type="button" id="t-feedback-cancel" class="btn-sub">返回這組</button>
+  </form>
   <div id="t-next"></div>
   <div id="t-prog"><i id="t-bar"></i></div>
+  <button type="button" id="t-more-rest" class="btn-sub" hidden>多休息 20 秒</button>
   <div class="t-ctrl">
     <button id="t-pause">暫停</button>
+    <button id="t-skip">略過這一步</button>
     <button id="t-abort">結束</button>
   </div>
 </div>
@@ -364,12 +387,16 @@
 <!-- 動作示範 -->
 <div id="demo-modal" role="dialog" aria-modal="true">
   <div class="box">
-    <div class="eyebrow">DEMO · 動作示範</div>
+    <div class="eyebrow">動作說明 · 影片狀態</div>
     <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
-    <svg id="dm-svg" aria-hidden="true"></svg>
+    <div id="dm-video" class="exercise-video" aria-live="polite"></div>
+    <svg id="dm-svg" aria-hidden="true" hidden></svg>
     <div id="dm-cue"></div>
+    <p id="dm-safety" class="dm-safety">目前沒有經審核的完整動作影片。線條動畫不能代替動作教學；如果不熟悉，請先暫停訓練。</p>
+    <p id="dm-training-note" hidden>計時已暫停。返回後仍在同一步，按「繼續」才會重新計時。</p>
     <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
-    <button class="btn-main" id="dm-close" style="margin-bottom:0">關閉</button>
+    <button type="button" class="btn-sub" id="dm-skip" hidden>不熟悉動作 · 安全略過這一步</button>
+    <button class="btn-main" id="dm-close" style="margin-bottom:0">返回訓練</button>
   </div>
 </div>
 

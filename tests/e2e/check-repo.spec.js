@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { relocateConfig } from './helpers.js';
+import { EXERCISE_STORYBOARDS } from '../../js/ui/exercise-media.js';
 
 const REPO = fileURLToPath(new URL('../../', import.meta.url));
 const SCRIPT = join(REPO, '.github/scripts/check-repo.mjs');
@@ -32,6 +33,18 @@ function makeRepo() {
   const dir = mkdtempSync(join(tmpdir(), 'daily-ten-check-repo-'));
   const tar = execFileSync('git', ['archive', '--format=tar', 'origin/main'], { cwd: REPO, maxBuffer: 256 * 1024 * 1024 });
   execFileSync('tar', ['-x', '-C', dir], { input: tar });
+  // The checker under test is from this branch. Give the old-main fixture its
+  // current registered media without changing the baseline CACHE version.
+  const storyboardAssets = EXERCISE_STORYBOARDS.map(({ src }) => src);
+  for (const src of storyboardAssets) {
+    const rel = src.replace(/^\.\//, '');
+    mkdirSync(dirname(join(dir, rel)), { recursive: true });
+    copyFileSync(join(REPO, rel), join(dir, rel));
+  }
+  const swPath = join(dir, 'sw.js');
+  writeFileSync(swPath, readFileSync(swPath, 'utf8').replace(
+    'const ASSETS = [', `const ASSETS = [\n${storyboardAssets.map(src => `  '${src}',`).join('\n')}`
+  ));
   git(dir, 'init', '-q');
   git(dir, 'config', 'user.email', 'qa@example.invalid');
   git(dir, 'config', 'user.name', 'qa');

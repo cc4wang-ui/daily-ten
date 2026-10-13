@@ -1,0 +1,137 @@
+{
+  "reviewedAt": "2026-10-12T07:32:39.425Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "context": "Offline-first mobile home workout PWA. Review only the stated code and test evidence, not an unseen app. A release gate separately requires complete reviewed exercise motion media and independent human movement review.",
+      "movement": "The repo has 53 line-SVG animations. It has zero local complete-motion MP4/WebM/GIF demonstrations and no qualified human movement review. Five currently programmed exercises have no matching demonstration and are labelled skippable. The UI warns line animation is not complete instruction.",
+      "help": "During a live workout, opening the in-app demonstration pauses the timer, hides the external YouTube link, and returns to the same step and remaining count. A local checkpoint implementation now restores step/count in a paused state after page reload in a focused Playwright test. Boss test timer recovery after warmup and real iOS eviction are not independently verified.",
+      "timing": "For 70 combinations of band availability, level, and weekday, estimated seconds equal the sum of rep×tempo, holds, rest, preparation and gear changes in a Playwright test. Per-exercise dose rationale and external coach validation have not been delivered.",
+      "program": "Seven-day plan has two shoulder/push days, two pull days, one lower strength day, one recovery day and a Sunday Boss test. No-band variants avoid wall and door anchors. The no-band pull variant admits limited pulling load. Progression is fixed by level and does not use recorded completed reps, perceived exertion or pain.",
+      "navigation": "The training view shows checkpoint type, current and next action, set, progress, help, pause, skip and exit. Local accessibility audit of training found zero text contrast and touch-target failures at settled state. No independent user study or real-device test has been done."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Based only on state.movement, how completely is this requirement met? Treat absence of complete reviewed exercise motion as a critical gap for the movement requirement. Evaluate delivered evidence, not the roadmap.",
+        "criteria": {
+          "pass": "The user requirement is fully met by the supplied, verified evidence.",
+          "partial": "There is a useful implementation, but an important part of the requirement is not yet evidenced or delivered.",
+          "fail": "The central requirement remains unmet or there is a critical safety or usability gap."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Based only on state.help, how completely is this requirement met? Treat absence of complete reviewed exercise motion as a critical gap for the movement requirement. Evaluate delivered evidence, not the roadmap.",
+        "criteria": {
+          "pass": "The user requirement is fully met by the supplied, verified evidence.",
+          "partial": "There is a useful implementation, but an important part of the requirement is not yet evidenced or delivered.",
+          "fail": "The central requirement remains unmet or there is a critical safety or usability gap."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Based only on state.timing, how completely is this requirement met? Treat absence of complete reviewed exercise motion as a critical gap for the movement requirement. Evaluate delivered evidence, not the roadmap.",
+        "criteria": {
+          "pass": "The user requirement is fully met by the supplied, verified evidence.",
+          "partial": "There is a useful implementation, but an important part of the requirement is not yet evidenced or delivered.",
+          "fail": "The central requirement remains unmet or there is a critical safety or usability gap."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Based only on state.program, how completely is this requirement met? Treat absence of complete reviewed exercise motion as a critical gap for the movement requirement. Evaluate delivered evidence, not the roadmap.",
+        "criteria": {
+          "pass": "The user requirement is fully met by the supplied, verified evidence.",
+          "partial": "There is a useful implementation, but an important part of the requirement is not yet evidenced or delivered.",
+          "fail": "The central requirement remains unmet or there is a critical safety or usability gap."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Based only on state.navigation, how completely is this requirement met? Treat absence of complete reviewed exercise motion as a critical gap for the movement requirement. Evaluate delivered evidence, not the roadmap.",
+        "criteria": {
+          "pass": "The user requirement is fully met by the supplied, verified evidence.",
+          "partial": "There is a useful implementation, but an important part of the requirement is not yet evidenced or delivered.",
+          "fail": "The central requirement remains unmet or there is a critical safety or usability gap."
+        }
+      },
+      "release": {
+        "type": "choice",
+        "instructions": "Based on the entire state, is this app ready to be presented as a safe complete workout-teaching release to users who may be unfamiliar with exercises?",
+        "criteria": {
+          "safe_release": "All critical movement instruction and release evidence is delivered, including complete reviewed motion for every programmed movement.",
+          "draft_only": "Useful implementation exists, but critical release evidence or complete reviewed motion is missing."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "fail",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0,
+          "fail": 1
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.25,
+        "probabilities": {
+          "pass": 0.01,
+          "partial": 0.5,
+          "fail": 0.49
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.28,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.52,
+          "fail": 0.48
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "fail",
+        "confidence": 0.79,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.14,
+          "fail": 0.86
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "fail",
+        "confidence": 0.82,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.12,
+          "fail": 0.88
+        }
+      },
+      "release": {
+        "type": "choice",
+        "choice": "draft_only",
+        "confidence": 1,
+        "probabilities": {
+          "safe_release": 0,
+          "draft_only": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1433,
+      "output_tokens": 210
+    }
+  }
+}
