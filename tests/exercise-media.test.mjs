@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  EXERCISE_MEDIA, getApprovedExerciseMedia, isApprovedExerciseMedia, mountExerciseVideo
+  EXERCISE_MEDIA, getApprovedExerciseMedia, getExerciseStoryboard, isApprovedExerciseMedia, mountExerciseVideo
 } from '../js/ui/exercise-media.js';
 
 const clip = () => ({
@@ -15,6 +15,14 @@ const clip = () => ({
 test('production catalog has no unreviewed instructional footage', () => {
   assert.deepEqual(EXERCISE_MEDIA, []);
   assert.equal(getApprovedExerciseMedia('貓牛式'), null);
+});
+
+test('storyboards cover only their exact movement variants', () => {
+  assert.equal(getExerciseStoryboard('貓牛式')?.src, './media/exercises/cat-cow-storyboard.png');
+  assert.equal(getExerciseStoryboard('伏地挺身 第1組 · 跪姿')?.src, './media/exercises/knee-push-up-storyboard.png');
+  assert.equal(getExerciseStoryboard('伏地挺身 第1組')?.src, './media/exercises/push-up-storyboard-v2.png');
+  assert.equal(getExerciseStoryboard('HRP 伏地挺身測驗'), null);
+  assert.equal(getExerciseStoryboard('派克伏地挺身 第1組'), null);
 });
 
 test('only exact, uniquely approved movement names resolve', () => {
@@ -50,7 +58,7 @@ test('missing footage mounts a clear offline unavailable state', () => {
   try {
     let children = [];
     const container = { replaceChildren(...nodes) { children = nodes; } };
-    const controller = mountExerciseVideo(container, '貓牛式');
+    const controller = mountExerciseVideo(container, '穿針式');
     assert.equal(controller.available, false);
     assert.match(children[0].textContent, /還沒有經審核的離線影片/);
     controller.stop();

@@ -18,6 +18,21 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
 }),Object.freeze({
   names: Object.freeze(['彈力帶划船','彈力帶划船 第1組','彈力帶划船 第2組','彈力帶划船 第3組','彈力帶划船 加練']),
   src: './media/exercises/seated-band-row-storyboard.png', columns: 4, frames: 16
+}),Object.freeze({
+  names: Object.freeze(['貓牛式']),
+  src: './media/exercises/cat-cow-storyboard.png', columns: 4, frames: 16
+}),Object.freeze({
+  names: Object.freeze(['跪姿伏地挺身','伏地挺身 · 跪姿','伏地挺身 第1組 · 跪姿','伏地挺身 第2組 · 跪姿']),
+  src: './media/exercises/knee-push-up-storyboard.png', columns: 4, frames: 16
+}),Object.freeze({
+  names: Object.freeze(['90/90 髖旋轉','90/90 髖旋轉 · 左','90/90 髖旋轉 · 右']),
+  src: './media/exercises/hip-90-90-storyboard.png', columns: 4, frames: 16,
+  note: '這段展示兩側切換路徑；本步驟只做名稱標示的一側。'
+}),Object.freeze({
+  names: Object.freeze(['深蹲蹲坐']),
+  src: './media/exercises/deep-squat-hold-storyboard.png', columns: 4, frames: 16,
+  note: '這是底部停留，不是快速重複深蹲。可暫停影格查看蹲姿。',
+  frameMs: Object.freeze([150,150,300,300,300,300,1800,1800,1800,1800,1800,1800,1800,300,300,150])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;
@@ -128,6 +143,8 @@ function mountExerciseStoryboard(container,name,entry){
   wrap.className='exercise-storyboard';
   const heading=document.createElement('p');
   heading.textContent='AI 動作影格試作 · 16 格循環（非真人影片）';
+  const note=entry.note?document.createElement('p'):null;
+  if(note){note.className='exercise-storyboard-note';note.textContent=entry.note;}
   const frameEl=document.createElement('div');
   frameEl.className='exercise-storyboard-frame';
   frameEl.setAttribute('role','img');
@@ -168,7 +185,9 @@ function mountExerciseStoryboard(container,name,entry){
   replay.onclick=()=>{frame=0;draw();};
   scrub.oninput=()=>{paused=true;frame=Number(scrub.value);draw();updatePlay();};
   controls.append(play,slow,replay);
-  wrap.append(heading,frameEl,scrub,controls);
+  wrap.append(heading);
+  if(note)wrap.append(note);
+  wrap.append(frameEl,scrub,controls);
   container.replaceChildren(wrap);
   draw();updatePlay();
   return {available:false,storyboard:true,stop(){stopTimer();wrap.remove();}};

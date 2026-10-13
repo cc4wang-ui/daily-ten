@@ -36,7 +36,8 @@ test('訓練中示範留在 App，暫停並返回同一步與剩餘時間', asyn
   await expect(page.locator('#t-no-demo')).toBeVisible();
   await page.click('#t-show-demo');
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
-  await expect(page.locator('#dm-video')).toContainText('還沒有經審核的離線影片');
+  await expect(page.locator('#dm-video')).toContainText('16 格循環');
+  await expect(page.locator('#dm-close')).toBeInViewport();
   await expect(page.locator('#dm-training-note')).toBeVisible();
   await expect(page.locator('#dm-yt')).toBeHidden();
   await expect(page.locator('#dm-skip')).toBeHidden();

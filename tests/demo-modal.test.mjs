@@ -22,11 +22,11 @@ test('in-app help opens a missing-footage message without the old SVG', async ()
     getElementById: id => elements.get(id),
     createElement: () => element()
   };
-  globalThis.DT_DEMOS = { info: key => key === 'cat-cow' ? { name: '貓牛式', cue: '慢慢移動' } : null };
+  globalThis.DT_DEMOS = { info: key => key === 'thread-the-needle' ? { name: '穿針式', cue: '慢慢移動' } : null };
   globalThis.window = { DT_DEMOS: globalThis.DT_DEMOS };
   try {
     const { openDemo, closeDemo } = await import('../js/ui/demo.js');
-    openDemo('cat-cow', '貓牛式', () => {}, '貓牛式');
+    openDemo('thread-the-needle', '穿針式', () => {}, '穿針式');
     assert.equal(elements.get('demo-modal').classList.contains('active'), true);
     assert.equal(elements.get('dm-svg').hidden, true);
     assert.match(elements.get('dm-video').children[0].textContent, /還沒有經審核的離線影片/);

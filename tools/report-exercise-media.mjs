@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { defaultState } from '../js/state/schema.js';
 import { setState } from '../js/state/store.js';
 import { DOW, WEEK, planSeq, minimalSeq, rainSeq } from '../js/ui/program.js';
+import { VIDEOS } from '../js/ui/content.js';
 import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, getApprovedExerciseMedia, getExerciseStoryboard, isApprovedExerciseMedia } from '../js/ui/exercise-media.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -55,8 +56,9 @@ for (const entry of EXERCISE_MEDIA) {
 
 const covered = inventory.filter(name => getApprovedExerciseMedia(name)).length;
 const storyboardCovered = inventory.filter(name => getExerciseStoryboard(name)).length;
+const libraryNames = new Set(VIDEOS.filter(entry => entry[1]).map(entry => entry[0]));
 for (const entry of EXERCISE_STORYBOARDS) {
-  for (const name of entry.names) if (!contexts.has(name) && name !== '伏地挺身' && name !== '控制深蹲' && name !== '臀橋' && name !== '彈力帶划船')
+  for (const name of entry.names) if (!contexts.has(name) && !libraryNames.has(name))
     failures.push(`連續影格名稱已不在課表：${name}`);
 }
 const lines = [
