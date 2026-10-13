@@ -34,6 +34,8 @@ export function openDemo(k,q,onClose,exactName,fallbackCue,onSkip){
   mediaCtl=mountExerciseVideo($('dm-video'),movementName);
   $('dm-safety').textContent=mediaCtl.available
     ? '請對照影片與動作文字；若有疼痛或不確定姿勢，先停下來。'
+    : mediaCtl.storyboard
+      ? '這是 AI 生成的連續影格試作，尚未有此動作的真人影片。請自行判斷動作是否清楚；不熟悉可略過。'
     : '目前沒有經審核的完整動作影片。文字與線條動畫不能代替動作教學；若不熟悉，請略過這一步。';
   const skip=$('dm-skip');
   skip.hidden=mediaCtl.available||typeof onSkip!=='function';

@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { defaultState } from '../js/state/schema.js';
 import { setState } from '../js/state/store.js';
 import { DOW, WEEK, planSeq, minimalSeq, rainSeq } from '../js/ui/program.js';
-import { EXERCISE_MEDIA, getApprovedExerciseMedia, isApprovedExerciseMedia } from '../js/ui/exercise-media.js';
+import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, getApprovedExerciseMedia, getExerciseStoryboard, isApprovedExerciseMedia } from '../js/ui/exercise-media.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPORT = join(ROOT, 'reports/exercise-media-coverage.md');
@@ -54,22 +54,28 @@ for (const entry of EXERCISE_MEDIA) {
 }
 
 const covered = inventory.filter(name => getApprovedExerciseMedia(name)).length;
+const storyboardCovered = inventory.filter(name => getExerciseStoryboard(name)).length;
+for (const entry of EXERCISE_STORYBOARDS) {
+  for (const name of entry.names) if (!contexts.has(name) && name !== '伏地挺身' && name !== '控制深蹲' && name !== '臀橋' && name !== '彈力帶划船')
+    failures.push(`連續影格名稱已不在課表：${name}`);
+}
 const lines = [
   '# 動作影片精確名稱覆蓋清單',
   '',
   '> 由 `node tools/report-exercise-media.mjs --write` 產生。這是素材製作與審核清單，不是動作品質認證。',
   '',
-  `目前課表與 Boss 共 **${inventory.length} 個精確名稱**；通過核准表 **${covered}**，缺少 **${inventory.length - covered}**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一片。`,
+  `目前課表與 Boss 共 **${inventory.length} 個精確名稱**；完整本機影片 **${covered}**，AI 16 格連續影格 **${storyboardCovered}**，兩者都沒有的名稱 **${inventory.length - covered - storyboardCovered}**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。`,
   '',
-  '| 課表顯示的精確名稱 | 出現處 | 已審核本機影片 |',
-  '| --- | --- | --- |'
+  '| 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 16 格連續影格 |',
+  '| --- | --- | --- | --- |'
 ];
 for (const name of inventory) {
   const places = [...contexts.get(name)].sort().join('、');
   const entry = getApprovedExerciseMedia(name);
-  lines.push(`| ${name} | ${places} | ${entry ? entry.src : '缺片'} |`);
+  const storyboard = getExerciseStoryboard(name);
+  lines.push(`| ${name} | ${places} | ${entry ? entry.src : '—'} | ${storyboard ? storyboard.src : '—'} |`);
 }
-lines.push('', '缺片不會被當成教學播放；上架前仍須核對影片授權、完整動作階段、專業審核與 iPhone 離線播放。', '');
+lines.push('', '未對應的動作仍顯示缺片。連續影格是 AI 生成的順序圖，不等於完整影片；發佈時須如實標示覆蓋率。', '');
 const output = lines.join('\n');
 
 if (process.argv.includes('--write')) {
@@ -84,5 +90,5 @@ if (failures.length) {
   for (const failure of failures) console.error(`[exercise-media] ${failure}`);
   process.exitCode = 1;
 } else if (process.argv.includes('--ci')) {
-  console.log(`[exercise-media] 清單一致；精確名稱 ${inventory.length}、已審核 ${covered}、缺片 ${inventory.length - covered}`);
+  console.log(`[exercise-media] 清單一致；精確名稱 ${inventory.length}、完整影片 ${covered}、連續影格 ${storyboardCovered}、無示範 ${inventory.length - covered - storyboardCovered}`);
 }

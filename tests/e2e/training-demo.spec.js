@@ -1,5 +1,28 @@
 import { test, expect, readFixture, openApp, seedState, storedState, tick, runWorkoutToEnd, waitReady, gotoTab } from './helpers.js';
 
+test('動作庫可在站內逐格播放伏地挺身，重播與慢速不離開頁面', async ({ page }) => {
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await gotoTab(page, 's-train');
+  await page.getByRole('button', { name: '伏地挺身 動作說明', exact: true }).click();
+  await expect(page.locator('#demo-modal')).toHaveClass(/active/);
+  await expect(page.locator('#dm-video .exercise-storyboard')).toBeVisible();
+  await expect(page.locator('#dm-video')).toContainText('16 格循環');
+  await expect(page.locator('#dm-video .exercise-storyboard-frame')).toHaveCSS('background-image', /push-up-storyboard-v2\.png/);
+  const scrub = page.getByRole('slider', { name: '逐格查看動作' });
+  await expect(scrub).toHaveAttribute('max', '15');
+  await page.getByRole('button', { name: '暫停影格' }).click();
+  await scrub.fill('8');
+  await expect(scrub).toHaveValue('8');
+  await page.getByRole('button', { name: '從頭重播' }).click();
+  await expect(scrub).toHaveValue('0');
+  await page.getByRole('button', { name: '慢速 0.5×' }).click();
+  await expect(page.getByRole('button', { name: '恢復 1×' })).toBeVisible();
+  await expect(page.locator('#dm-yt')).toBeVisible();
+  await page.click('#dm-close');
+  await expect(page.locator('#demo-modal')).not.toHaveClass(/active/);
+  await expect(page.locator('#s-train')).toHaveClass(/active/);
+});
+
 test('訓練中示範留在 App，暫停並返回同一步與剩餘時間', async ({ page }) => {
   await openApp(page, { seed: seedState(readFixture('v3.json')) });
   await page.click('#h-minimal');

@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { execSync } from 'node:child_process';
-import { EXERCISE_MEDIA, isApprovedExerciseMedia } from '../../js/ui/exercise-media.js';
+import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, isApprovedExerciseMedia } from '../../js/ui/exercise-media.js';
 
 const ROOT = process.cwd();
 const BASE_REF = process.env.CHECK_BASE_REF || 'origin/main'; // 比對 CACHE 版號的基準（CI 需 fetch-depth: 0）
@@ -46,7 +46,7 @@ for (const rel of files) {
 const appFiles = files.filter((f) =>
   ['index.html', 'demos.js', 'mockup.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].includes(f) ||
   /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f) ||
-  /^media\/exercises\/[a-z0-9][a-z0-9-]*\.(mp4|webm)$/.test(f));
+  /^media\/exercises\/[a-z0-9][a-z0-9-]*\.(mp4|webm|png)$/.test(f));
 const sw = existsSync(join(ROOT, 'sw.js')) ? read('sw.js') : '';
 const cache = (sw.match(/const\s+CACHE\s*=\s*'([^']+)'/) || [])[1];
 const cacheNum = Number(((cache || '').match(/^daily-ten-v(\d+)$/) || [])[1]);
@@ -88,6 +88,30 @@ for (const entry of EXERCISE_MEDIA) {
 }
 for (const file of files.filter(f => /^media\/exercises\/.*\.(mp4|webm)$/.test(f))) {
   if (!approvedPaths.has(`./${file}`)) fail('media', `未核准的影片不應進入正式 App：${file}`);
+}
+const storyboardPaths = new Set();
+const storyboardNames = new Set();
+for (const entry of EXERCISE_STORYBOARDS) {
+  if (!/^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.png$/.test(entry.src) ||
+      !Number.isInteger(entry.columns) || entry.columns < 2 ||
+      !Number.isInteger(entry.frames) || entry.frames < 8 || entry.frames > entry.columns ** 2 ||
+      (entry.frameMs && (!Array.isArray(entry.frameMs) || entry.frameMs.length !== entry.frames ||
+        entry.frameMs.some(ms => !Number.isInteger(ms) || ms < 50 || ms > 2000))) ||
+      !Array.isArray(entry.names) || !entry.names.length) {
+    fail('media', '連續影格登錄資料無效');
+    continue;
+  }
+  if (storyboardPaths.has(entry.src)) fail('media', `連續影格重複登錄：${entry.src}`);
+  storyboardPaths.add(entry.src);
+  if (!existsSync(join(ROOT, entry.src))) fail('media', `連續影格檔案不存在：${entry.src}`);
+  if (!assets.includes(entry.src)) fail('media', `連續影格未加入離線預快取：${entry.src}`);
+  for (const name of entry.names) {
+    if (storyboardNames.has(name)) fail('media', `動作名稱重複對應連續影格：${name}`);
+    storyboardNames.add(name);
+  }
+}
+for (const file of files.filter(f => /^media\/exercises\/.*\.png$/.test(f))) {
+  if (!storyboardPaths.has(`./${file}`)) fail('media', `未登錄的連續影格不應進入正式 App：${file}`);
 }
 
 /* 2b. Vercel 只上線 App 檔（D24）：.vercelignore 不得排除任何預快取的檔案，否則新網址離線冷啟動會缺檔 */
