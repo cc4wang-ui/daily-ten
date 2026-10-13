@@ -9,7 +9,7 @@ import { initAudio, beep, speak } from './audio.js';
 import { lockScreen, unlockScreen } from './wakelock.js';
 import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
-import { recordSession } from './session.js';
+import { recordSession, recordSetFeedback } from './session.js';
 import { summary } from './game.js';
 import { demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
 import { getApprovedExerciseMedia } from './exercise-media.js';
@@ -84,10 +84,14 @@ export function showBonusNote(){
 }
 export function startWorkout(seq,type,after,opts){
   const restore=opts&&opts.restore;
+  const runId=restore&&typeof restore.runId==='string'&&/^[a-z0-9-]{1,40}$/.test(restore.runId)
+    ?restore.runId:`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,10)}`;
   seq=restore?seq:addTransitions(seq);
   if(!restore)clearCheckpoint();
   initAudio(); lockScreen();
   $('train').classList.add('active');
+  $('train').classList.remove('feedback-open');
+  $('t-feedback').hidden=true;
   let idx=restore?restore.idx-1:-1,paused=!!restore,timer=null,advanceTimer=null,
       pendingAdvance=false,skippedAction=!!(restore&&restore.skippedAction),left=null,done=null;
   $('t-pause').textContent=paused?'繼續':'暫停';
@@ -98,7 +102,7 @@ export function startWorkout(seq,type,after,opts){
   function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
   function persist(){
     if(idx<0||idx>=total)return;
-    const c={v:1,savedAt:Date.now(),seq,idx,type,plus:!!(opts&&opts.plus),
+    const c={v:1,savedAt:Date.now(),runId,seq,idx,type,plus:!!(opts&&opts.plus),
       bossItem:opts&&opts.bossItem,paused,skippedAction,pendingAdvance,left,done};
     try{localStorage.setItem(CHECKPOINT_KEY,JSON.stringify(c));}catch(e){}
   }
@@ -115,6 +119,9 @@ export function startWorkout(seq,type,after,opts){
     $('t-sub').textContent=st.sub||'';
     const isRest=st.name.indexOf('休息')>=0;
     const isPrep=st.name==='預備'||st.name==='換組'||st.prep!==undefined;
+    $('t-feedback-open').hidden=st.mode!=='reps'||isPrep||isRest;
+    $('t-feedback').hidden=true;
+    $('train').classList.remove('feedback-open');
     $('t-checkpoint').textContent=(prior?'已恢復 · ':'')+(isRest?'檢查點 · 組間休息':isPrep?'檢查點 · 準備下一步':'檢查點 · 進行動作');
     $('t-more-rest').hidden=!isRest;
     $('t-more-rest').onclick=isRest?()=>{
@@ -217,10 +224,68 @@ export function startWorkout(seq,type,after,opts){
     try{speechSynthesis.cancel();}catch(e){}
     unlockScreen();
     $('train').classList.remove('active');
+    $('train').classList.remove('feedback-open');
+    $('t-feedback').hidden=true;
     runner=null;
     clearCheckpoint();
   }
   $('t-pause').onclick=()=>setPaused(!paused);
+  $('t-feedback-open').onclick=()=>{
+    const st=seq[idx];
+    if(!st||st.mode!=='reps')return;
+    setPaused(true);
+    $('t-actual').value=String(done??0);
+    $('t-effort').value='okay';
+    $('t-form').value='yes';
+    $('t-pain').value='no';
+    $('t-feedback-error').hidden=true;
+    $('t-feedback').hidden=false;
+    $('train').classList.add('feedback-open');
+    $('t-actual').focus();
+  };
+  $('t-feedback-cancel').onclick=()=>{
+    $('t-feedback').hidden=true;
+    $('train').classList.remove('feedback-open');
+    $('t-feedback-open').focus();
+  };
+  $('t-feedback').onsubmit=async(event)=>{
+    event.preventDefault();
+    const st=seq[idx],actual=Number($('t-actual').value);
+    if(!st||st.mode!=='reps')return;
+    const submit=$('t-feedback').querySelector('[type=submit]');
+    submit.disabled=true;
+    let result;
+    try{result=await recordSetFeedback({id:`${runId}-${idx}`,name:st.name,target:st.reps,actual,
+      effort:$('t-effort').value,pain:$('t-pain').value==='yes',form:$('t-form').value==='yes'});}
+    catch(e){result={ok:false,saved:false};}
+    submit.disabled=false;
+    if(!result.ok){
+      $('t-feedback-error').textContent='回報內容無效，請檢查實際次數。';
+      $('t-feedback-error').hidden=false;
+      return;
+    }
+    if($('t-pain').value==='yes'||$('t-form').value==='no'){
+      cleanup();
+      const reason=$('t-pain').value==='yes'?'已因疼痛停止訓練':'已因姿勢不穩停止訓練';
+      $('d-identity').textContent=result.saved?reason:`${reason} · 回報未儲存`;
+      $('d-xp').textContent='未記為完成';
+      $('d-bonus').hidden=true;
+      $('d-ok').textContent='返回今日';
+      $('done').classList.add('active');
+      return;
+    }
+    if(!result.saved){
+      $('t-feedback-error').textContent='儲存失敗，回報暫存在此頁；請確認儲存空間後重試。';
+      $('t-feedback-error').hidden=false;
+      return;
+    }
+    if(timer){clearInterval(timer);timer=null;}
+    if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null;}
+    paused=false;
+    $('t-pause').textContent='暫停';
+    $('t-checkpoint').classList.remove('paused');
+    nextStep();
+  };
   $('t-skip').onclick=()=>{
     const st=seq[idx];
     if(st&&st.name.indexOf('休息')<0&&st.name!=='預備'&&st.name!=='換組'&&st.prep===undefined)skippedAction=true;

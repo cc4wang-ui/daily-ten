@@ -348,6 +348,18 @@
   <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作說明 · 計時會暫停</button>
   <p id="t-no-demo" hidden>目前沒有此動作的完整示範；如果不熟悉，請略過這一步。</p>
   <div id="t-count">—</div>
+  <button type="button" id="t-feedback-open" class="btn-sub" hidden>回報這組 · 計時會暫停</button>
+  <form id="t-feedback" hidden aria-labelledby="t-feedback-title">
+    <h3 id="t-feedback-title">這組做得如何？</h3>
+    <label>實際完成次數 <input id="t-actual" type="number" inputmode="numeric" min="0" max="999" required></label>
+    <label>主觀難度 <select id="t-effort"><option value="okay">剛好</option><option value="easy">輕鬆</option><option value="hard">吃力</option></select></label>
+    <label>動作穩定嗎？ <select id="t-form"><option value="yes">穩定</option><option value="no">姿勢不穩</option></select></label>
+    <label>有疼痛嗎？ <select id="t-pain"><option value="no">沒有</option><option value="yes">有疼痛，停止訓練</option></select></label>
+    <p>有疼痛就停止這次訓練。動作不熟悉或姿勢不穩時，請停止或略過；未達次數及吃力回報都不會讓強度升級。</p>
+    <p id="t-feedback-error" role="status" hidden></p>
+    <button type="submit" class="btn-main">儲存回報</button>
+    <button type="button" id="t-feedback-cancel" class="btn-sub">返回這組</button>
+  </form>
   <div id="t-next"></div>
   <div id="t-prog"><i id="t-bar"></i></div>
   <button type="button" id="t-more-rest" class="btn-sub" hidden>多休息 20 秒</button>

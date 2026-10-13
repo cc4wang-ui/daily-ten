@@ -8,6 +8,19 @@ import { todayKey, keyToDate } from './game.js';
 
 /* ================= SESSION / STREAK LOGIC ================= */
 export function sessionOn(date){return getState().sessions.find(x=>x.date===date);}
+export async function recordSetFeedback({ id, name, target, actual, effort, pain, form }){
+  if(typeof id!=='string'||!id||id.length>60||typeof name!=='string'||!name||!Number.isInteger(target)||target<1||target>999
+    ||!Number.isInteger(actual)||actual<0||actual>999
+    ||!['easy','okay','hard'].includes(effort)||typeof pain!=='boolean'||typeof form!=='boolean')return {ok:false,saved:false};
+  const game=getState().game;
+  if(!Array.isArray(game.trainingFeedback))game.trainingFeedback=[];
+  const entry={id,date:todayKey(),name,target,actual,effort,pain,form};
+  const existing=game.trainingFeedback.findIndex(f=>f&&f.id===id);
+  if(existing>=0)game.trainingFeedback[existing]=entry;
+  else game.trainingFeedback.push(entry);
+  if(game.trainingFeedback.length>2000)game.trainingFeedback.splice(0,game.trainingFeedback.length-2000);
+  return {ok:true,saved:await saveState()};
+}
 export function recordSession(type,opts){
   const t=todayKey(),plus=!!(opts&&opts.plus);
   if(!sessionOn(t)){
@@ -34,6 +47,10 @@ const LV_TARGET={2:{hrp:8,plank:60,run2mi:1500},3:{hrp:12,plank:90,run2mi:1320},
 export function levelUpEligible(){
   if(getState().level>=5)return false;
   const t=todayKey();
+  const recent=dateOffset(t,-6);
+  const feedback=getState().game?.trainingFeedback;
+  if(Array.isArray(feedback)&&feedback.some(f=>f&&f.date>=recent&&f.date<=t
+    &&(f.pain===true||f.form===false||f.actual<f.target||f.effort==='hard')))return false;
   for(let i=0;i<7;i++){ if(!sessionOn(dateOffset(t,-i)))return false; }
   const tg=LV_TARGET[getState().level]; if(!tg)return false;
   const cut=dateOffset(t,-21);
