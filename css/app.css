@@ -81,6 +81,11 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #dm-cue{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px}
 .dm-safety,#dm-training-note{font-size:14px;color:var(--ink);line-height:1.5;margin:0 0 12px}
 #dm-training-note{color:var(--amber)}
+#dm-skip{min-height:48px;font-weight:800;border-color:var(--amber);color:var(--amber)}
+#dm-skip[hidden]{display:none}
+.strength-evidence{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.strength-evidence li{display:flex;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:10px;background:var(--c-fill);font-size:14px}
+.strength-evidence b{white-space:nowrap}
 @media(max-height:700px){#train{justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}#t-demo-wrap{width:min(56vw,220px)}#t-name{font-size:30px}#t-count{font-size:72px}#t-next{margin-top:12px}}
 
 /* ---------- 2. 亮色區域：M1 變數改指向亮色值（沿用舊變數的 inline style 也看得清楚） ---------- */

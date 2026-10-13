@@ -55,21 +55,41 @@ test('疼痛或姿勢不穩的近七日回報會擋住強度升級', async ({ pa
   await openApp(page, { seed: seedState(readFixture('v3.json')) });
   const result = await page.evaluate(async () => {
     const { getState } = await import('/js/state/store.js');
-    const { levelUpEligible } = await import('/js/ui/session.js');
+    const { levelUpEligible, weeklyStrengthEvidence } = await import('/js/ui/session.js');
+    const { dateOffset } = await import('/js/ui/dates.js');
+    const { todayKey } = await import('/js/ui/game.js');
     const s = getState();
     s.level = 3;
-    s.sessions = ['2026-09-26','2026-09-27','2026-09-28','2026-09-29','2026-09-30','2026-10-01','2026-10-02']
-      .map(date => ({ date, type: 'full', xp: 10 }));
-    s.prs.hrp = [{ date: '2026-10-02', reps: 12 }];
-    const before = levelUpEligible();
-    s.game.trainingFeedback = [{ date: '2026-10-02', name: '深蹲 第1組', target: 12, actual: 12, effort: 'okay', pain: false, form: false }];
+    const today=todayKey();
+    s.sessions = Array.from({ length: 7 }, (_,i) => ({ date:dateOffset(today,-i), type:'full', xp:10 }));
+    s.prs.hrp = [{ date:today, reps:12 }];
+    const before=levelUpEligible();
+    const names=['伏地挺身 第1組','伏地挺身 第2組','彈力帶划船 第1組','彈力帶划船 第2組',
+      '分腿蹲 第1組 · 左','分腿蹲 第2組 · 左','臀橋 第1組','臀橋 第2組'];
+    s.game.trainingFeedback=[today,dateOffset(today,-3)].flatMap((date,day)=>names.map((name,index)=>({
+      id:`run-${day}-${index}`,date,name,target:10,actual:10,effort:'okay',pain:false,form:true
+    })));
+    const complete=levelUpEligible();
+    const evidence=weeklyStrengthEvidence(s,today);
+    s.game.trainingFeedback=s.game.trainingFeedback.filter(f=>!f.name.startsWith('彈力帶划船'));
+    const missingPull=levelUpEligible();
+    s.game.trainingFeedback.push(...[today,dateOffset(today,-3)].flatMap((date,day)=>[1,2].map(set=>({
+      id:`bodyweight-${day}-${set}`,date,name:`超人式划船 第${set}組`,target:10,actual:10,
+      effort:'okay',pain:false,form:true
+    }))));
+    const bodyweightPull=levelUpEligible();
+    s.game.trainingFeedback.push({id:'unsafe',date:today,name:'深蹲 第1組',target:12,actual:12,effort:'okay',pain:false,form:false});
     const badForm = levelUpEligible();
-    s.game.trainingFeedback[0].form = true;
-    s.game.trainingFeedback[0].pain = true;
+    s.game.trainingFeedback.at(-1).form = true;
+    s.game.trainingFeedback.at(-1).pain = true;
     const pain = levelUpEligible();
-    return { before, badForm, pain };
+    return { before, complete, evidence, missingPull, bodyweightPull, badForm, pain };
   });
-  expect(result.before).toBe(true);
+  expect(result.before).toBe(false);
+  expect(result.complete).toBe(true);
+  expect(Object.values(result.evidence).map(v=>v.days)).toEqual([2,2,2,2]);
+  expect(result.missingPull).toBe(false);
+  expect(result.bodyweightPull).toBe(false);
   expect(result.badForm).toBe(false);
   expect(result.pain).toBe(false);
 });

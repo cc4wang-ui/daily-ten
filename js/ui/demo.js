@@ -18,7 +18,7 @@ export function setTrainDemo(name,period,isNext){
   $('t-cue').textContent=DT_DEMOS.info(k).cue;
   return k;
 }
-export function openDemo(k,q,onClose,exactName,fallbackCue){
+export function openDemo(k,q,onClose,exactName,fallbackCue,onSkip){
   const inf=HAS_DEMO?DT_DEMOS.info(k):null;
   const movementName=exactName||(onClose?q:(inf?inf.name:k));
   $('dm-name').textContent=movementName;$('dm-cue').textContent=inf?inf.cue:(fallbackCue||'');
@@ -34,13 +34,18 @@ export function openDemo(k,q,onClose,exactName,fallbackCue){
   mediaCtl=mountExerciseVideo($('dm-video'),movementName);
   $('dm-safety').textContent=mediaCtl.available
     ? '請對照影片與動作文字；若有疼痛或不確定姿勢，先停下來。'
-    : '目前沒有經審核的完整動作影片。線條動畫不能代替動作教學；如果不熟悉，請先暫停訓練。';
+    : '目前沒有經審核的完整動作影片。文字與線條動畫不能代替動作教學；若不熟悉，請略過這一步。';
+  const skip=$('dm-skip');
+  skip.hidden=mediaCtl.available||typeof onSkip!=='function';
+  skip.onclick=skip.hidden?null:()=>{closeDemo();onSkip();};
   $('demo-modal').classList.add('active');
 }
 export function closeDemo(){
   if(mediaCtl){mediaCtl.stop();mediaCtl=null;}
   if(openDemo.ctl){openDemo.ctl.stop();openDemo.ctl=null;}
   $('demo-modal').classList.remove('active');
+  $('dm-skip').onclick=null;
+  $('dm-skip').hidden=true;
   const onClose=demoCloseAction; demoCloseAction=null;
   if(onClose)onClose();
 }

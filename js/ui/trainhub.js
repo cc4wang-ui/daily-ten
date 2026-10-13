@@ -10,7 +10,7 @@ import { VIDEOS } from './content.js';
 import { HAS_DEMO, openDemo } from './demo.js';
 import { getApprovedExerciseMedia } from './exercise-media.js';
 import { hasBand, blockLabel, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, minimalSeq, todayPlan } from './program.js';
-import { sessionOn, bossItem } from './session.js';
+import { sessionOn, bossItem, weeklyStrengthEvidence } from './session.js';
 import { startWorkout } from './train.js';
 import { startBoss } from './boss.js';
 import { icon } from './icons.js';
@@ -51,6 +51,15 @@ function renderWeek(lv, today, todayLv = lv) {
   }).join('');
 }
 
+function renderStrengthEvidence(){
+  const evidence=weeklyStrengthEvidence();
+  const names={push:'推',pull:'負重拉',squat:'蹲',hip:'髖伸'};
+  $('tr-strength-evidence').innerHTML=Object.entries(names).map(([group,label])=>
+    `<li><span>${label}</span><b class="num">${evidence[group].days} / 2 天</b></li>`).join('');
+  $('tr-strength-note').textContent='只計已完成課表中，主動回報且每次至少兩組達標、姿勢穩定、無疼痛的訓練日。核心與伸展目前沒有可靠組數回報，不作為升級證據。'
+    + (!hasBand()&&evidence.pull.days<2?' 徒手上背動作阻力有限，不計入負重拉力。':'');
+}
+
 /* sum：renderHome 傳入的今日摘要（省略時現算；null＝遊戲層未就緒） */
 export function renderTrain(sum) {
   const s = sum === undefined ? summary() : sum;
@@ -81,6 +90,7 @@ export function renderTrain(sum) {
   $('h-rain').innerHTML = opt('rain', '雨天／出差替代', '約 10 分鐘', '低衝擊原地快走＋側步；先確認地面乾燥防滑');
   $('tr-boss-item').textContent = BOSS_ITEM[bossItem()];
   renderWeek(lv, wd, plv);
+  renderStrengthEvidence();
 }
 
 /* 動作庫：「說明」開本機影片狀態；「真人」是 YouTube 搜尋連結（只是 href，點了才連網） */

@@ -13,7 +13,7 @@ test('in-app help opens a missing-footage message without the old SVG', async ()
     },
     replaceChildren(...children) { this.children = children; }
   });
-  for (const id of ['dm-name', 'dm-cue', 'dm-yt', 'dm-training-note', 'dm-close',
+  for (const id of ['dm-name', 'dm-cue', 'dm-yt', 'dm-training-note', 'dm-close', 'dm-skip',
     'dm-svg', 'dm-video', 'dm-safety', 'demo-modal']) elements.set(id, element());
   const oldDocument = globalThis.document;
   const oldWindow = globalThis.window;
@@ -31,6 +31,7 @@ test('in-app help opens a missing-footage message without the old SVG', async ()
     assert.equal(elements.get('dm-svg').hidden, true);
     assert.match(elements.get('dm-video').children[0].textContent, /還沒有經審核的離線影片/);
     assert.equal(elements.get('dm-yt').style.display, 'none');
+    assert.equal(elements.get('dm-skip').hidden, true);
     closeDemo();
     assert.equal(elements.get('demo-modal').classList.contains('active'), false);
     openDemo('臀橋走步', '臀橋走步', () => {}, '臀橋走步', '臀部抬起、腳跟交替向外走');

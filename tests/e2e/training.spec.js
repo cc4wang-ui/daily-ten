@@ -386,13 +386,24 @@ test.describe('訓練流程（假時鐘）', () => {
     expect(s.prs.run2mi[s.prs.run2mi.length - 1]).toEqual({ date: '2026-10-11', sec: 1110 });
   });
 
-  test('強度升級：近 7 天都有練＋近 21 天 HRP 21 下 → 今日出現升級按鈕 → 升到 L4，劑量（時長）跟著變', async ({ page }) => {
+  test('強度升級：出席、PR 與四類工作組證據齊全才可升到 L4', async ({ page }) => {
     const seen = dialogs(page);
     await openApp(page, { seed: seedState(readFixture('v3-reverted-to-v2.json')) });
     await expectHome(page, { level: 3, xp: 406, current: 13, best: 13 });
     await expect(page.locator('#h-start')).toHaveAttribute('data-kind', 'done');
     await expect(page.locator('#h-start .nx-title')).toHaveText('今日課表完成了');
     const lu = page.locator('#h-levelup');
+    await expect(lu).toBeHidden(); // 舊紀錄沒有每組回報，不能推定肌力劑量達標
+    await page.evaluate(async () => {
+      const { getState } = await import('/js/state/store.js');
+      const { renderHome } = await import('/js/ui/home.js');
+      const names=['伏地挺身 第1組','伏地挺身 第2組','彈力帶划船 第1組','彈力帶划船 第2組',
+        '分腿蹲 第1組 · 左','分腿蹲 第2組 · 左','臀橋 第1組','臀橋 第2組'];
+      getState().game.trainingFeedback=['2026-09-29','2026-10-01'].flatMap((date,day)=>names.map((name,index)=>({
+        id:`level-${day}-${index}`,date,name,target:10,actual:10,effort:'okay',pain:false,form:true
+      })));
+      renderHome();
+    });
     await expect(lu).toBeVisible();
     await expect(lu).toHaveText('強度升級條件達成 — 點此升到 L4');
     await gotoTab(page, 's-train');

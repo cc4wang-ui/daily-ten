@@ -146,7 +146,9 @@ export function startWorkout(seq,type,after,opts){
       : '目前沒有此動作的完整示範；如果不熟悉，請略過這一步。';
     $('t-show-demo').onclick=demoName?()=>{
       setPaused(true);
-      openDemo(demoKey||demoName,demoName,()=>{ $('t-pause').focus(); },demoName,demoCue);
+      const canSkipCurrent=!isRest&&!isPrep&&!approvedMedia;
+      openDemo(demoKey||demoName,demoName,()=>{ $('t-pause').focus(); },demoName,demoCue,
+        canSkipCurrent?()=>$('t-skip').click():null);
     }:null;
     if(st.prep!==undefined)speak('準備，'+st.prep);
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));

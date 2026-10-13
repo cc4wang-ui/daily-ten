@@ -4,6 +4,8 @@
 
 [精確名稱覆蓋清單](../reports/exercise-media-coverage.md) 由目前所有等級、有帶／無帶課表、保底、雨天與 Boss 測驗產生。改課表或登錄影片後執行 `npm run report:media`，CI 的 `npm run check:media-coverage` 會檢查清單是否過期、是否有失效或重複的影片名稱。缺片數是發佈門檻，不會因測試通過就視為安全教學。
 
+[候選影片清單](../reports/media-candidates-2026-10-13.md)只列出可供逐片審查的來源；目前沒有任何候選通過驗收，也沒有加入正式播放器。
+
 ## 取得影片
 
 優先拍攝或委製本課表的動作。攝影時按課表的確切變式、器材與阻力、左右側、強度等級錄製；取得可離線散布及改剪的書面權利。若採開放授權素材，逐檔保存作者、原始頁、授權版本、所作修改與 App 中的署名。Wikimedia Commons 有[運動影片分類](https://commons.wikimedia.org/wiki/Category:Videos_of_physical_exercises)，但數量與變式不保證覆蓋課表；[各檔授權及署名要求不同](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/en)。例如 [Burpee.webm](https://commons.wikimedia.org/wiki/File:Burpee.webm) 是一段可評估的候選影片，**尚未審核，也不能直接當本課表示範**。YouTube 搜尋結果不能充當離線素材；[YouTube API 政策限制未獲許可時下載、快取及離線播放](https://developers.google.com/youtube/terms/developer-policies)。
