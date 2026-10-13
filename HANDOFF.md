@@ -28,7 +28,7 @@ Daily Ten 是 Cross 的個人成長遊戲 PWA：動（訓練）、眠（睡眠�
 - **state v3**：V1 起畫面上的 XP、等級、連續天數都由 engine 從紀錄推導（`js/game/engine.js` 的 `todaySummary`），不寫入 state；legacy `xp`、`streak` 仍照舊表累加並**複製**到 `game`（D12，給舊版 App），和畫面數字不同。睡眠紀錄存打卡當下的 `target`；加一輪記 `sessions[].plus`；新的訓練紀錄用 04:00 遊戲日。`body.sleep` 與 `habits.sleep.log` 並存不合併（D13）。
 - **SW**：新增或改名 App 檔 → 更新 `sw.js` 的 `ASSETS`＋CACHE 版號 +1；CI `check-repo` 會擋漏列。
 - **CI**：`npm test` 在 push 時跑；等價比對以 `ec87e03` 為基準，V1 起只比訓練畫面家族（計時、暫停、Boss 測驗、示範視窗）與課表規則；V5 改訓練畫面時再退役。用語表 baseline（`tools/jev/glossary-baseline.json`）只能在新增違規為 0 時重產，不得拿來吸收新違規。
-- **課表**：新增或改名動作 → `demos.js` 的 `MAP`／`def` 與 SETUP 的 `VIDEOS`（`js/ui/content.js`）都要補。
+- **課表／影片**：新增或改名動作 → 更新動作庫 `js/ui/content.js`，執行 `npm run report:media` 並檢查精確名稱覆蓋；`demos.js` 的舊線條動畫已停用，不能充當教學。只有逐片授權與專業審核的本機完整影片可登錄 `EXERCISE_MEDIA`。
 - **Jev**：只在 build time（M3）；前端零 AI 呼叫、零 API key。
 - 官方計分表：[AFT 2025 表](https://www.army.mil/e2/downloads/rv7/aft/AFT_Scoring_Scales_250601.pdf)。17–21 歲男性 Plank 60 分是 1:30；不能重新引入 1:25。
 

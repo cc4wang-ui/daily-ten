@@ -32,7 +32,7 @@ jobs:
         run: node tools/jev/check-glossary.js --self-test && node tools/jev/check-glossary.js --ci --no-report
 
       - name: 離線影片核准表與失敗回退
-        run: npm run test:media
+        run: npm run test:media && npm run check:media-coverage
 
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
