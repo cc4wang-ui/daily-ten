@@ -1,0 +1,137 @@
+{
+  "reviewedAt": "2026-10-13T12:23:54.112Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "context": "Daily Ten is an offline-first mobile home-workout PWA. Evaluate only the supplied implementation evidence. The user explicitly accepts judging demo form themselves; external coach review is not a release criterion. Full-motion demo coverage and in-app usability still matter.",
+      "movement": "Eight distinct AI-generated 16-frame local sprite sheets show standard and knee push-ups, controlled squat, deep squat hold, glute bridge, seated foot-anchored band row, cat-cow, and the two-sided 90/90 hip switch. They can play, pause, slow, scrub and replay. Exact-name mapping covers 18 of 73 programmed names; 55 names have no in-app motion, and complete real video count is 0. Old stick figures are hidden.",
+      "help": "During workouts, in-app help pauses the timer, keeps the current exercise and remaining time, hides the external YouTube link, and returns to the same place. Reload restores a paused checkpoint. Missing-motion exercises can be skipped in the modal without losing the workout or awarding completion. Focused browser tests pass. iOS eviction is unverified.",
+      "timing": "Workout duration is computed from repetitions times tempo, holds, rest, preparation and transitions across levels and equipment options. Controlled squat sprite is paced approximately 3 seconds down and 1 second up. Workout prescription remains developer-defined, without individualized calibration.",
+      "program": "Weekly split has two push days, two lower-body exposures, two pull exposures with overlap, one recovery day and Boss day. Band rows use feet rather than fixed home anchors. No-band upper-back substitutes are explicitly low-resistance. Rep, exertion, posture and pain feedback plus recent movement-pattern evidence gate manual progression. No automatic weekly volume adjustment.",
+      "navigation": "Today offers the next action; workout shows current, next, progress, help, pause, skip and exit. Movement library marks exercises with 16-frame demos. A 375x667 browser screenshot shows clear pose and controls, and the Return to Workout button is sticky and visible while the modal scrolls. There has been no independent user study. 54 targeted browser tests including offline image retrieval passed; full GitHub CI is pending."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Based only on state.movement, how completely is this user requirement met? Do not require external coach review. Treat missing full-motion coverage as a gap for movement. Evaluate delivered evidence, not a roadmap.",
+        "criteria": {
+          "pass": "The requirement is met by the supplied evidence.",
+          "partial": "Useful implementation exists, but an important part remains missing or unverified.",
+          "fail": "The central user requirement remains unmet."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Based only on state.help, how completely is this user requirement met? Do not require external coach review. Treat missing full-motion coverage as a gap for movement. Evaluate delivered evidence, not a roadmap.",
+        "criteria": {
+          "pass": "The requirement is met by the supplied evidence.",
+          "partial": "Useful implementation exists, but an important part remains missing or unverified.",
+          "fail": "The central user requirement remains unmet."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Based only on state.timing, how completely is this user requirement met? Do not require external coach review. Treat missing full-motion coverage as a gap for movement. Evaluate delivered evidence, not a roadmap.",
+        "criteria": {
+          "pass": "The requirement is met by the supplied evidence.",
+          "partial": "Useful implementation exists, but an important part remains missing or unverified.",
+          "fail": "The central user requirement remains unmet."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Based only on state.program, how completely is this user requirement met? Do not require external coach review. Treat missing full-motion coverage as a gap for movement. Evaluate delivered evidence, not a roadmap.",
+        "criteria": {
+          "pass": "The requirement is met by the supplied evidence.",
+          "partial": "Useful implementation exists, but an important part remains missing or unverified.",
+          "fail": "The central user requirement remains unmet."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Based only on state.navigation, how completely is this user requirement met? Do not require external coach review. Treat missing full-motion coverage as a gap for movement. Evaluate delivered evidence, not a roadmap.",
+        "criteria": {
+          "pass": "The requirement is met by the supplied evidence.",
+          "partial": "Useful implementation exists, but an important part remains missing or unverified.",
+          "fail": "The central user requirement remains unmet."
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "instructions": "Based only on the entire state, can this be presented as an iterative personal MVP while clearly labeling the 55 names with no in-app demo and zero complete videos? Do not require external coach review.",
+        "criteria": {
+          "ship_mvp": "Core training can be used as an iterative MVP with material limitations disclosed.",
+          "draft_only": "A central requirement is too incomplete to ship even as the requested iterative MVP."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.85,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.9,
+          "fail": 0.1
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.85,
+        "probabilities": {
+          "pass": 0.1,
+          "partial": 0.9,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.7,
+        "probabilities": {
+          "pass": 0.18,
+          "partial": 0.8,
+          "fail": 0.02
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.7,
+        "probabilities": {
+          "pass": 0.16,
+          "partial": 0.8,
+          "fail": 0.04
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.8,
+        "probabilities": {
+          "pass": 0.12,
+          "partial": 0.87,
+          "fail": 0.01
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.86,
+        "probabilities": {
+          "ship_mvp": 0.93,
+          "draft_only": 0.07
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1478,
+      "output_tokens": 213
+    }
+  }
+}
