@@ -149,10 +149,13 @@ function mountExerciseStoryboard(container,name,entry){
   frameEl.className='exercise-storyboard-frame';
   frameEl.setAttribute('role','img');
   frameEl.setAttribute('aria-label',`${name} 16 格動作循環`);
-  frameEl.style.backgroundImage=`url("${entry.src}")`;
   frameEl.style.backgroundSize=`${entry.columns*100}% ${entry.columns*100}%`;
   const controls=document.createElement('div');
   controls.className='exercise-video-actions';
+  const status=document.createElement('p');
+  status.setAttribute('role','status');
+  const retry=document.createElement('button');
+  retry.type='button';retry.textContent='重試載入影格';retry.hidden=true;
   const play=document.createElement('button');
   play.type='button';
   const slow=document.createElement('button');
@@ -162,6 +165,7 @@ function mountExerciseStoryboard(container,name,entry){
   const scrub=document.createElement('input');
   scrub.type='range';scrub.min='0';scrub.max=String(entry.frames-1);scrub.value='0';
   scrub.setAttribute('aria-label','逐格查看動作');
+  let stopped=false,loaded=false,attempt=0,image=null,loadTimer=null;
   let frame=0,paused=!!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches),slowMode=false,timer=null;
   const draw=()=>{
     const col=frame%entry.columns,row=Math.floor(frame/entry.columns);
@@ -169,26 +173,78 @@ function mountExerciseStoryboard(container,name,entry){
     frameEl.style.backgroundPosition=`${col/denom*100}% ${row/denom*100}%`;
     scrub.value=String(frame);
   };
-  const stopTimer=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  const stopTimer=()=>{if(timer!==null){clearTimeout(timer);timer=null;}};
   const startTimer=()=>{
-    stopTimer();if(paused)return;
+    stopTimer();if(stopped||!loaded||paused)return;
     const step=()=>{
       timer=setTimeout(()=>{
+        if(stopped||!loaded||paused)return;
         frame=(frame+1)%entry.frames;draw();step();
       },(entry.frameMs?.[frame]||180)*(slowMode?2:1));
     };
     step();
   };
   const updatePlay=()=>{play.textContent=paused?'播放影格':'暫停影格';startTimer();};
-  play.onclick=()=>{paused=!paused;updatePlay();};
-  slow.onclick=()=>{slowMode=!slowMode;slow.textContent=slowMode?'恢復 1×':'慢速 0.5×';startTimer();};
-  replay.onclick=()=>{frame=0;draw();};
-  scrub.oninput=()=>{paused=true;frame=Number(scrub.value);draw();updatePlay();};
+  play.onclick=()=>{if(stopped||!loaded)return;paused=!paused;updatePlay();};
+  slow.onclick=()=>{if(stopped||!loaded)return;slowMode=!slowMode;slow.textContent=slowMode?'恢復 1×':'慢速 0.5×';startTimer();};
+  replay.onclick=()=>{if(stopped||!loaded)return;frame=0;draw();};
+  scrub.oninput=()=>{if(stopped||!loaded)return;paused=true;frame=Number(scrub.value);draw();updatePlay();};
   controls.append(play,slow,replay);
   wrap.append(heading);
   if(note)wrap.append(note);
-  wrap.append(frameEl,scrub,controls);
+  wrap.append(status,retry,frameEl,scrub,controls);
   container.replaceChildren(wrap);
-  draw();updatePlay();
-  return {available:false,storyboard:true,stop(){stopTimer();wrap.remove();}};
+  const clearLoad=()=>{
+    if(loadTimer!==null){clearTimeout(loadTimer);loadTimer=null;}
+    if(image){image.onload=null;image.onerror=null;image.removeAttribute('src');image=null;}
+  };
+  const setReady=(ready)=>{
+    loaded=ready;
+    frameEl.hidden=scrub.hidden=controls.hidden=!ready;
+    play.disabled=slow.disabled=replay.disabled=scrub.disabled=!ready;
+  };
+  const load=()=>{
+    if(stopped)return;
+    const current=++attempt;
+    clearLoad();stopTimer();setReady(false);
+    status.hidden=false;status.textContent='正在載入動作影格…';retry.hidden=true;
+    wrap.setAttribute('aria-busy','true');
+    const pending=new Image();
+    image=pending;
+    const active=()=>!stopped&&current===attempt;
+    const fail=()=>{
+      if(!active())return;
+      ++attempt;clearLoad();stopTimer();setReady(false);
+      wrap.setAttribute('aria-busy','false');
+      status.hidden=false;
+      status.textContent='本機動作影格無法載入。請重試；若不熟悉動作，請先暫停訓練。';
+      retry.hidden=false;
+    };
+    pending.onerror=fail;
+    pending.onload=async()=>{
+      if(!active())return;
+      try{
+        if(typeof pending.decode==='function')await pending.decode();
+        if(!active())return;
+        if(!pending.naturalWidth||!pending.naturalHeight){fail();return;}
+        // Keep the exact local URL so retries can use the offline cache too.
+        frameEl.style.backgroundImage=`url("${entry.src}")`;
+        ++attempt;clearLoad();setReady(true);
+        wrap.setAttribute('aria-busy','false');status.hidden=true;retry.hidden=true;
+        draw();updatePlay();
+      }catch{fail();}
+    };
+    // A stalled request must also offer a way to recover.
+    loadTimer=setTimeout(fail,15000);
+    pending.src=entry.src;
+  };
+  retry.onclick=load;
+  draw();updatePlay();load();
+  return {available:false,storyboard:true,stop(){
+    if(stopped)return;
+    stopped=true;++attempt;loaded=false;
+    stopTimer();clearLoad();
+    play.onclick=slow.onclick=replay.onclick=retry.onclick=scrub.oninput=null;
+    frameEl.style.backgroundImage='none';wrap.remove();
+  }};
 }
