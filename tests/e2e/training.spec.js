@@ -324,7 +324,8 @@ test.describe('訓練流程（假時鐘）', () => {
       { every: 1, maxSeconds: 2400, label: 'HRP 測驗開始' });
     await expect(page.locator('#t-name')).toHaveText('HRP 伏地挺身測驗');
     await expect(page.locator('#t-count')).toHaveText('2:00');
-    await expect(page.locator('#t-pause')).toBeHidden();
+    await expect(page.locator('#t-pause')).toBeVisible();
+    await expect(page.locator('#t-pause')).toHaveText('暫停');
     await expect(page.locator('#t-skip')).toBeHidden();
     await expect(page.locator('#t-show-demo')).toBeHidden();
     await tick(page, 30);
@@ -332,9 +333,11 @@ test.describe('訓練流程（假時鐘）', () => {
     await tickUntil(page, () => document.getElementById('s-boss').classList.contains('active'),
       { every: 1, maxSeconds: 200, label: 'HRP 輸入畫面' });
     await expect(page.locator('#b-title')).toHaveText('HRP 成績輸入');
+    await expect(page.locator('#bi-interrupted')).toBeHidden();
     const raw = await rawMain(page);
     await page.click('#bi-save');
-    await expect.poll(() => seen).toEqual(['請輸入次數']);
+    await expect(page.locator('#bi-status')).toHaveText('請輸入 0–200 的整數次數');
+    expect(seen).toEqual([]);
     expect(await rawMain(page)).toBe(raw);
     await page.fill('#bi-1', '18');
     await page.click('#bi-save');
@@ -371,7 +374,8 @@ test.describe('訓練流程（假時鐘）', () => {
     const raw = await rawMain(page);
     await page.fill('#bi-m', '18');
     await page.click('#bi-save');
-    await expect.poll(() => seen).toEqual(['請輸入完整時間']);
+    await expect(page.locator('#bi-status')).toHaveText('請輸入完整時間（分、秒各 0–59）');
+    expect(seen).toEqual([]);
     expect(await rawMain(page)).toBe(raw);
     await page.fill('#bi-s', '30');
     await page.click('#bi-save');

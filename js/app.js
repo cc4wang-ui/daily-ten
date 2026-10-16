@@ -196,7 +196,8 @@ async function boot(){
   wireBody();
   renderVideos();
   renderHome();renderSetup();renderStats();
-  await resumeWorkout();
+  const {resumeBoss}=await import('./ui/boss.js');
+  if(!resumeBoss())await resumeWorkout();
   if(loaded&&(loaded.status==='repaired'||loaded.status==='recovered'))showLoadError(loaded.error);
   document.documentElement.dataset.ready='1';
   loadUpdateUi();
