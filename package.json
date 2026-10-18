@@ -8,6 +8,7 @@
     "test": "playwright test",
     "test:media": "node --test tests/exercise-media.test.mjs tests/demo-modal.test.mjs",
     "test:feedback": "node --test tests/training-feedback.test.mjs",
+    "test:progression": "node --test tests/training-progression.test.mjs",
     "report:media": "node tools/report-exercise-media.mjs --write",
     "check:media-coverage": "node tools/report-exercise-media.mjs --ci",
     "serve": "node tools/serve.mjs . 4173",

@@ -93,6 +93,11 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .strength-evidence{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
 .strength-evidence li{display:flex;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:10px;background:var(--c-fill);font-size:14px}
 .strength-evidence b{white-space:nowrap}
+.training-prescription{list-style:none;display:grid;gap:var(--sp-3);margin:var(--sp-3) 0}
+.training-prescription li{display:grid;gap:var(--sp-1);padding:var(--sp-3);border-radius:var(--r-xs);background:var(--c-fill);font-size:14px;line-height:1.5}
+.training-prescription .prescription-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-1) var(--sp-3);font-weight:700}
+.training-prescription .prescription-dose{white-space:nowrap;color:var(--move-ink)}
+.training-prescription .prescription-reason{color:var(--c-ink-2)}
 @media(max-height:700px){#train{justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}#t-demo-wrap{width:min(56vw,220px)}#t-name{font-size:30px}#t-count{font-size:72px}#t-next{margin-top:12px}}
 
 /* ---------- 2. 亮色區域：M1 變數改指向亮色值（沿用舊變數的 inline style 也看得清楚） ---------- */

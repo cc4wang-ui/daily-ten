@@ -9,7 +9,7 @@ import { $ } from './dom.js';
 import { VIDEOS } from './content.js';
 import { HAS_DEMO, openDemo } from './demo.js';
 import { getApprovedExerciseMedia, getExerciseStoryboard } from './exercise-media.js';
-import { hasBand, blockLabel, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, minimalSeq, todayPlan } from './program.js';
+import { hasBand, blockLabel, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, blockTargets, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, bossItem, weeklyStrengthEvidence } from './session.js';
 import { startWorkout } from './train.js';
 import { startBoss } from './boss.js';
@@ -60,6 +60,36 @@ function renderStrengthEvidence(){
     + (!hasBand()&&evidence.pull.days<2?' 徒手上背動作阻力有限，不計入負重拉力。':'');
 }
 
+function renderPrescription(plan,lv){
+  const card=$('tr-prescription'),list=$('tr-prescription-list');
+  const targets=plan.block?blockTargets(plan.block,lv):[];
+  card.hidden=!targets.length;
+  list.replaceChildren();
+  const reasons={
+    baseline:'維持基準：尚無足夠的同變式工作組回報。',
+    progressing:'已有穩定回報；尚待更多完整訓練日確認。',
+    increased:'已累積足夠完整訓練日回報輕鬆達標，本次增加次數。',
+    held:'回報未達加量條件，維持目前目標。',
+    reset:'近期回報吃力、未達標、動作不穩或疼痛，本次回到基準。',
+    capped:'已達本階段次數上限，維持目前目標。',
+    invalid:'維持基準：目前沒有可用的調整規則或證據。',
+    deload:'今天降量，維持本日基準，不增加次數。',
+    level:'本次強度不同，維持此強度的基準。'
+  };
+  for(const target of targets){
+    const row=document.createElement('li'),heading=document.createElement('div');
+    heading.className='prescription-heading';
+    const name=document.createElement('span'),dose=document.createElement('span'),reason=document.createElement('p');
+    name.textContent=target.movement;
+    dose.className='prescription-dose num';
+    dose.textContent=`基準 ${target.baseReps} → 本次 ${target.reps} 下／組`;
+    reason.className='prescription-reason';
+    const explanation=reasons[target.reason]||reasons.baseline;
+    reason.textContent=(target.delta===0&&!explanation.startsWith('維持基準')?'維持基準。':'')+explanation;
+    heading.append(name,dose);row.append(heading,reason);list.append(row);
+  }
+}
+
 /* sum：renderHome 傳入的今日摘要（省略時現算；null＝遊戲層未就緒） */
 export function renderTrain(sum) {
   const s = sum === undefined ? summary() : sum;
@@ -91,6 +121,7 @@ export function renderTrain(sum) {
   $('tr-boss-item').textContent = BOSS_ITEM[bossItem()];
   renderWeek(lv, wd, plv);
   renderStrengthEvidence();
+  renderPrescription(plan,plv);
 }
 
 /* 動作庫：「說明」開本機影片狀態；「真人」是 YouTube 搜尋連結（只是 href，點了才連網） */

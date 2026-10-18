@@ -2,7 +2,8 @@
    V2a（D6）：今日計畫的強度＝planLevel()（降量中是降一級後的強度，否則 state.level）；plan.lv 記下算時用的強度。 */
 import { getState } from '../state/store.js';
 import { bossItem } from './session.js';
-import { todayWeekday, planLevel } from './game.js';
+import { todayWeekday, todayKey, planLevel, gameRules, summary } from './game.js';
+import { canonicalMovement, progressionFor } from '../game/training-progression.js';
 
 /* 有彈力帶時走加載版課表；出差沒帶就關掉，自動退回徒手版 */
 export function hasBand(){return getState().settings.band!==false;}
@@ -178,12 +179,43 @@ function lowerPullSeq(lv){
   }
   return s;
 }
-export function blockSeq(kind,lv){
+function baseBlockSeq(kind,lv){
   if(kind==='shoulder')return shoulderSeq(lv);
   if(kind==='lower')return lowerSeq(lv);
   if(kind==='pull')return pullSeq(lv);
   if(kind==='lowerPull')return lowerPullSeq(lv);
   return [];
+}
+/* Only numbered strength worksets adapt. The generated sequence is a snapshot:
+   the runner and checkpoint keep these reps even if feedback changes later. */
+export function blockSeq(kind,lv){
+  const seq=baseBlockSeq(kind,lv),state=getState(),rules=gameRules();
+  const deload=summary()?.deload?.active===true;
+  const holdReason=deload?'deload':lv!==state.level?'level':!rules?.trainingProgression?'invalid':null;
+  const sets=new Map();
+  for(const step of seq){
+    const movement=canonicalMovement(step.name);
+    if(movement)sets.set(movement,(sets.get(movement)||0)+1);
+  }
+  const asOf=todayKey();
+  return seq.map(step=>{
+    const movement=canonicalMovement(step.name);
+    if(!movement||step.mode!=='reps')return step;
+    const decision=holdReason
+      ? {reps:step.reps,baseReps:step.reps,delta:0,reason:holdReason,evidenceDays:[]}
+      : progressionFor({state,asOf,name:step.name,baseReps:step.reps,requiredSets:sets.get(movement),rules});
+    if(!decision)return step;
+    return {...step,reps:decision.reps,sub:step.sub.replace(/×\d+/,`×${decision.reps}`),
+      prescription:{movement,...decision}};
+  });
+}
+export function blockTargets(kind,lv){
+  const targets=new Map();
+  for(const step of blockSeq(kind,lv)){
+    const target=step.prescription;
+    if(target&&!targets.has(target.movement))targets.set(target.movement,target);
+  }
+  return [...targets.values()];
 }
 /* 週三是加練日，維持當天的拉／上背主題。 */
 function cycleExtra(lv){

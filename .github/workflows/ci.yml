@@ -35,7 +35,7 @@ jobs:
         run: npm run test:media && npm run check:media-coverage
 
       - name: 每組回報與舊備份相容性
-        run: npm run test:feedback
+        run: npm run test:feedback && npm run test:progression
 
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
