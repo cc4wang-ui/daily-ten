@@ -109,7 +109,7 @@ test('影格載入失敗可原址重試，求助全程暫停並返回同一訓�
   expect(guard.consoleErrors.filter(message => !/^Failed to load resource: net::ERR_FAILED$/.test(message))).toEqual([]);
 });
 
-test('載入途中關閉後打開另一動作，舊圖片完成不會替換或重啟新示範', async ({ page }) => {
+test('慢速提示後關閉並打開另一動作，舊圖片與計時器不會污染新示範', async ({ page }) => {
   let pendingImage;
   await page.route('**/media/exercises/push-up-storyboard-v2.png', route => { pendingImage = route; });
   await openApp(page, { seed: seedState(readFixture('v3.json')) });
@@ -118,6 +118,9 @@ test('載入途中關閉後打開另一動作，舊圖片完成不會替換或�
   const demo = page.locator('#dm-video');
   await expect(demo.getByRole('status')).toHaveText('正在載入動作影格…');
   await expect.poll(() => !!pendingImage).toBe(true);
+  await tick(page, 15);
+  await expect(demo.getByRole('status')).toContainText('首次下載可能需要較久');
+  await expect(demo.locator('.exercise-storyboard')).toHaveAttribute('aria-busy', 'true');
   // 關閉可能取消舊請求，也可能讓它繼續；兩種瀏覽器行為都要安全。
   const oldImageSettled = Promise.race([
     page.waitForEvent('requestfinished', request => request.url().endsWith('/push-up-storyboard-v2.png')),
@@ -136,13 +139,15 @@ test('載入途中關閉後打開另一動作，舊圖片完成不會替換或�
   // 舊請求現在才完成，必須保留新視窗的動作、影格與暫停狀態。
   await pendingImage.continue();
   await oldImageSettled;
-  await tick(page, 20);
+  await tick(page, 120);
   await expect(page.locator('#demo-modal')).toHaveClass(/active/);
   await expect(page.locator('#dm-name')).toHaveText('控制深蹲');
   await expect(demo.getByRole('img')).toHaveCount(1);
   await expect(frame).toBeVisible();
   await expect(frame).toHaveCSS('background-image', /controlled-squat-storyboard\.png/);
   await expect(scrub).toHaveValue('8');
+  await expect(demo.getByRole('status')).toBeHidden();
+  await expect(demo.locator('.exercise-storyboard')).toHaveAttribute('aria-busy', 'false');
   await expect(demo.getByRole('button', { name: '播放影格', exact: true })).toBeVisible();
   await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
   await page.click('#dm-close');
@@ -182,7 +187,56 @@ test('圖片解碼失敗後可重試，減少動態效果仍保持暫停影格',
   await page.click('#dm-close');
 });
 
-test('影格請求停住 15 秒後顯示重試，恢復後可正常逐格操作', async ({ page }) => {
+
+test('首次下載超過15秒仍保留同一請求，20秒完成後才顯示可用影格', async ({ page }) => {
+  let pendingImage;
+  let attempts = 0;
+  await page.addInitScript(() => {
+    window.__qaImageLoadSources = 0;
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', { ...descriptor, set(value) {
+      if (String(value).endsWith('/push-up-storyboard-v2.png')) window.__qaImageLoadSources++;
+      return descriptor.set.call(this, value);
+    } });
+  });
+  await page.route('**/media/exercises/push-up-storyboard-v2.png', route => {
+    attempts++;
+    if (attempts === 1) { pendingImage = route; return; }
+    // Routing disables HTTP cache: CSS may fetch the decoded URL a second time.
+    return route.continue();
+  });
+  await openApp(page, { seed: seedState(readFixture('v3.json')) });
+  await gotoTab(page, 's-train');
+  await page.getByRole('button', { name: '伏地挺身 動作說明', exact: true }).click();
+  const demo = page.locator('#dm-video');
+  await expect.poll(() => !!pendingImage).toBe(true);
+  await tick(page, 15);
+  await expect(demo.getByRole('status')).toContainText('首次下載可能需要較久');
+  await expect(demo.locator('.exercise-storyboard')).toHaveAttribute('aria-busy', 'true');
+  await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
+  await expect(demo.getByRole('img')).toBeHidden();
+  await expect(demo.getByRole('slider')).toBeHidden();
+  await tick(page, 5);
+  expect(attempts).toBe(1);
+  await pendingImage.continue();
+  await expect(demo.getByRole('img', { name: '伏地挺身 16 格動作循環', exact: true })).toBeVisible();
+  const scrub = demo.getByRole('slider', { name: '逐格查看動作' });
+  await expect(scrub).toBeVisible();
+  await expect(demo.getByRole('button', { name: '暫停影格', exact: true })).toBeVisible();
+  await expect(demo.getByRole('status')).toBeHidden();
+  await expect(demo.locator('.exercise-storyboard')).toHaveAttribute('aria-busy', 'false');
+  await scrub.fill('8');
+  await tick(page, 120); // Cleared load/hint timers cannot replace successful playback.
+  await expect(scrub).toHaveValue('8');
+  await expect(demo.getByRole('img')).toBeVisible();
+  await expect(demo.getByRole('status')).toBeHidden();
+  await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
+  expect(await page.evaluate(() => window.__qaImageLoadSources)).toBe(1);
+  expect(attempts).toBeLessThanOrEqual(2); // One preload plus an uncached CSS render, never a retry.
+  await page.click('#dm-close');
+});
+
+test('影格請求滿15秒僅提示慢速，滿120秒才顯示重試，重試可正常逐格操作', async ({ page }) => {
   let pendingImage;
   let attempts = 0;
   await page.route('**/media/exercises/push-up-storyboard-v2.png', route => {
@@ -198,6 +252,14 @@ test('影格請求停住 15 秒後顯示重試，恢復後可正常逐格操作'
   await expect(demo.getByRole('status')).toHaveText('正在載入動作影格…');
   await tick(page, 14);
   await expect(demo.getByRole('status')).toHaveText('正在載入動作影格…');
+  await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
+  await tick(page, 1);
+  await expect(demo.getByRole('status')).toContainText('首次下載可能需要較久');
+  await expect(demo.locator('.exercise-storyboard')).toHaveAttribute('aria-busy', 'true');
+  await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
+  expect(attempts).toBe(1);
+  await tick(page, 104);
+  await expect(demo.getByRole('status')).toContainText('首次下載可能需要較久');
   await expect(demo.getByRole('button', { name: '重試載入影格', exact: true })).toBeHidden();
   await tick(page, 1);
   await expect(demo).toContainText('本機動作影格無法載入');

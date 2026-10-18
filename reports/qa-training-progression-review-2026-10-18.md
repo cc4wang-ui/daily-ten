@@ -30,3 +30,17 @@
 ## 範圍與限制
 
 這是自我回報驅動的次數目標，沒有阻力、活動範圍、實際人體追蹤或力量測量。不同既定基準不借用 target 證據；28 天證據移出視窗後可能回到基準、需要重新累積。本報告不是運動安全、處方或醫療認證，也未重跑 Jev。完整 CI、正式部署與真實 iPhone PWA 不在此輪本機 Chrome 證據範圍，須由交付流程另行確認。
+
+## 追加：正式站慢速首次下載修正
+
+本次 PR 同時納入已在正式 v22 重現的素材載入問題修正。正式站 HTTP 200／1,687,636 bytes、下載約 43.8 秒，舊 15 秒 hard timeout 會提前移除 Image src 而 abort。這是主代理提供的現場重現證據；本審查沒有將它寫成 v23 已上線通過。
+
+追加結論：**PASS（程式與本機回歸範圍）**。
+
+- 15 秒改為提示首次下載較久，保留同一個 pending request、aria-busy 與隱藏／停用的影格控制；直到 Image 載入且 decode 成功才揭示。120 秒仍未完成才進失敗／重試狀態。
+- `clearLoad()` 在成功、錯誤、timeout、重試前與 stop 都會清除 slow hint 及 hard timeout。hint callback 也驗證 active attempt；success／fail／stop 增加 attempt，過時 decode、error 或 hint 不會修改新示範或重啟舊播放。
+- 原來的同 URL 重試、關閉返回與訓練計時暫停機制保留。關閉慢速示範再開另一動作，不受舊請求／120 秒 timeout 影響。
+- 獨立 Chrome 行動視窗、port 4192 重跑 `tests/e2e/training-demo.spec.js`：**15 passed (5.9s)**。包含 20 秒才完成仍載入成功、119 秒仍維持下載提示／120 秒才可重試、成功後再過 120 秒不跳錯誤、慢速提示後切換動作無過時污染。
+- 首輪測試曾因 route 關閉瀏覽器 cache，CSS background render 另發一次圖片請求而失敗；QA 修正為僅下載完成前要求單請求，成功後允許一次 CSS render，並持續驗證沒有 retry／過時 timeout。產品碼沒有因這個測試假設改動。
+
+正式 v23 網路實測仍由主代理在合併部署後另做；此處 PASS 不等於已驗證正式部署成功。
