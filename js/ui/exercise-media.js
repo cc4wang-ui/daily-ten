@@ -185,7 +185,7 @@ function mountExerciseStoryboard(container,name,entry){
   const scrub=document.createElement('input');
   scrub.type='range';scrub.min='0';scrub.max=String(entry.frames-1);scrub.value='0';
   scrub.setAttribute('aria-label','逐格查看動作');
-  let stopped=false,loaded=false,attempt=0,image=null,loadTimer=null;
+  let stopped=false,loaded=false,attempt=0,image=null,loadTimer=null,slowHintTimer=null;
   let frame=0,paused=!!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches),slowMode=false,timer=null;
   const draw=()=>{
     const col=frame%entry.columns,row=Math.floor(frame/entry.columns);
@@ -216,6 +216,7 @@ function mountExerciseStoryboard(container,name,entry){
   container.replaceChildren(wrap);
   const clearLoad=()=>{
     if(loadTimer!==null){clearTimeout(loadTimer);loadTimer=null;}
+    if(slowHintTimer!==null){clearTimeout(slowHintTimer);slowHintTimer=null;}
     if(image){image.onload=null;image.onerror=null;image.removeAttribute('src');image=null;}
   };
   const setReady=(ready)=>{
@@ -256,8 +257,14 @@ function mountExerciseStoryboard(container,name,entry){
         draw();updatePlay();
       }catch{fail();}
     };
-    // A stalled request must also offer a way to recover.
-    loadTimer=setTimeout(fail,15000);
+    // Keep slow first downloads alive; controls still wait for image decode.
+    slowHintTimer=setTimeout(()=>{
+      if(!active())return;
+      slowHintTimer=null;
+      status.textContent='首次下載可能需要較久，完成後可離線查看。你可以返回訓練，稍後再試。';
+    },15000);
+    // A request that never completes must still offer retry.
+    loadTimer=setTimeout(fail,120000);
     pending.src=entry.src;
   };
   retry.onclick=load;
