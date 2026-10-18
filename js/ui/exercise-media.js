@@ -53,6 +53,21 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   src: './media/exercises/step-jack-storyboard.png', columns: 4, frames: 16,
   note: '左右輪流側跨再收回，不跳躍；示意節奏，可依體感放慢。影格不會計算訓練次數。',
   frameMs: Object.freeze([150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150])
+}),Object.freeze({
+  names: Object.freeze(['分腿蹲 · 左','分腿蹲 第1組 · 左','分腿蹲 第2組 · 左']),
+  src: './media/exercises/split-squat-left-storyboard.png', columns: 4, frames: 16,
+  note: '左腳在前，雙腳不換位；影格展示下蹲與站起，必要時可暫停並逐格查看姿勢。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['分腿蹲 · 右','分腿蹲 第1組 · 右','分腿蹲 第2組 · 右']),
+  src: './media/exercises/split-squat-right-storyboard.png', columns: 4, frames: 16,
+  note: '右腳在前，雙腳不換位；影格展示下蹲與站起，必要時可暫停並逐格查看姿勢。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['平板支撐','平板支撐測驗']),
+  src: './media/exercises/forearm-plank-storyboard.png', columns: 4, frames: 16,
+  note: '靜態保持，影格包含進入與退出；訓練／測驗時間以目前計時器為準，可暫停中間影格看姿勢。',
+  frameMs: Object.freeze([180,220,260,300,1500,1500,1500,1500,1500,1500,1500,1500,300,260,220,180])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;
