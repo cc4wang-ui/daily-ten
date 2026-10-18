@@ -1,0 +1,142 @@
+{
+  "reviewedAt": "2026-10-18T23:51:45.978Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "sources": [
+        "https://github.com/cc4wang-ui/daily-ten/pull/21",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/lower-core-motion-guides/reports/qa-lower-core-media-2026-10-19.md",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/lower-core-motion-guides/reports/live-v23-2026-10-19.md"
+      ],
+      "scope": "Public open-source personal offline workout PWA. Evaluate only this public report summary. No direct image or app access. User chooses to judge motion form; external professional approval is not a release condition.",
+      "movement": "Fifteen local AI16frame sheets cover38of73 exact programmednames;35missing,0complete realvideos. Newleft/right stationarysplit squat sheets each3seccycle, separate exactside/setaliases. Forearmplank showsentry,heldposition,exit;middle8frames prolonged, note actualholdtime followsworkouttimer. IndependentQA inspectedall3images16nonemptycells;15totalimageassetsnaturalscale,scrub,slow,replay. Deadbug rejectedafter2repairs becauseoppositepair unclear. Some AIpose/scalejitter remains.",
+      "help": "In-app help pauses workout retaining exercise and seconds. New rain movement help tests retain37seconds and manuallyresume to34. Reload restores paused checkpoints. Boss HRP/plank and unsaved results restore paused; no backgroundtime counted; interrupted tests labeled segmented. iPhone eviction unverified. Loader now permits slow firstdownloads:15secondhint,120secondfailure,stale callbacks cleaned. FullPR20CI977passed8skipped;formalv23isolatedmobileChrome verified4imagesloaded/scrubbed andactualpush11/press10targets,0pageerrors. Optionaldate-module404 fallback restored;27pureprogressiontests pass. iPhoneevictionunverified.",
+      "timing": "Workout time derived from reps times tempo,holds,rest,prep,transitions. Band press/RDL animation3seconds, rain left/right2.4seconds illustrative only. Prescription developer-defined,not individualized.",
+      "program": "Two pushdays,two lowerbodyexposures,two pullexposures,one recoveryday,Bossday. Footanchored band only. Noband upperback is not equivalent loadedpull. Rep/exertion/posture feedback gates manualprogression. Noautomatic weeklyvolumeadjustment. Public PR20 adds bounded per-movement repetitions: prior28days exactvariants, two completed dates with every requiredworkset easy atcurrenttarget increases1, maxbase+2 andvariantceiling. Negative feedback resetsbaseline evenunfinishedday. Today excluded,deload noadd,activecheckpoint fixed. Distinctvariants andsides independent;plus repeatedsets countoneday;missingordinals orduplicateIDs do not qualify. Noactual bandresistance orROM tracking, no automaticweeklyvolumeadjustment. Targetcard showsbaseline/current/reason.",
+      "navigation": "PublicPR21increment:30targetedmobileChrome tests passed including3newguides,exactside/variantlookups,helpfreeze,offlinev24;QA PASS. FullCIpending. Publicv23livecheck alreadypassed forpriorfeatures. Targetcardshowsbaseline,currentreps,reason. Noindependentuserstudy."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Based only on state.movement, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Based only on state.help, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Based only on state.timing, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Based only on state.program, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Based only on state.navigation, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "instructions": "Based only on the supplied public evidence, can this ship as an iterative personal MVP with 35 missing demo names, zero complete videos, and unverified iPhone eviction clearly disclosed?",
+        "criteria": {
+          "ship_mvp": "Usable iterative MVP with disclosed material limitations.",
+          "draft_only": "Central gaps prevent even iterative personal MVP release."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.79,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.86,
+          "fail": 0.14
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.91,
+        "probabilities": {
+          "pass": 0.06,
+          "partial": 0.94,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.58,
+        "probabilities": {
+          "pass": 0.27,
+          "partial": 0.72,
+          "fail": 0.01
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.74,
+        "probabilities": {
+          "pass": 0.16,
+          "partial": 0.83,
+          "fail": 0.01
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.77,
+        "probabilities": {
+          "pass": 0.14,
+          "partial": 0.85,
+          "fail": 0.01
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.82,
+        "probabilities": {
+          "ship_mvp": 0.91,
+          "draft_only": 0.09
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1809,
+      "output_tokens": 213
+    }
+  }
+}
