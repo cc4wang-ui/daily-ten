@@ -33,6 +33,26 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   src: './media/exercises/deep-squat-hold-storyboard.png', columns: 4, frames: 16,
   note: '這是底部停留，不是快速重複深蹲。可暫停影格查看蹲姿。',
   frameMs: Object.freeze([150,150,300,300,300,300,1800,1800,1800,1800,1800,1800,1800,300,300,150])
+}),Object.freeze({
+  names: Object.freeze(['彈力帶肩上推','彈力帶肩上推 第1組','彈力帶肩上推 第2組']),
+  src: './media/exercises/band-overhead-press-storyboard.png', columns: 4, frames: 16,
+  note: '雙腳踩穩帶子，從肩旁推起再慢慢回到肩旁；核心收緊、不後仰。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['彈力帶羅馬尼亞硬舉','彈力帶羅馬尼亞硬舉 第1組','彈力帶羅馬尼亞硬舉 第2組']),
+  src: './media/exercises/band-rdl-storyboard.png', columns: 4, frames: 16,
+  note: '雙腳踩住帶子，膝微彎、髖往後推，再回到站姿。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['原地快走','原地快走 R1','原地快走 R2','原地快走 R3','原地快走 R4','原地快走 R5']),
+  src: './media/exercises/march-in-place-storyboard.png', columns: 4, frames: 16,
+  note: '左右交替原地踏步、不跳躍；示意節奏，可依體感放慢。影格不會計算訓練次數。',
+  frameMs: Object.freeze([150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150])
+}),Object.freeze({
+  names: Object.freeze(['側步開合','側步開合 R1','側步開合 R2','側步開合 R3','側步開合 R4','側步開合 R5']),
+  src: './media/exercises/step-jack-storyboard.png', columns: 4, frames: 16,
+  note: '左右輪流側跨再收回，不跳躍；示意節奏，可依體感放慢。影格不會計算訓練次數。',
+  frameMs: Object.freeze([150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;
@@ -227,6 +247,8 @@ function mountExerciseStoryboard(container,name,entry){
         if(typeof pending.decode==='function')await pending.decode();
         if(!active())return;
         if(!pending.naturalWidth||!pending.naturalHeight){fail();return;}
+        // The square grid preserves the source sheet's aspect ratio per frame.
+        frameEl.style.aspectRatio=`${pending.naturalWidth} / ${pending.naturalHeight}`;
         // Keep the exact local URL so retries can use the offline cache too.
         frameEl.style.backgroundImage=`url("${entry.src}")`;
         ++attempt;clearLoad();setReady(true);

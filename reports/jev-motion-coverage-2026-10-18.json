@@ -1,0 +1,142 @@
+{
+  "reviewedAt": "2026-10-18T12:20:49.972Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "sources": [
+        "https://github.com/cc4wang-ui/daily-ten/pull/19",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/anchor-free-motion-guides/reports/qa-anchor-free-media-2026-10-18.md",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/anchor-free-motion-guides/reports/qa-anchor-free-review-2026-10-18.md"
+      ],
+      "scope": "Public open-source personal offline workout PWA. Evaluate only this public report summary. No direct image or app access. User chooses to judge motion form; external professional approval is not a release condition.",
+      "movement": "12 local AI 16frame sheets cover32of73 exactnames;41missing;0complete real videos. Clear start/mainmotion/return per independent reviewer. Some OHP scale jitter and march lowering transition remain. Correct aliases, natural image proportions, slow/scrub/replay and offline playback. Labels say AItrial,not realvideo.",
+      "help": "In-app help pauses workout retaining exercise and seconds. New rain movement help tests retain37seconds and manuallyresume to34. Reload restores paused checkpoints. Boss HRP/plank and unsaved results restore paused; no backgroundtime counted; interrupted tests labeled segmented. iPhone eviction unverified.",
+      "timing": "Workout time derived from reps times tempo,holds,rest,prep,transitions. Band press/RDL animation3seconds, rain left/right2.4seconds illustrative only. Prescription developer-defined,not individualized.",
+      "program": "Two pushdays,two lowerbodyexposures,two pullexposures,one recoveryday,Bossday. Footanchored band only. Noband upperback is not equivalent loadedpull. Rep/exertion/posture feedback gates manualprogression. Noautomatic weeklyvolumeadjustment.",
+      "navigation": "Nextaction on Today; active/current/next/progress/help/pause/exit. Stickyreturn visible on mobile. Noindependent userstudy. New24targeted mobileChrome tests pass,QA PASS;separate14loader regression and7mediaunits pass. FullPRCI pending."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Based only on state.movement, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Based only on state.help, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Based only on state.timing, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Based only on state.program, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Based only on state.navigation, how fully is this dimension delivered? Missing important evidence or features means partial; do not infer completeness from tests. External professional review is outside this release scope.",
+        "criteria": {
+          "pass": "Supplied evidence meets the dimension.",
+          "partial": "Useful implementation but important gaps or unverified behavior remain.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "instructions": "Can this public implementation be released as an iterative personal MVP with41missingdemo names,zero realvideos andiPhone limits prominently disclosed?",
+        "criteria": {
+          "ship_mvp": "Usable iterative MVP with disclosed material limitations.",
+          "draft_only": "Central gaps prevent even iterative personal MVP release."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.88,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.92,
+          "fail": 0.08
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.94,
+        "probabilities": {
+          "pass": 0.04,
+          "partial": 0.96,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.83,
+        "probabilities": {
+          "pass": 0.1,
+          "partial": 0.89,
+          "fail": 0.01
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.59,
+        "probabilities": {
+          "pass": 0.26,
+          "partial": 0.73,
+          "fail": 0.01
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.89,
+        "probabilities": {
+          "pass": 0.07,
+          "partial": 0.93,
+          "fail": 0
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.94,
+        "probabilities": {
+          "ship_mvp": 0.97,
+          "draft_only": 0.03
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1450,
+      "output_tokens": 213
+    }
+  }
+}
