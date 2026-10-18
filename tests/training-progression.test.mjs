@@ -186,3 +186,35 @@ test('one duplicate ID in an otherwise complete repeated plus day still blocks p
   plus.at(-1).id = plus[0].id;
   assert.equal(result(state(day('2026-10-05'), plus)).reps, 10);
 });
+
+test('invalid as-of dates preserve baseline; malformed historical dates cannot supply evidence', () => {
+  for (const invalid of ['2026-02-29', '2026-02-30', '2026-13-01', '2026-10-00', '2026-1-19', '2026-10-19T00:00:00Z', '', null, 20261019]) {
+    assert.equal(result(twoEasy(), { asOf: invalid }).reps, 10, String(invalid));
+  }
+  for (const invalid of ['2026-02-30', '2026-13-01', '2026-10-00', '2026-10-8']) {
+    assert.equal(result(state(day('2026-10-05'), day(invalid))).reps, 10, invalid);
+  }
+});
+
+test('valid leap-day evidence works with date-only chronological window boundaries', () => {
+  const s = state(day('2024-02-27'), day('2024-02-29'));
+  assert.equal(result(s, { asOf: '2024-03-01' }).reps, 11);
+  assert.equal(result(s, { asOf: '2024-02-29' }).reps, 10); // The leap day is still today.
+});
+
+test('early calendar years use real leap dates without mutating state or rules', () => {
+  const ruleSnapshot = structuredClone(rules);
+  for (const [first, second, today] of [
+    ['0000-02-27', '0000-02-29', '0000-03-01'],
+    ['0099-02-27', '0099-02-28', '0099-03-01'],
+  ]) {
+    const s = state(day(first), day(second));
+    const snapshot = structuredClone(s);
+    assert.equal(result(s, { asOf: today }).reps, 11, today);
+    assert.deepEqual(s, snapshot);
+  }
+  for (const invalid of ['0099-02-29', '0100-02-29', '0000-02-30']) {
+    assert.equal(result(twoEasy(), { asOf: invalid }).reps, 10, invalid);
+  }
+  assert.deepEqual(rules, ruleSnapshot);
+});

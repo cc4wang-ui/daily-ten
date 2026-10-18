@@ -11,7 +11,17 @@
    正向證據只認 full/cycle 完成日；已知負向回報即使未完成課表也會重設。
    今天與未來的紀錄不參與，避免當次課表中途改變。不同基準不借用證據。
    沒有阻力或活動範圍資料，因此只調同一變式的次數，不推斷力量或難度升級。 */
-import { dayNumber, isValidDateStr } from './day.js';
+// Core training must still load when optional game modules fail to load.
+// These date-only helpers have no module dependency and never read the current clock.
+function isValidDateStr(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + 'T00:00:00Z');
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function dayNumber(value) {
+  return new Date(value + 'T00:00:00Z').getTime() / 86400000;
+}
 
 const MOVEMENTS = new Set([
   '伏地挺身', '伏地挺身 · 跪姿', '派克伏地挺身', '彈力帶肩上推',
