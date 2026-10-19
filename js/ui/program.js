@@ -25,6 +25,7 @@ function dose(lv){
 }
 /* 步驟建構小工具 */
 const T=(n,sub,sec)=>({name:n,sub:sub,mode:'time',secs:sec});
+const B=(n,sub,sec)=>({...T(n,sub,sec),sideSwitch:true});
 const R=(n,sub,reps,tempo)=>({name:n,sub:sub,mode:'reps',reps:reps,tempo:tempo||3});
 const REST=sec=>T('組間休息','Rest',sec);
 /* ===== 伸展輪替 =====
@@ -38,21 +39,21 @@ function mobSeq(set,lv){
     R('穿針式 · 左','Thread the Needle L ×'+d.needle,d.needle,4),
     R('穿針式 · 右','Thread the Needle R ×'+d.needle,d.needle,4),
     R('俯臥半程雪天使','Prone Floor Angel ×'+d.wall+' · 手臂離地',d.wall,4),
-    T('嬰兒式側伸展','Side Child’s Pose · 左右各半',d.nineok)
+    B('嬰兒式側伸展','Side Child’s Pose · 左右各半',d.nineok)
   ];
   if(set==='C')return[
     R('貓牛式','Cat-Cow ×'+d.catcow,d.catcow,3),
     T('世界最強伸展 · 左','World’s Greatest Stretch L',d.nineok),
     T('世界最強伸展 · 右','World’s Greatest Stretch R',d.nineok),
     T('下犬↔上犬流動','Down Dog ↔ Up Dog Flow',d.squatHold),
-    T('躺姿脊椎扭轉','Supine Twist · 左右各半',d.nineok)
+    B('躺姿脊椎扭轉','Supine Twist · 左右各半',d.nineok)
   ];
   return[
     R('貓牛式','Cat-Cow ×'+d.catcow,d.catcow,3),
     T('90/90 髖旋轉 · 左','90/90 Hip Switch L',d.nineok),
     T('90/90 髖旋轉 · 右','90/90 Hip Switch R',d.nineok),
     T('深蹲蹲坐','Deep Squat Hold',d.squatHold),
-    T('鴿式','Pigeon Pose · 左右各半',d.nineok)
+    B('鴿式','Pigeon Pose · 左右各半',d.nineok)
   ];
 }
 /* ===== Boss Day 十動作暖身：5 個活動度＋5 個低量啟動，不在測驗前堆疲勞 ===== */
@@ -253,8 +254,9 @@ export function addTransitions(seq){
   const out=[{name:'預備',sub:'手機放地上 · 就位',mode:'time',secs:10,prep:seq[0]?seq[0].name:''}];
   let previousGear='徒手';
   for(let i=0;i<seq.length;i++){
-    const st=seq[i],isRest=st.name.indexOf('休息')>=0;
-    const prevIsGap=out.length&&(out[out.length-1].name.indexOf('休息')>=0||out[out.length-1].prep!==undefined);
+    const st=seq[i],isRest=st.name.indexOf('休息')>=0||st.name==='換組';
+    const prevIsGap=out.length&&(out[out.length-1].name.indexOf('休息')>=0
+      ||out[out.length-1].name==='換組'||out[out.length-1].prep!==undefined);
     const gear=st.name.indexOf('彈力帶')>=0?'彈力帶':'徒手';
     if(!isRest&&i>0&&gear!==previousGear){
       out.push({name:'換器材',sub:gear==='彈力帶'?'拿好彈力帶、確認踩穩':'放下彈力帶、回到墊上',mode:'time',secs:15,prep:st.name});

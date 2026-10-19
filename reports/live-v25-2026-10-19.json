@@ -1,0 +1,56 @@
+{
+  "app": "https://daily-ten-app.vercel.app/",
+  "startedAt": "2026-10-19T11:49:22.542Z",
+  "guides": [
+    {
+      "name": "彈力帶開肩",
+      "ms": 1343,
+      "frame": "15",
+      "image": "url(\"./media/exercises/band-pull-apart-storyboard.png\")",
+      "visible": true
+    },
+    {
+      "name": "彈力帶側平舉",
+      "ms": 832,
+      "frame": "15",
+      "image": "url(\"./media/exercises/band-lateral-raise-storyboard.png\")",
+      "visible": true
+    },
+    {
+      "name": "俯臥 Y 舉",
+      "ms": 1336,
+      "frame": "15",
+      "image": "url(\"./media/exercises/prone-y-raise-storyboard.png\")",
+      "visible": true
+    },
+    {
+      "name": "俯臥 T 舉",
+      "ms": 1342,
+      "frame": "15",
+      "image": "url(\"./media/exercises/prone-t-raise-storyboard.png\")",
+      "visible": true
+    }
+  ],
+  "pageErrors": [],
+  "version": "daily-ten-v25",
+  "tempos": [
+    {
+      "name": "俯臥 T 舉",
+      "ms": 3000
+    },
+    {
+      "name": "俯臥 T 舉 · 慢速",
+      "ms": 4000
+    }
+  ],
+  "targetText": "每個動作的本次目標\n伏地挺身\n基準 10 → 本次 11 下／組\n\n已累積足夠完整訓練日回報輕鬆達標，本次增加次數。\n\n彈力帶肩上推\n基準 10 → 本次 10 下／組\n\n維持基準。近期回報吃力、未達標、動作不穩或疼痛，本次回到基準。\n\n依已儲存的工作組回報調整次數；沒有足夠回報就維持基準。這不代表彈力帶阻力自動增加。",
+  "pushTargets": [
+    11,
+    11
+  ],
+  "pressTargets": [
+    10,
+    10
+  ],
+  "pass": true
+}

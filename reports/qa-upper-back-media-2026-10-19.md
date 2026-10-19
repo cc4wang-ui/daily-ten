@@ -14,7 +14,7 @@ Chrome 行動視窗、Node v24.15.0、`PORT=4199`、2 workers：
 npx playwright test tests/e2e/upper-back-media.spec.js tests/e2e/anchor-free-media.spec.js tests/e2e/training-demo.spec.js tests/e2e/lower-core-media.spec.js tests/e2e/offline.spec.js --workers=2 --reporter=dot
 ```
 
-**36 passed (17.5s)**，含本輪新增 **6 passed**：
+**36 passed (17.4s)**，含本輪新增 **6 passed**：
 
 - 四張本機圖在動作庫可解碼，影格 UI 維持來源比例，0–15 格逐格定位正確。
 - 精確 catalog 對應：開肩一般、第 1/2 組和加練共用正確圖；側平舉、Y、T 各用自己的圖。普通 T 與慢速 T 共用 PNG，慢速 entry 明示 `sameMotionAs`，其影格時程分別約 3 秒與 4 秒；不把肩上推、肩外旋、半程雪天使、額外組號等近似名稱混貼。

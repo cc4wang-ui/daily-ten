@@ -20,6 +20,9 @@ let runner=null;
 let externalTraining=false;
 const CHECKPOINT_KEY='daily-ten-active-workout';
 const CHECKPOINT_MAX_AGE=24*60*60*1000;
+const isMovement=st=>st.prep===undefined&&st.name!=='換組'&&st.name.indexOf('休息')<0;
+const hasSideSwitch=st=>st.sideSwitch===true&&st.mode==='time'
+  &&Number.isInteger(st.secs)&&st.secs>=2&&st.secs<=120;
 function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e){}}
 function readCheckpoint(){
   try{
@@ -28,7 +31,9 @@ function readCheckpoint(){
       &&c.seq.every(st=>st&&typeof st.name==='string'&&st.name.length<200
         &&(st.mode==='time'?Number.isInteger(st.secs)&&st.secs>0&&st.secs<3600
           :st.mode==='reps'&&Number.isInteger(st.reps)&&st.reps>0&&st.reps<1000
-            &&Number.isFinite(st.tempo)&&st.tempo>0&&st.tempo<120))
+            &&Number.isFinite(st.tempo)&&st.tempo>0&&st.tempo<120)
+        &&(st.sideSwitch===undefined||typeof st.sideSwitch==='boolean'
+          &&st.mode==='time'&&st.secs>=2&&st.secs<=120))
       &&Number.isInteger(c.idx)&&c.idx>=0&&c.idx<c.seq.length
       &&typeof c.type==='string'&&Number.isFinite(c.savedAt)
       &&Date.now()-c.savedAt<CHECKPOINT_MAX_AGE&&Date.now()-c.savedAt>-60000)return c;
@@ -100,6 +105,11 @@ export function startWorkout(seq,type,after,opts){
   $('t-checkpoint').classList.toggle('paused',paused);
   const total=seq.length;
   function fmt(n){return n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):String(n);}
+  function showSide(st){
+    if(!hasSideSwitch(st))return;
+    const side=left>Math.floor(st.secs/2)?'第一側':'第二側';
+    $('t-sub').textContent=(st.sub?st.sub+' · ':'')+side;
+  }
   function persist(){
     if(idx<0||idx>=total)return;
     const c={v:1,savedAt:Date.now(),runId,seq,idx,type,plus:!!(opts&&opts.plus),
@@ -132,8 +142,17 @@ export function startWorkout(seq,type,after,opts){
     const set=st.name.match(/第\s*(\d+)\s*組/);
     $('t-set').textContent=set?'第 '+set[1]+' 組':'';
     $('t-set').hidden=!set;
-    $('t-next').textContent=idx+1<total?('下一個：'+seq[idx+1].name):'最後一個動作';
-    const nextMovement=seq.slice(idx+1).find((step)=>step.prep===undefined&&step.name!=='換組'&&step.name.indexOf('休息')<0);
+    const immediate=seq[idx+1],nextMovement=seq.slice(idx+1).find(isMovement);
+    const gap=immediate&&!isMovement(immediate)?immediate:null;
+    if(nextMovement){
+      $('t-next').textContent='下一個：'+nextMovement.name
+        +(gap?'（先'+gap.name+(gap.mode==='time'?' '+gap.secs+' 秒':'')+'）':'');
+    }else if(gap){
+      $('t-next').textContent='最後一個動作 · 接著'+gap.name
+        +(gap.mode==='time'?' '+gap.secs+' 秒':'')+'，然後完成';
+    }else{
+      $('t-next').textContent=isMovement(st)?'最後一個動作 · 完成後結束':'接下來：完成訓練';
+    }
     const demoName=isRest||isPrep?(st.prep!==undefined?st.prep:(nextMovement?nextMovement.name:'')):st.name;
     const demoCue=isRest||isPrep?(nextMovement?nextMovement.sub:''):st.sub;
     const demoKey=setTrainDemo(demoName,st.mode==='reps'&&demoName===st.name?st.tempo:null,demoName!==st.name);
@@ -158,10 +177,14 @@ export function startWorkout(seq,type,after,opts){
     else speak(isRest?st.name:(st.name+(st.mode==='reps'?'，'+st.reps+'下':'，'+st.secs+'秒')));
     if(st.mode==='time'){
       left=prior&&Number.isInteger(prior.left)?Math.max(0,Math.min(st.secs+(isRest?300:0),prior.left)):st.secs;
-      done=null;$('t-count').textContent=fmt(left);
+      done=null;$('t-count').textContent=fmt(left);showSide(st);
       beep(660,.12);
       timer=setInterval(()=>{ if(paused)return;
+        const before=left;
         left--; $('t-count').textContent=fmt(left);persist();
+        if(hasSideSwitch(st)&&before>Math.floor(st.secs/2)&&left<=Math.floor(st.secs/2)){
+          showSide(st);speak('換另一側');
+        }
         if(left<=5&&left>0)beep(880,.08);
         if(left<=0){clearInterval(timer);beep(440,.5);queueNextStep();}
       },1000);
