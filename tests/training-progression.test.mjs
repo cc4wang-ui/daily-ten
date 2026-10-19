@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { progressionFor } from '../js/game/training-progression.js';
+import { latestResistance, progressionFor } from '../js/game/training-progression.js';
 
 const rules = JSON.parse(readFileSync(new URL('../data/game.json', import.meta.url), 'utf8'));
 const asOf = '2026-10-19';
@@ -18,6 +18,13 @@ function result(s, options = {}) {
   return progressionFor({ state: s, asOf, name: targetName, baseReps: 10, requiredSets: 2, rules, ...options });
 }
 const twoEasy = () => state(day('2026-10-05'), day('2026-10-08'));
+const bandName = '彈力帶划船 第1組';
+function bandDay(date, resistance, target = 10, options = {}) {
+  return day(date, target, { variant: '彈力帶划船', ...options }).map(record =>
+    resistance === undefined ? record : { ...record, resistance });
+}
+const bandResult = (s, options = {}) => result(s, { name: bandName, ...options });
+const bandContext = (s, options = {}) => latestResistance({ state: s, asOf, name: bandName, ...options });
 
 test('no historical self-report, missing rules and malformed containers preserve baseline without mutation', () => {
   for (const s of [{}, { sessions: [], game: {} }, { sessions: null, game: { trainingFeedback: null } }]) {
@@ -217,4 +224,114 @@ test('early calendar years use real leap dates without mutating state or rules',
     assert.equal(result(twoEasy(), { asOf: invalid }).reps, 10, invalid);
   }
   assert.deepEqual(rules, ruleSnapshot);
+});
+
+test('latest band context uses the latest valid date then last array entry, with today opt-in', () => {
+  const s = state(bandDay('2026-10-05', '淺色'), bandDay('2026-10-08', ' 深色 '));
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-08', '緊')[0], id: 'last-on-eight' });
+  assert.equal(bandContext(s), '緊');
+  s.game.trainingFeedback.reverse();
+  assert.equal(bandContext(s), '深色');
+  s.game.trainingFeedback.push(...bandDay(asOf, '新帶'));
+  assert.equal(bandContext(s), '深色');
+  assert.equal(bandContext(s, { includeToday: true }), '新帶');
+  assert.equal(latestResistance({ state: s, asOf, name: targetName }), null);
+  assert.equal(latestResistance({ state: s, asOf, name: '彈力帶划船' }), null);
+});
+
+test('latest unlabeled record clears context; malformed labels, IDs and dates cannot select it', () => {
+  const s = state(bandDay('2026-10-05', '藍'), bandDay('2026-10-08', undefined));
+  assert.equal(bandContext(s), '');
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-12', '紅')[0], resistance: ' '.repeat(3) });
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-13', '紅')[0], resistance: '🔴'.repeat(41) });
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-14', '紅')[0], resistance: 5 });
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-15', '紅')[0], date: '2026-02-30' });
+  s.game.trainingFeedback.push({ ...bandDay('2026-10-16', '紅')[0], id: '' });
+  assert.equal(bandContext(s), '');
+  s.game.trainingFeedback.push(...bandDay('2026-10-17', '綠'));
+  const latestId = s.game.trainingFeedback.at(-1).id;
+  s.game.trainingFeedback.at(-2).id = latestId;
+  assert.equal(bandContext(s), '');
+  assert.equal(bandContext(s, { asOf: '2026-02-30' }), '');
+});
+
+test('named band setups only earn from matching complete dates and can reuse prior matching history', () => {
+  const s = state(bandDay('2026-10-01', '藍'), bandDay('2026-10-03', '紅'), bandDay('2026-10-08', '藍'));
+  assert.deepEqual({ reps: bandResult(s).reps, resistance: bandResult(s).resistance }, { reps: 11, resistance: '藍' });
+  s.game.trainingFeedback.push(...bandDay('2026-10-12', '黃'));
+  assert.deepEqual({ reps: bandResult(s).reps, resistance: bandResult(s).resistance }, { reps: 10, resistance: '黃' });
+  s.game.trainingFeedback.push(...bandDay('2026-10-15', '藍', 11));
+  assert.deepEqual({ reps: bandResult(s).reps, resistance: bandResult(s).resistance }, { reps: 11, resistance: '藍' });
+});
+
+test('unrecorded and named setups never borrow positive evidence from each other', () => {
+  const namedLast = state(bandDay('2026-10-01', undefined), bandDay('2026-10-03', '藍'));
+  assert.deepEqual({ reps: bandResult(namedLast).reps, resistance: bandResult(namedLast).resistance }, { reps: 10, resistance: '藍' });
+  const cleared = state(bandDay('2026-10-01', '藍'), bandDay('2026-10-03', undefined));
+  assert.deepEqual({ reps: bandResult(cleared).reps, resistance: bandResult(cleared).resistance }, { reps: 10, resistance: '' });
+  assert.equal(bandResult(state(bandDay('2026-10-01', undefined), bandDay('2026-10-03', undefined))).reps, 11);
+  assert.equal(bandResult(state(bandDay('2026-10-01', '藍'), bandDay('2026-10-03', ' 藍 '))).reps, 11);
+});
+
+test('mixed labels across required or repeated sets cannot make an easy band day', () => {
+  const mixed = bandDay('2026-10-08', '藍');
+  mixed[0].resistance = '紅';
+  assert.equal(bandResult(state(bandDay('2026-10-05', '藍'), mixed)).reps, 10);
+  const repeated = [...bandDay('2026-10-08', '藍'),
+    ...bandDay('2026-10-08', '紅').map(record => ({ ...record, id: `${record.id}-repeat` }))];
+  assert.equal(bandResult(state(bandDay('2026-10-05', '藍'), repeated)).reps, 10);
+  const invalid = bandDay('2026-10-08', '藍');
+  invalid[1].resistance = '';
+  assert.equal(bandResult(state(bandDay('2026-10-05', '藍'), invalid)).reps, 10);
+});
+
+test('band negatives reset only the selected context, including unfinished reports', () => {
+  const s = state(bandDay('2026-10-01', '藍'), bandDay('2026-10-03', '藍'),
+    bandDay('2026-10-05', '紅', 11, { pain: true }), bandDay('2026-10-08', '藍', 11));
+  assert.equal(bandResult(s).reps, 11);
+  s.game.trainingFeedback.push(...bandDay('2026-10-12', '藍', 11, { form: false }));
+  s.sessions = s.sessions.filter(session => session.date !== '2026-10-12');
+  assert.equal(bandResult(s).reps, 10);
+});
+
+test('today’s new band label does not change today’s prescription', () => {
+  const s = state(bandDay('2026-10-05', '藍'), bandDay('2026-10-08', '藍'), bandDay(asOf, '紅', 11));
+  assert.deepEqual({ reps: bandResult(s).reps, resistance: bandResult(s).resistance }, { reps: 11, resistance: '藍' });
+  assert.equal(bandContext(s, { includeToday: true }), '紅');
+  assert.equal(bandResult(s, { asOf: '2026-10-20' }).resistance, '紅');
+});
+
+test('band context respects strict 28-day window and bodyweight result shape stays unchanged', () => {
+  const old = state(bandDay('2026-09-20', '藍'));
+  assert.equal(bandContext(old), '');
+  assert.equal(bandContext(state(bandDay('2026-09-21', '藍'))), '藍');
+  const bodyweight = result(state(day('2026-10-05'), day('2026-10-08')));
+  assert.equal(bodyweight.reps, 11);
+  assert.equal(Object.hasOwn(bodyweight, 'resistance'), false);
+  const bodyweightWithLabel = state(day('2026-10-05'), day('2026-10-08'));
+  bodyweightWithLabel.game.trainingFeedback.forEach(record => { record.resistance = 42; });
+  assert.deepEqual(result(bodyweightWithLabel), bodyweight);
+});
+
+test('all three supported band variants use their own label context and Unicode code-point limit', () => {
+  for (const variant of ['彈力帶肩上推', '彈力帶划船', '彈力帶羅馬尼亞硬舉']) {
+    const name = `${variant} 第1組`;
+    const fortyEmoji = '🔴'.repeat(40);
+    const rows = state(day('2026-10-05', 10, { variant }), day('2026-10-08', 10, { variant }));
+    rows.game.trainingFeedback.forEach(record => { record.resistance = fortyEmoji; });
+    assert.equal(latestResistance({ state: rows, asOf, name }), fortyEmoji);
+    assert.equal(result(rows, { name }).reps, 11);
+    rows.game.trainingFeedback.at(-1).resistance += '🔴';
+    assert.equal(result(rows, { name }).reps, 10);
+  }
+});
+
+
+test('overlong raw padding cannot select a band context or supply positive evidence', () => {
+  const padded = ' '.repeat(50) + '藍';
+  const invalidOnly = state(bandDay('2026-10-05', padded), bandDay('2026-10-08', padded));
+  assert.equal(bandContext(invalidOnly), '');
+  assert.equal(bandResult(invalidOnly).reps, 10);
+  const validThenInvalid = state(bandDay('2026-10-05', '藍'), bandDay('2026-10-08', padded));
+  assert.equal(bandResult(validThenInvalid).reps, 10);
 });

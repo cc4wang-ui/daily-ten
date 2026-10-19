@@ -10,7 +10,8 @@ import { lockScreen, unlockScreen } from './wakelock.js';
 import { addTransitions } from './program.js';
 import { XP, IDENTITY } from './content.js';
 import { recordSession, recordSetFeedback } from './session.js';
-import { summary } from './game.js';
+import { summary, todayKey } from './game.js';
+import { latestResistance } from '../game/training-progression.js';
 import { demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
 import { getApprovedExerciseMedia, getExerciseStoryboard } from './exercise-media.js';
 import { renderHome } from './home.js';
@@ -263,10 +264,16 @@ export function startWorkout(seq,type,after,opts){
     const st=seq[idx];
     if(!st||st.mode!=='reps')return;
     setPaused(true);
-    $('t-actual').value=String(done??0);
-    $('t-effort').value='okay';
-    $('t-form').value='yes';
-    $('t-pain').value='no';
+    const existing=getState().game?.trainingFeedback?.find(f=>f?.id===`${runId}-${idx}`
+      &&f.name===st.name&&f.target===st.reps&&f.date===todayKey());
+    $('t-actual').value=String(existing?.actual??done??0);
+    $('t-effort').value=existing?.effort??'okay';
+    $('t-form').value=existing?.form===false?'no':'yes';
+    $('t-pain').value=existing?.pain===true?'yes':'no';
+    const resistance=latestResistance({state:getState(),asOf:todayKey(),name:st.name,includeToday:true});
+    $('t-resistance-fields').hidden=resistance===null;
+    $('t-resistance').value=resistance===null?'':existing
+      ? (typeof existing.resistance==='string'?existing.resistance:'') : resistance;
     $('t-feedback-error').hidden=true;
     $('t-feedback').hidden=false;
     $('train').classList.add('feedback-open');
@@ -281,11 +288,20 @@ export function startWorkout(seq,type,after,opts){
     event.preventDefault();
     const st=seq[idx],actual=Number($('t-actual').value);
     if(!st||st.mode!=='reps')return;
+    const band=latestResistance({state:getState(),asOf:todayKey(),name:st.name,includeToday:true})!==null;
+    const resistance=band?$('t-resistance').value.trim():'';
+    if([...resistance].length>40){
+      $('t-feedback-error').textContent='阻力標記請縮短至 40 字以內。';
+      $('t-feedback-error').hidden=false;
+      $('t-resistance').focus();
+      return;
+    }
     const submit=$('t-feedback').querySelector('[type=submit]');
     submit.disabled=true;
     let result;
     try{result=await recordSetFeedback({id:`${runId}-${idx}`,name:st.name,target:st.reps,actual,
-      effort:$('t-effort').value,pain:$('t-pain').value==='yes',form:$('t-form').value==='yes'});}
+      effort:$('t-effort').value,pain:$('t-pain').value==='yes',form:$('t-form').value==='yes',
+      ...(resistance?{resistance}:{})});}
     catch(e){result={ok:false,saved:false};}
     submit.disabled=false;
     if(!result.ok){

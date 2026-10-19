@@ -3,7 +3,7 @@
 import { getState } from '../state/store.js';
 import { bossItem } from './session.js';
 import { todayWeekday, todayKey, planLevel, gameRules, summary } from './game.js';
-import { canonicalMovement, progressionFor } from '../game/training-progression.js';
+import { canonicalMovement, latestResistance, progressionFor } from '../game/training-progression.js';
 
 /* 有彈力帶時走加載版課表；出差沒帶就關掉，自動退回徒手版 */
 export function hasBand(){return getState().settings.band!==false;}
@@ -206,6 +206,10 @@ export function blockSeq(kind,lv){
       ? {reps:step.reps,baseReps:step.reps,delta:0,reason:holdReason,evidenceDays:[]}
       : progressionFor({state,asOf,name:step.name,baseReps:step.reps,requiredSets:sets.get(movement),rules});
     if(!decision)return step;
+    if(holdReason){
+      const resistance=latestResistance({state,asOf,name:step.name,historyDays:rules?.trainingProgression?.historyDays});
+      if(resistance!==null)decision.resistance=resistance;
+    }
     return {...step,reps:decision.reps,sub:step.sub.replace(/×\d+/,`×${decision.reps}`),
       prescription:{movement,...decision}};
   });

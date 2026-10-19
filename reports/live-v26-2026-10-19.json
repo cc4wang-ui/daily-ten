@@ -1,0 +1,31 @@
+{
+  "app": "https://daily-ten-app.vercel.app/",
+  "startedAt": "2026-10-19T12:01:22.822Z",
+  "pageErrors": [],
+  "version": "daily-ten-v26",
+  "nextLabel": "下一個：90/90 髖旋轉 · 左（先準備 8 秒）",
+  "startSide": "Pigeon Pose · 左右各半 · 第一側",
+  "midSide": "Pigeon Pose · 左右各半 · 第二側",
+  "midCount": "15",
+  "switchCues": 1,
+  "restoredSide": "Pigeon Pose · 左右各半 · 第二側",
+  "restoredCount": "15",
+  "restoredPaused": "繼續",
+  "recovery": {
+    "gaps": [
+      {
+        "secs": 15,
+        "before": "鴿式",
+        "after": "貓牛式"
+      },
+      {
+        "secs": 15,
+        "before": "嬰兒式側伸展",
+        "after": "貓牛式"
+      }
+    ],
+    "estimate": 570,
+    "actual": 570
+  },
+  "pass": true
+}

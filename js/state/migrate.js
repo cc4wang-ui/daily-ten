@@ -152,6 +152,7 @@ function repairNum(spec, v, path, log) {
 function repairText(spec, v, path, log) {
   if (typeof v !== 'string') return BAD;
   if (spec.minLen && v.length < spec.minLen) return BAD;
+  if (spec.nonBlank && !v.trim()) return BAD;
   if (spec.oneOf && !spec.oneOf.includes(v)) return BAD;
   if (isTooLong(spec, v)) {
     if (!spec.truncate) return BAD;
@@ -190,7 +191,7 @@ function repairObj(spec, o, def, path, log) {
     }
     const r = repairNode(fs, cur, d, p, log);
     if (r === BAD) {
-      if (fs.key) return BAD;
+      if (fs.key || fs.dropEntryIfInvalid) return BAD;
       o[key] = defaultFor(fs, d);
       log.add(p, 'reset');
     } else if (r !== cur) {

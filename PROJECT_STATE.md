@@ -1,5 +1,8 @@
 # Daily Ten — Project State
 
+2026-10-19 阻力標記迭代：PR #23 已合併4e0fc42、完整CI994通過8略過，正式v26恢復／換側驗證通過。新分支 codex/band-resistance-feedback 為三類編號彈力帶工作組加入選填阻力標記，同標記才累積次數進階證據；不換算公斤、不自動認定阻力變大。今天的新標記不重算當堂目標，checkpoint固定序列。舊資料無欄位仍有效，新欄位預定可隨備份往返。快取v27；媒體維持19套45/73，28缺示範、完整影片0。
+
+
 PR #23 獨立 QA 42/42 通過（新增 6 項），repo／用語表／媒體檢查通過。Jev 1.13.0 根據公開摘要判 ship_mvp 0.88、五面向皆 partial，未直接操作 App；完整 CI 與正式 v26 待驗。見 reports/qa-training-flow-2026-10-19.md、reports/jev-training-flow-2026-10-19.md。
 
 
