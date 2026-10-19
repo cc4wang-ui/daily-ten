@@ -179,10 +179,10 @@ test('保底版 30 秒平板：靜態影格不帶倒數，求助期間與返回�
 
 test.describe('三張新影格離線預快取', () => {
   test.use({ serviceWorkers: 'allow' });
-  test('SW v24 離線重開可解碼左右分腿蹲及平板', async ({ page, context }) => {
+  test('SW 升版後離線重開可解碼左右分腿蹲及平板', async ({ page, context }) => {
     await openApp(page, { seed: seedState(readFixture('v3.json')) });
     const { cache, assets } = swAssets();
-    expect(cache).toBe('daily-ten-v24');
+    expect(cache).toMatch(/^daily-ten-v\d+$/);
     const files = guides.map(guide => assetPath(guide.asset));
     for (const file of files) expect(assets).toContain(file);
     await waitControlled(page, cache);

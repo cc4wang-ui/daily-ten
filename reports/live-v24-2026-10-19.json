@@ -1,0 +1,39 @@
+{
+  "app": "https://daily-ten-app.vercel.app/",
+  "startedAt": "2026-10-19T00:02:03.805Z",
+  "guides": [
+    {
+      "name": "分腿蹲 · 左",
+      "ms": 1344,
+      "frame": "15",
+      "image": "url(\"./media/exercises/split-squat-left-storyboard.png\")",
+      "visible": true
+    },
+    {
+      "name": "分腿蹲 · 右",
+      "ms": 840,
+      "frame": "15",
+      "image": "url(\"./media/exercises/split-squat-right-storyboard.png\")",
+      "visible": true
+    },
+    {
+      "name": "平板支撐",
+      "ms": 1337,
+      "frame": "15",
+      "image": "url(\"./media/exercises/forearm-plank-storyboard.png\")",
+      "visible": true
+    }
+  ],
+  "pageErrors": [],
+  "version": "daily-ten-v24",
+  "targetText": "每個動作的本次目標\n伏地挺身\n基準 10 → 本次 11 下／組\n\n已累積足夠完整訓練日回報輕鬆達標，本次增加次數。\n\n彈力帶肩上推\n基準 10 → 本次 10 下／組\n\n維持基準。近期回報吃力、未達標、動作不穩或疼痛，本次回到基準。\n\n依已儲存的工作組回報調整次數；沒有足夠回報就維持基準。這不代表彈力帶阻力自動增加。",
+  "pushTargets": [
+    11,
+    11
+  ],
+  "pressTargets": [
+    10,
+    10
+  ],
+  "pass": true
+}

@@ -90,6 +90,7 @@ for (const file of files.filter(f => /^media\/exercises\/.*\.(mp4|webm)$/.test(f
   if (!approvedPaths.has(`./${file}`)) fail('media', `未核准的影片不應進入正式 App：${file}`);
 }
 const storyboardPaths = new Set();
+const storyboardEntries = new Map();
 const storyboardNames = new Set();
 for (const entry of EXERCISE_STORYBOARDS) {
   if (!/^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.png$/.test(entry.src) ||
@@ -101,13 +102,20 @@ for (const entry of EXERCISE_STORYBOARDS) {
     fail('media', '連續影格登錄資料無效');
     continue;
   }
-  if (storyboardPaths.has(entry.src)) fail('media', `連續影格重複登錄：${entry.src}`);
+  const shared = entry.sameMotionAs && storyboardEntries.get(entry.sameMotionAs);
+  const explicitTempoVariant = shared && shared.src === entry.src &&
+    shared.columns === entry.columns && shared.frames === entry.frames &&
+    Array.isArray(shared.frameMs) && Array.isArray(entry.frameMs) &&
+    JSON.stringify(shared.frameMs) !== JSON.stringify(entry.frameMs);
+  if (entry.sameMotionAs && !explicitTempoVariant) fail('media', `連續影格共用節奏登錄無效：${entry.sameMotionAs}`);
+  if (storyboardPaths.has(entry.src) && !explicitTempoVariant) fail('media', `連續影格重複登錄：${entry.src}`);
   storyboardPaths.add(entry.src);
   if (!existsSync(join(ROOT, entry.src))) fail('media', `連續影格檔案不存在：${entry.src}`);
   if (!assets.includes(entry.src)) fail('media', `連續影格未加入離線預快取：${entry.src}`);
   for (const name of entry.names) {
     if (storyboardNames.has(name)) fail('media', `動作名稱重複對應連續影格：${name}`);
     storyboardNames.add(name);
+    storyboardEntries.set(name, entry);
   }
 }
 for (const file of files.filter(f => /^media\/exercises\/.*\.png$/.test(f))) {
