@@ -1,6 +1,6 @@
 {
   "status": "completed_summary_judgment",
-  "reviewedAt": "2026-10-19T11:53:18.365Z",
+  "reviewedAt": "2026-10-19T11:53:56.411Z",
   "request": {
     "model": "jev-latest",
     "state": {
@@ -14,12 +14,12 @@
         "prUrl": "https://github.com/cc4wang-ui/daily-ten/pull/23",
         "cache": "v26",
         "qaStatus": "pass",
-        "qaSummary": "Independent QA PASS: 42 targeted mobile Chrome tests including 6 new cases; explicit midpoint cue on three bilateral holds, pause/help/reload preserve side and time without replay, ordinary plank has no cue; recovery gaps15seconds without duplicate preparation, estimate matches sequence; real next movement and trailing completion label correct. Full PR CI pending.",
+        "qaSummary": "Independent QA PASS: 42 targeted mobile Chrome tests including 6 new cases; midpoint cue for three bilateral holds; pause/help/reload preserve side and time without cue replay; ordinary timers unaffected; two recovery gaps15seconds without duplicate preparation; estimates equal sequence; next real movement and final rest label verified. No media added in PR23. Full PR CI pending.",
         "ciStatus": "pending",
         "ciSummary": "Full PR CI pending.",
         "newLiveVerification": "V26 not yet verified. Previous v25 production loaded and scrubbed four new guides, verified 3/4-second T tempos and actual push11/press10 targets with no page errors."
       },
-      "movement": "19 unique local AI PNG sheets, each 4x4 with 16 frames, represented by 20 catalog entries. 45 of 73 exact programmed names have a guide; 28 missing; zero complete real videos. Four new images in this increment, including prone Y and T raises. Regular and slow T share artwork but have separate 3-second and 4-second catalog playback. AI illustrations are labeled as such, with slow/scrub/replay controls. Some pose and scale drift remains; full motion-form correctness is not established. Dead bug was rejected after two repairs because opposite-limb pairing remained unclear.",
+      "movement": "19 unique local AI PNG sheets, each 4x4 with 16 frames, represented by 20 catalog entries. 45 of 73 exact programmed names have a guide; 28 missing; zero complete real videos. The previous PR22 added four images including prone Y and T raises; current PR23 adds no media. Regular and slow T share artwork but have separate 3-second and 4-second catalog playback. AI illustrations are labeled as such, with slow/scrub/replay controls. Some pose and scale drift remains; full motion-form correctness is not established. Dead bug was rejected after two repairs because opposite-limb pairing remained unclear.",
       "help": "New flow fix: the current side is derived from remaining time and restores paused; help and reload do not repeat the midpoint switch cue. In-app help pauses a workout and retains exercise and seconds. Reload restores a paused checkpoint. Boss HRP/plank and unsaved results restore paused; no background time counted; interrupted tests are labeled segmented. Slow image downloads show a 15-second hint and fail after 120 seconds; stale callbacks are cleaned. Previous v24 live verification loaded and scrubbed three guides. iPhone eviction and physical-device behavior remain unverified.",
       "timing": "New flow fix: explicit bilateral pigeon, side child pose and supine twist steps show first/second side, narrate switch only when active time crosses midpoint without changing total seconds; no cue on ordinary timers. Recovery group changes previously had 8-second preparation on each side of a 15-second gap, totaling31; now15 without duplicate preparation. Estimate sums actual sequence. Workout timing uses repetitions times tempo, holds, rests, preparation and transitions. Regular prone T guide has a 3-second cycle, slow T has a separate 4-second cycle. Plank middle frames are prolonged to show a hold; actual hold duration follows workout timer. Animation timing illustrates movement and is not an individualized prescription.",
       "program": "Two push days, two lower-body exposures, two pull exposures, one recovery day, and Boss day. Foot-anchored band only. No-band upper-back movement is not equivalent to loaded pulling. Bounded per-movement progression uses the prior 28 days of exact variants: two completed dates with every required work set easy at current target increase one repetition, capped at base+2 and variant ceiling. Negative feedback resets baseline even on unfinished days; today excluded; deload gets no addition; active checkpoint dose remains fixed. Variants and sides are independent; repeated sets count one day; missing ordinals or duplicate IDs do not qualify. Prior v24 live verification showed actual push11/press10 targets. Actual band resistance and range of motion are not tracked, and weekly volume is not automatically adjusted.",
@@ -107,10 +107,10 @@
       "timing": {
         "type": "choice",
         "choice": "partial",
-        "confidence": 0.89,
+        "confidence": 0.88,
         "probabilities": {
-          "pass": 0.07,
-          "partial": 0.93,
+          "pass": 0.08,
+          "partial": 0.92,
           "fail": 0
         }
       },
@@ -127,25 +127,25 @@
       "navigation": {
         "type": "choice",
         "choice": "partial",
-        "confidence": 0.92,
+        "confidence": 0.97,
         "probabilities": {
-          "pass": 0.05,
-          "partial": 0.95,
+          "pass": 0.02,
+          "partial": 0.98,
           "fail": 0
         }
       },
       "mvp": {
         "type": "choice",
         "choice": "ship_mvp",
-        "confidence": 0.86,
+        "confidence": 0.76,
         "probabilities": {
-          "ship_mvp": 0.93,
-          "draft_only": 0.07
+          "ship_mvp": 0.88,
+          "draft_only": 0.12
         }
       }
     },
     "usage": {
-      "input_tokens": 2122,
+      "input_tokens": 2138,
       "output_tokens": 213
     }
   }
