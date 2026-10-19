@@ -1,5 +1,8 @@
 # Daily Ten — Project State
 
+PR #23 獨立 QA 42/42 通過（新增 6 項），repo／用語表／媒體檢查通過。Jev 1.13.0 根據公開摘要判 ship_mvp 0.93、五面向皆 partial，未直接操作 App；完整 CI 與正式 v26 待驗。見 reports/qa-training-flow-2026-10-19.md、reports/jev-training-flow-2026-10-19.md。
+
+
 2026-10-19 接續：PR #22 已合併 `086efed`，完整 CI 988 通過／8 略過，獨立 QA 36 通過。當前 `codex/training-side-cues` 修三項已重現問題：雙側計時伸展中點缺換側提示、恢復日 15 秒換組被前後各加 8 秒準備、下一步只顯示準備而非動作。預定快取 v26；媒體仍十九套、45/73，缺 28、完整影片 0。提踵素材仍為候選，未納入本輪。
 
 

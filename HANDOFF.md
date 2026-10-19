@@ -1,5 +1,8 @@
 # Daily Ten — 下一個對話接手
 
+PR #23 獨立 QA 42/42 通過（新增 6 項），repo／用語表／媒體檢查通過。Jev 1.13.0 根據公開摘要判 ship_mvp 0.93、五面向皆 partial，未直接操作 App；完整 CI 與正式 v26 待驗。見 reports/qa-training-flow-2026-10-19.md、reports/jev-training-flow-2026-10-19.md。
+
+
 正式 v25 已完成隔離行動 Chrome 驗證：四套新圖皆顯示與逐格可用，T 舉 3000／4000ms，實際伏地 11／肩推 10，無頁面錯誤；見 reports/live-v25-2026-10-19.md。接下來先完成 training-side-cues 獨立 QA／完整 CI／合併與 v26 正式驗證。
 
 

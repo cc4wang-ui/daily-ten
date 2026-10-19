@@ -1,0 +1,152 @@
+{
+  "status": "completed_summary_judgment",
+  "reviewedAt": "2026-10-19T11:53:18.365Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "sources": [
+        "https://github.com/cc4wang-ui/daily-ten/pull/23",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/training-side-cues/reports/qa-training-flow-2026-10-19.md",
+        "https://github.com/cc4wang-ui/daily-ten/pull/21"
+      ],
+      "scope": "Public open-source personal offline workout PWA. Judge only this supplied public summary. You have not inspected the repository, images, videos, application, or devices. External professional approval is outside this release scope; do not infer validated exercise form.",
+      "release": {
+        "prUrl": "https://github.com/cc4wang-ui/daily-ten/pull/23",
+        "cache": "v26",
+        "qaStatus": "pass",
+        "qaSummary": "Independent QA PASS: 42 targeted mobile Chrome tests including 6 new cases; explicit midpoint cue on three bilateral holds, pause/help/reload preserve side and time without replay, ordinary plank has no cue; recovery gaps15seconds without duplicate preparation, estimate matches sequence; real next movement and trailing completion label correct. Full PR CI pending.",
+        "ciStatus": "pending",
+        "ciSummary": "Full PR CI pending.",
+        "newLiveVerification": "V26 not yet verified. Previous v25 production loaded and scrubbed four new guides, verified 3/4-second T tempos and actual push11/press10 targets with no page errors."
+      },
+      "movement": "19 unique local AI PNG sheets, each 4x4 with 16 frames, represented by 20 catalog entries. 45 of 73 exact programmed names have a guide; 28 missing; zero complete real videos. Four new images in this increment, including prone Y and T raises. Regular and slow T share artwork but have separate 3-second and 4-second catalog playback. AI illustrations are labeled as such, with slow/scrub/replay controls. Some pose and scale drift remains; full motion-form correctness is not established. Dead bug was rejected after two repairs because opposite-limb pairing remained unclear.",
+      "help": "New flow fix: the current side is derived from remaining time and restores paused; help and reload do not repeat the midpoint switch cue. In-app help pauses a workout and retains exercise and seconds. Reload restores a paused checkpoint. Boss HRP/plank and unsaved results restore paused; no background time counted; interrupted tests are labeled segmented. Slow image downloads show a 15-second hint and fail after 120 seconds; stale callbacks are cleaned. Previous v24 live verification loaded and scrubbed three guides. iPhone eviction and physical-device behavior remain unverified.",
+      "timing": "New flow fix: explicit bilateral pigeon, side child pose and supine twist steps show first/second side, narrate switch only when active time crosses midpoint without changing total seconds; no cue on ordinary timers. Recovery group changes previously had 8-second preparation on each side of a 15-second gap, totaling31; now15 without duplicate preparation. Estimate sums actual sequence. Workout timing uses repetitions times tempo, holds, rests, preparation and transitions. Regular prone T guide has a 3-second cycle, slow T has a separate 4-second cycle. Plank middle frames are prolonged to show a hold; actual hold duration follows workout timer. Animation timing illustrates movement and is not an individualized prescription.",
+      "program": "Two push days, two lower-body exposures, two pull exposures, one recovery day, and Boss day. Foot-anchored band only. No-band upper-back movement is not equivalent to loaded pulling. Bounded per-movement progression uses the prior 28 days of exact variants: two completed dates with every required work set easy at current target increase one repetition, capped at base+2 and variant ceiling. Negative feedback resets baseline even on unfinished days; today excluded; deload gets no addition; active checkpoint dose remains fixed. Variants and sides are independent; repeated sets count one day; missing ordinals or duplicate IDs do not qualify. Prior v24 live verification showed actual push11/press10 targets. Actual band resistance and range of motion are not tracked, and weekly volume is not automatically adjusted.",
+      "navigation": "New next-movement label skips preparation, rest and group-change gaps to name the real next movement and indicates immediate gap duration; trailing rest indicates completion. Today shows next action; active/current/next/progress/help/pause/exit are available; mobile sticky return remains visible. Target cards show baseline, current repetitions and reason. No independent user study. Current increment QA and full CI status are recorded under release; prior live checks must not be presented as verification of this increment."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Using only state.movement and state.release, how fully is this dimension delivered? Missing important evidence or features means partial. Do not infer complete delivery from test counts or past releases. This is a summary judgment, not direct QA or exercise-form validation.",
+        "criteria": {
+          "pass": "Supplied evidence meets this dimension with no important remaining gap in the stated scope.",
+          "partial": "Useful implementation exists, but important gaps or unverified behavior remain.",
+          "fail": "The central requirement is unmet."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Using only state.help and state.release, how fully is this dimension delivered? Missing important evidence or features means partial. Do not infer complete delivery from test counts or past releases. This is a summary judgment, not direct QA or exercise-form validation.",
+        "criteria": {
+          "pass": "Supplied evidence meets this dimension with no important remaining gap in the stated scope.",
+          "partial": "Useful implementation exists, but important gaps or unverified behavior remain.",
+          "fail": "The central requirement is unmet."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Using only state.timing and state.release, how fully is this dimension delivered? Missing important evidence or features means partial. Do not infer complete delivery from test counts or past releases. This is a summary judgment, not direct QA or exercise-form validation.",
+        "criteria": {
+          "pass": "Supplied evidence meets this dimension with no important remaining gap in the stated scope.",
+          "partial": "Useful implementation exists, but important gaps or unverified behavior remain.",
+          "fail": "The central requirement is unmet."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Using only state.program and state.release, how fully is this dimension delivered? Missing important evidence or features means partial. Do not infer complete delivery from test counts or past releases. This is a summary judgment, not direct QA or exercise-form validation.",
+        "criteria": {
+          "pass": "Supplied evidence meets this dimension with no important remaining gap in the stated scope.",
+          "partial": "Useful implementation exists, but important gaps or unverified behavior remain.",
+          "fail": "The central requirement is unmet."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Using only state.navigation and state.release, how fully is this dimension delivered? Missing important evidence or features means partial. Do not infer complete delivery from test counts or past releases. This is a summary judgment, not direct QA or exercise-form validation.",
+        "criteria": {
+          "pass": "Supplied evidence meets this dimension with no important remaining gap in the stated scope.",
+          "partial": "Useful implementation exists, but important gaps or unverified behavior remain.",
+          "fail": "The central requirement is unmet."
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "instructions": "Based only on this supplied public evidence and current release verification status, can this ship as an iterative personal MVP with 28 missing demo names, zero complete real videos, AI motion limitations and unverified iPhone eviction clearly disclosed? This does not judge full product completion or directly validate form.",
+        "criteria": {
+          "ship_mvp": "Usable iterative personal MVP with disclosed material limitations.",
+          "draft_only": "Central gaps or current evidence prevent even iterative personal MVP release."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 1,
+          "fail": 0
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.94,
+        "probabilities": {
+          "pass": 0.04,
+          "partial": 0.96,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.89,
+        "probabilities": {
+          "pass": 0.07,
+          "partial": 0.93,
+          "fail": 0
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.98,
+        "probabilities": {
+          "pass": 0.01,
+          "partial": 0.99,
+          "fail": 0
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.92,
+        "probabilities": {
+          "pass": 0.05,
+          "partial": 0.95,
+          "fail": 0
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.86,
+        "probabilities": {
+          "ship_mvp": 0.93,
+          "draft_only": 0.07
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 2122,
+      "output_tokens": 213
+    }
+  }
+}
