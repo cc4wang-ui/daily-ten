@@ -104,7 +104,7 @@ test('新增影格只對應明確名稱，兩組彈力帶與五輪雨天皆對�
     const resolve = name => getExerciseStoryboard(name)?.src ?? null;
     const band = ['彈力帶肩上推', '彈力帶羅馬尼亞硬舉'].map(name => [resolve(name), resolve(`${name} 第1組`), resolve(`${name} 第2組`)]);
     const rain = ['原地快走', '側步開合'].map(name => [resolve(name), ...Array.from({ length: 5 }, (_, i) => resolve(`${name} R${i + 1}`))]);
-    const unknown = ['彈力帶肩上推 第3組', '彈力帶羅馬尼亞硬舉 第3組', '彈力帶側平舉', '羅馬尼亞硬舉', '原地快走 R6', '側步開合 R6', '開合跳'].map(resolve);
+    const unknown = ['彈力帶肩上推 第3組', '彈力帶羅馬尼亞硬舉 第3組', '彈力帶側平舉 第1組', '羅馬尼亞硬舉', '原地快走 R6', '側步開合 R6', '開合跳'].map(resolve);
     return { band, rain, unknown };
   });
   expect(result.band).toEqual(guides.slice(0, 2).map(g => Array(3).fill(`./media/exercises/${g.asset}`)));

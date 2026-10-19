@@ -2,7 +2,7 @@
 
 > 由 `node tools/report-exercise-media.mjs --write` 產生。這是素材製作與審核清單，不是動作品質認證。
 
-目前課表與 Boss 共 **73 個精確名稱**；完整本機影片 **0**，AI 16 格連續影格 **38**，兩者都沒有的名稱 **35**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。
+目前課表與 Boss 共 **73 個精確名稱**；完整本機影片 **0**，AI 16 格連續影格 **45**，兩者都沒有的名稱 **28**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。
 
 | 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 16 格連續影格 |
 | --- | --- | --- | --- |
@@ -32,9 +32,9 @@
 | 派克伏地挺身 第2組 | 無帶／週一、無帶／週四 | — | — |
 | 穿針式 · 右 | 彈力帶／週二、彈力帶／週六、彈力帶／週四、無帶／週二、無帶／週六、無帶／週四 | — | — |
 | 穿針式 · 左 | 彈力帶／週二、彈力帶／週六、彈力帶／週四、無帶／週二、無帶／週六、無帶／週四 | — | — |
-| 俯臥 T 舉 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | — |
-| 俯臥 T 舉 · 慢速 | 無帶／週三 | — | — |
-| 俯臥 Y 舉 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | — |
+| 俯臥 T 舉 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | ./media/exercises/prone-t-raise-storyboard.png |
+| 俯臥 T 舉 · 慢速 | 無帶／週三 | — | ./media/exercises/prone-t-raise-storyboard.png |
+| 俯臥 Y 舉 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | ./media/exercises/prone-y-raise-storyboard.png |
 | 俯臥半程雪天使 | 彈力帶／週二、彈力帶／週六、彈力帶／週四、無帶／週二、無帶／週六、無帶／週四 | — | — |
 | 原地快走 R1 | 彈力帶／雨天、無帶／雨天 | — | ./media/exercises/march-in-place-storyboard.png |
 | 原地快走 R2 | 彈力帶／雨天、無帶／雨天 | — | ./media/exercises/march-in-place-storyboard.png |
@@ -65,10 +65,10 @@
 | 彈力帶肩上推 第2組 | 彈力帶／週一、彈力帶／週四 | — | ./media/exercises/band-overhead-press-storyboard.png |
 | 彈力帶肩外旋 · 右 | 彈力帶／週三 | — | — |
 | 彈力帶肩外旋 · 左 | 彈力帶／週三 | — | — |
-| 彈力帶側平舉 | 彈力帶／週一、彈力帶／週四 | — | — |
-| 彈力帶開肩 加練 | 彈力帶／週三 | — | — |
-| 彈力帶開肩 第1組 | 彈力帶／週三 | — | — |
-| 彈力帶開肩 第2組 | 彈力帶／週三 | — | — |
+| 彈力帶側平舉 | 彈力帶／週一、彈力帶／週四 | — | ./media/exercises/band-lateral-raise-storyboard.png |
+| 彈力帶開肩 加練 | 彈力帶／週三 | — | ./media/exercises/band-pull-apart-storyboard.png |
+| 彈力帶開肩 第1組 | 彈力帶／週三 | — | ./media/exercises/band-pull-apart-storyboard.png |
+| 彈力帶開肩 第2組 | 彈力帶／週三 | — | ./media/exercises/band-pull-apart-storyboard.png |
 | 彈力帶羅馬尼亞硬舉 第1組 | 彈力帶／週二 | — | ./media/exercises/band-rdl-storyboard.png |
 | 彈力帶羅馬尼亞硬舉 第2組 | 彈力帶／週二 | — | ./media/exercises/band-rdl-storyboard.png |
 | 躺姿脊椎扭轉 | 彈力帶／週三、彈力帶／週六、無帶／週三、無帶／週六 | — | — |

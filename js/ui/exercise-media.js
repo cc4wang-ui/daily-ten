@@ -68,6 +68,32 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   src: './media/exercises/forearm-plank-storyboard.png', columns: 4, frames: 16,
   note: '靜態保持，影格包含進入與退出；訓練／測驗時間以目前計時器為準，可暫停中間影格看姿勢。',
   frameMs: Object.freeze([180,220,260,300,1500,1500,1500,1500,1500,1500,1500,1500,300,260,220,180])
+}),Object.freeze({
+  names: Object.freeze(['彈力帶開肩','彈力帶開肩 第1組','彈力帶開肩 第2組','彈力帶開肩 加練']),
+  src: './media/exercises/band-pull-apart-storyboard.png', columns: 4, frames: 16,
+  note: '雙手握住帶子，在胸前水平向兩側拉開再慢慢回到前方；帶子不固定在門、牆或腳下。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['彈力帶側平舉']),
+  src: './media/exercises/band-lateral-raise-storyboard.png', columns: 4, frames: 16,
+  note: '雙腳踩穩帶子，雙臂從身側抬到肩高，再慢慢放下；不抬過肩高。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['俯臥 Y 舉']),
+  src: './media/exercises/prone-y-raise-storyboard.png', columns: 4, frames: 16,
+  note: '俯臥時雙臂呈 Y 字形、拇指朝上，小幅度抬起手臂；軀幹與雙腿維持貼地。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['俯臥 T 舉']),
+  src: './media/exercises/prone-t-raise-storyboard.png', columns: 4, frames: 16,
+  note: '俯臥時雙臂呈 T 字形，小幅度抬起手臂；軀幹與雙腿維持貼地。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['俯臥 T 舉 · 慢速']),
+  src: './media/exercises/prone-t-raise-storyboard.png', columns: 4, frames: 16,
+  sameMotionAs: '俯臥 T 舉',
+  note: '俯臥時雙臂呈 T 字形，小幅度抬起手臂；軀幹與雙腿維持貼地。慢速影格每次循環約 4 秒。',
+  frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;
