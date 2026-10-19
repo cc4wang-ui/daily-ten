@@ -1,0 +1,143 @@
+{
+  "reviewedAt": "2026-10-19T15:42:50.922Z",
+  "request": {
+    "model": "jev-latest",
+    "state": {
+      "sources": [
+        "https://github.com/cc4wang-ui/daily-ten/pull/24",
+        "https://github.com/cc4wang-ui/daily-ten/blob/codex/band-resistance-feedback/reports/qa-resistance-feedback-2026-10-19.md",
+        "https://github.com/cc4wang-ui/daily-ten/pull/23"
+      ],
+      "scope": "Public personal offline workout PWA. Judge only supplied public summary; no direct inspection of code, app, images or device. User judges motion themselves; external professional review is outside this release scope.",
+      "movement": "19 local AI PNG sheets with16frames each cover45of73 exactnames.28missing and0complete realvideos. Guides allowpause,slow,scrub,replay; slightAIpose/scalejitter remains. No newmedia in this increment.",
+      "help": "In-apphelp freezes currentstep/count; reload restorespausedcheckpoint. Previous livev26 verified midpointsidecue once, secondside15seconds restoredpaused, no pageerrors. Currentbandfeedback keeps activeworkoutrepsfixed and sameIDsavestate. ActualiPhoneeviction/unattendediOSbehavior unverified.",
+      "timing": "Repetitions×tempo,holds,rests,prep,geartransitions determineestimate. Previousv26production recoveryestimate and actualsequenceboth570seconds withtwo15secondgroupchanges. Bilateralholdswitchcues derivefromremainingtime withoutchangingtotal. Noindividualizedloadmeasurement orphysiologicalvalidation.",
+      "program": "Existingweeklypush/lower/pull/recovery split and bounded per-movement progression remain. New optional customresistancelabel for numberedbandpress,row,RDL. Prior28days latestvalidsamevariantsetup selectscontext; matchingcompleteeasyworksets ontwofulldates earn+1, maxbase+2/variantceiling. Named/unrecorded/differentsetups neverborrowpositiveevidence; mixedlabels ondate cannotqualify. Todaylabelcannotrewrite todaytarget oractivecheckpoint; nextgamedayuseslatestpriorlabel. Differentvariants separate. Negativefeedback resetsselectedsetup only. Label isusertext, notmeasuredkgoractualbandtension; usermustuseconsistentlabels. Noautomaticweeklyvolumeadjustment.",
+      "navigation": "Feedbackinput prefills lastvalidsamevariantlabel includingtoday; editingexistingID usesitsownlabel, blankclears. Targetcarddisplaysprior-daysetupforcurrenttarget. Nonbandinputhidden/ignored. SameIDretryidempotent, formstaysonsavefailure. Max40Unicodepoints; invalidstoredlabel dropswholefeedbackentry, nevertruncatedintodifferentsetup; oldbackupmissingfieldunchanged, newlabelbackuproundtripverified. Noindependentuserstudy.",
+      "verification": "IndependentQA PASS: 19relatedbrowser tests including8new,41purelogic/data tests; offline save/reload and backup/import passed; sameIDedit-clear reviewed but not separately automated.. Pureprogression37passed, statefeedback4passed, schema/migration/backup295passed. FullPRCIpending, v27productionnotyetverified. Noactualuserdata supplied."
+    },
+    "questions": {
+      "movement": {
+        "type": "choice",
+        "instructions": "Using only state.movement and state.verification, how fully is this requirement delivered? Missing material features or evidence means partial. This is a summary judgment, not direct QA. Do not assume completion from tests.",
+        "criteria": {
+          "pass": "Evidence meets requirement without material remaining gaps.",
+          "partial": "Useful implementation with important remaining gaps or unverified behavior.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "help": {
+        "type": "choice",
+        "instructions": "Using only state.help and state.verification, how fully is this requirement delivered? Missing material features or evidence means partial. This is a summary judgment, not direct QA. Do not assume completion from tests.",
+        "criteria": {
+          "pass": "Evidence meets requirement without material remaining gaps.",
+          "partial": "Useful implementation with important remaining gaps or unverified behavior.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "instructions": "Using only state.timing and state.verification, how fully is this requirement delivered? Missing material features or evidence means partial. This is a summary judgment, not direct QA. Do not assume completion from tests.",
+        "criteria": {
+          "pass": "Evidence meets requirement without material remaining gaps.",
+          "partial": "Useful implementation with important remaining gaps or unverified behavior.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "program": {
+        "type": "choice",
+        "instructions": "Using only state.program and state.verification, how fully is this requirement delivered? Missing material features or evidence means partial. This is a summary judgment, not direct QA. Do not assume completion from tests.",
+        "criteria": {
+          "pass": "Evidence meets requirement without material remaining gaps.",
+          "partial": "Useful implementation with important remaining gaps or unverified behavior.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "instructions": "Using only state.navigation and state.verification, how fully is this requirement delivered? Missing material features or evidence means partial. This is a summary judgment, not direct QA. Do not assume completion from tests.",
+        "criteria": {
+          "pass": "Evidence meets requirement without material remaining gaps.",
+          "partial": "Useful implementation with important remaining gaps or unverified behavior.",
+          "fail": "Central requirement unmet."
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "instructions": "Can this be released as an iterative personal MVP, with28missingdemo names,0completevideos,subjectivecustomloadlabels andunverifiediPhonebehavior disclosed? Judge currentpublicevidence; notfullproductcompletion.",
+        "criteria": {
+          "ship_mvp": "Usable iterative personal MVP with material limitations disclosed.",
+          "draft_only": "Central gaps prevent even iterative personal MVP release."
+        }
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.92,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.95,
+          "fail": 0.05
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 1,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.98,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.99,
+          "fail": 0.01
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 1,
+          "fail": 0
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 1,
+          "fail": 0
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.92,
+        "probabilities": {
+          "ship_mvp": 0.96,
+          "draft_only": 0.04
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1847,
+      "output_tokens": 213
+    }
+  }
+}
