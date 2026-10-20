@@ -5,16 +5,22 @@ import { getState, saveState } from '../state/store.js';
 import { dateOffset, isoWeek } from './dates.js';
 import { XP } from './content.js';
 import { todayKey, keyToDate } from './game.js';
+import { canonicalMovement } from '../game/training-progression.js';
 
 /* ================= SESSION / STREAK LOGIC ================= */
 export function sessionOn(date){return getState().sessions.find(x=>x.date===date);}
-export async function recordSetFeedback({ id, name, target, actual, effort, pain, form }){
+export async function recordSetFeedback({ id, name, target, actual, effort, pain, form, resistance }){
   if(typeof id!=='string'||!id||id.length>60||typeof name!=='string'||!name||!Number.isInteger(target)||target<1||target>999
     ||!Number.isInteger(actual)||actual<0||actual>999
     ||!['easy','okay','hard'].includes(effort)||typeof pain!=='boolean'||typeof form!=='boolean')return {ok:false,saved:false};
+  const band=canonicalMovement(name)?.startsWith('彈力帶')===true;
+  if(band&&resistance!==undefined&&typeof resistance!=='string')return {ok:false,saved:false};
+  const label=band&&typeof resistance==='string'?resistance.trim():'';
+  if([...label].length>40)return {ok:false,saved:false};
   const game=getState().game;
   if(!Array.isArray(game.trainingFeedback))game.trainingFeedback=[];
   const entry={id,date:todayKey(),name,target,actual,effort,pain,form};
+  if(label)entry.resistance=label;
   const existing=game.trainingFeedback.findIndex(f=>f&&f.id===id);
   if(existing>=0)game.trainingFeedback[existing]=entry;
   else game.trainingFeedback.push(entry);

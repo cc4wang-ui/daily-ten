@@ -1,5 +1,14 @@
 # Daily Ten — 下一個對話接手
 
+PR #24 阻力標記：獨立 QA PASS，新增瀏覽器8項、相關19項及純規則／資料41項通過；資料層另295項相容性通過。Jev1.13公開摘要判ship_mvp0.96、五面向皆partial，不是直接操作或完整需求完成認證。完整CI與正式v27驗證待完成。見 reports/qa-resistance-feedback-2026-10-19.md、reports/jev-resistance-feedback-2026-10-19.md。
+
+
+2026-10-19 阻力標記迭代：PR #23 已合併4e0fc42、完整CI994通過8略過，正式v26恢復／換側驗證通過。新分支 codex/band-resistance-feedback 為三類編號彈力帶工作組加入選填阻力標記，同標記才累積次數進階證據；不換算公斤、不自動認定阻力變大。今天的新標記不重算當堂目標，checkpoint固定序列。舊資料無欄位仍有效，新欄位預定可隨備份往返。快取v27；媒體維持19套45/73，28缺示範、完整影片0。
+
+
+2026-10-19 最新已交付：PR #22 `086efed`（CI 988 通過／8 略過）與 PR #23 `4e0fc42`（CI 994 通過／8 略過）已合併。正式站 v26 隔離行動 Chrome 驗證通過：鴿式中點換第二側、語音一次、暫停重載保留第二側15秒、下一實際動作、恢復日兩個15秒換組，估算與實際570秒，無頁面錯誤。見本機 reports/live-v26-2026-10-19.{md,json}；此交付後的 live 報告及本段尚未提交，下一輪一起納入，勿丟棄。主程式已在 main。媒體十九套45/73、28缺示範、完整影片0。提踵三種各2次修正仍跳格，未納入；生成紀錄 /private/tmp/daily-ten-calf-motion-generation-report.json。Jev最新公開摘要 ship_mvp0.88、五面向partial，不是完整產品完成認證。下一輪依缺片與課表阻力記錄繼續，勿重做已合併流程。
+
+
 PR #23 獨立 QA 42/42 通過（新增 6 項），repo／用語表／媒體檢查通過。Jev 1.13.0 根據公開摘要判 ship_mvp 0.88、五面向皆 partial，未直接操作 App；完整 CI 與正式 v26 待驗。見 reports/qa-training-flow-2026-10-19.md、reports/jev-training-flow-2026-10-19.md。
 
 

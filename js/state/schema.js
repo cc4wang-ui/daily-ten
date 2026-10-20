@@ -139,6 +139,7 @@ export function defaultState(now = new Date()) {
    key:      陣列項目的識別欄位；匯入時必要，載入時無效 → 整筆丟掉
    nullable: 允許 null
    fill:false 載入時缺少就維持缺少（不補預設值）
+   dropEntryIfInvalid:true 選填欄位有值但無效時，載入時丟棄所屬陣列項目
    def:      陣列項目內非識別欄位的預設值（其餘欄位的預設值取自 defaultState）
    clamp:    載入時超出範圍的整數夾回範圍內（只有 level）
    truncate: 載入時過長的文字截斷（只有使用者可編輯的長文字）
@@ -180,7 +181,8 @@ const trainingFeedbackEntry = obj({
   actual: int({ min: 0, max: 999, key: true }),
   effort: text({ minLen: 1, maxLen: LIMITS.shortText, oneOf: ['easy', 'okay', 'hard'], key: true }),
   pain: bool({ key: true }),
-  form: bool({ key: true })
+  form: bool({ key: true }),
+  resistance: text({ minLen: 1, nonBlank: true, maxLen: 40, fill: false, dropEntryIfInvalid: true })
 });
 /* 打卡當時的目標（之後改設定不會重算過去）；三個欄位缺一或格式錯 → 整個 target 改成 null（不捏造歷史） */
 const sleepTarget = obj({
@@ -367,7 +369,7 @@ function check(spec, v, path, errors) {
       return;
     case 'str':
       if (typeof v !== 'string') errors.push(wrongType(spec, path));
-      else if (spec.minLen && v.length < spec.minLen) errors.push(emptyText(path));
+      else if ((spec.minLen && v.length < spec.minLen) || (spec.nonBlank && !v.trim())) errors.push(emptyText(path));
       else if (isTooLong(spec, v)) errors.push(tooLong(spec, path));
       else if (spec.oneOf && !spec.oneOf.includes(v)) errors.push(notOneOf(spec, path));
       return;

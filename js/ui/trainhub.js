@@ -86,7 +86,14 @@ function renderPrescription(plan,lv){
     reason.className='prescription-reason';
     const explanation=reasons[target.reason]||reasons.baseline;
     reason.textContent=(target.delta===0&&!explanation.startsWith('維持基準')?'維持基準。':'')+explanation;
-    heading.append(name,dose);row.append(heading,reason);list.append(row);
+    heading.append(name,dose);row.append(heading,reason);
+    if(typeof target.resistance==='string'){
+      const resistance=document.createElement('p');
+      resistance.className='prescription-reason';
+      resistance.textContent='比對阻力標記：'+(target.resistance||'未記錄');
+      row.append(resistance);
+    }
+    list.append(row);
   }
 }
 
