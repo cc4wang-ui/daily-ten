@@ -1,0 +1,431 @@
+{
+  "experimentalImages": true,
+  "publicCommit": "8d12f940256d4ebce4c1440ae286ef66dd60be6d",
+  "batches": [
+    {
+      "manifest": [
+        {
+          "name": "needle-left",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/needle-left-storyboard.png",
+          "sha256": "e2d53cc84013b9ae29d080394b95cc7a703d307f67d5dc75dd35ff8c6c625c1d",
+          "question": "image_1"
+        },
+        {
+          "name": "needle-right",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/needle-right-storyboard.png",
+          "sha256": "db84b5df0d7955b32f13a7c252316f1dfbf64a42b269bc78fb7d55a237cf4074",
+          "question": "image_2"
+        },
+        {
+          "name": "side-plank-left",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/side-plank-left-storyboard.png",
+          "sha256": "a45fb5cdb5ce6d3ab144812a0113cccf3d8bc90428f4fd975b17029c392c3eef",
+          "question": "image_3"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_2": {
+          "type": "choice",
+          "instructions": "Inspect state.images[1].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_3": {
+          "type": "choice",
+          "instructions": "Inspect state.images[2].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.4,
+            "probabilities": {
+              "usable": 0.6,
+              "repair": 0.38,
+              "unclear": 0.02
+            }
+          },
+          "image_2": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.25,
+            "probabilities": {
+              "usable": 0.5,
+              "repair": 0.49,
+              "unclear": 0.01
+            }
+          },
+          "image_3": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.55,
+            "probabilities": {
+              "usable": 0.7,
+              "repair": 0.29,
+              "unclear": 0.01
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 13129,
+          "output_tokens": 117
+        }
+      }
+    },
+    {
+      "manifest": [
+        {
+          "name": "side-plank-right",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/side-plank-right-storyboard.png",
+          "sha256": "0d8519e136fd0f7c1ccb7328d067b45853ffbf55421d8595ef0659e04080dcfb",
+          "question": "image_1"
+        },
+        {
+          "name": "child-side-stretch",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/child-side-stretch-storyboard.png",
+          "sha256": "2f3b7bd2ebf30e58d376c89d3d5bda09b8d87a68539ecb9c68da5f75a14534e7",
+          "question": "image_2"
+        },
+        {
+          "name": "prone-half-floor-angel",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/prone-half-floor-angel-storyboard.png",
+          "sha256": "46cdd481b7c33bf98cdf886456394cccd29552e4a567bb5ef492892d893ebc39",
+          "question": "image_3"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_2": {
+          "type": "choice",
+          "instructions": "Inspect state.images[1].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_3": {
+          "type": "choice",
+          "instructions": "Inspect state.images[2].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.64,
+            "probabilities": {
+              "usable": 0.76,
+              "repair": 0.23,
+              "unclear": 0.01
+            }
+          },
+          "image_2": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.22,
+            "probabilities": {
+              "usable": 0.48,
+              "repair": 0.34,
+              "unclear": 0.18
+            }
+          },
+          "image_3": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.2,
+            "probabilities": {
+              "usable": 0.47,
+              "repair": 0.47,
+              "unclear": 0.06
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 13227,
+          "output_tokens": 117
+        }
+      }
+    },
+    {
+      "manifest": [
+        {
+          "name": "pike-push-up",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/pike-push-up-storyboard.png",
+          "sha256": "0e2eaf88b0c1a7eb7df7e4e6199bc62195194fb96d798df903733b28bbb0a328",
+          "question": "image_1"
+        },
+        {
+          "name": "supine-twist",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/supine-twist-storyboard.png",
+          "sha256": "ec9b1b8cbcc1a0111884da5eb3676e00f72688926bc588143b9ba1ed2a1d3e30",
+          "question": "image_2"
+        },
+        {
+          "name": "worlds-greatest-stretch-left",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/worlds-greatest-stretch-left-storyboard.png",
+          "sha256": "20d9317a859ca3a7fd22359b320b3a67f821a7184e93c195b0d94f865773b97b",
+          "question": "image_3"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_2": {
+          "type": "choice",
+          "instructions": "Inspect state.images[1].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_3": {
+          "type": "choice",
+          "instructions": "Inspect state.images[2].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "repair",
+            "confidence": 0.25,
+            "probabilities": {
+              "usable": 0.49,
+              "repair": 0.5,
+              "unclear": 0.01
+            }
+          },
+          "image_2": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.46,
+            "probabilities": {
+              "usable": 0.64,
+              "repair": 0.35,
+              "unclear": 0.01
+            }
+          },
+          "image_3": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.48,
+            "probabilities": {
+              "usable": 0.65,
+              "repair": 0.34,
+              "unclear": 0.01
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 13140,
+          "output_tokens": 117
+        }
+      }
+    },
+    {
+      "manifest": [
+        {
+          "name": "worlds-greatest-stretch-right",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/worlds-greatest-stretch-right-storyboard.png",
+          "sha256": "a24fd2655371cd6875d63aa0d247f418561b639878c9b7ec07cd317dc8a4f5bc",
+          "question": "image_1"
+        },
+        {
+          "name": "pigeon-pose",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/pigeon-pose-storyboard.png",
+          "sha256": "f6e8dc4e6079f25d6d934a348111406aa197d08027fd4b4bd797aa43e63562c8",
+          "question": "image_2"
+        },
+        {
+          "name": "down-up-dog-flow",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/down-up-dog-flow-storyboard.png",
+          "sha256": "10c6e9a10d6180363c46ac80fd47f379d383e04d255f9d9a2c6da1e44b25e5dc",
+          "question": "image_3"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_2": {
+          "type": "choice",
+          "instructions": "Inspect state.images[1].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_3": {
+          "type": "choice",
+          "instructions": "Inspect state.images[2].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.53,
+            "probabilities": {
+              "usable": 0.69,
+              "repair": 0.3,
+              "unclear": 0.01
+            }
+          },
+          "image_2": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.41,
+            "probabilities": {
+              "usable": 0.61,
+              "repair": 0.36,
+              "unclear": 0.03
+            }
+          },
+          "image_3": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.59,
+            "probabilities": {
+              "usable": 0.73,
+              "repair": 0.26,
+              "unclear": 0.01
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 13292,
+          "output_tokens": 117
+        }
+      }
+    },
+    {
+      "manifest": [
+        {
+          "name": "reverse-snow-angel",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/reverse-snow-angel-storyboard.png",
+          "sha256": "5fa291dd31c034833d492dbd37f748c81a70e7b5f89eda1a39893e5387de644e",
+          "question": "image_1"
+        },
+        {
+          "name": "superman-row",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/8d12f940256d4ebce4c1440ae286ef66dd60be6d/media/exercises/superman-row-storyboard.png",
+          "sha256": "59775daf9b073f6372d6c1b3c0ce5427b3883f1155244c6acd4511559761cc5e",
+          "question": "image_2"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        },
+        "image_2": {
+          "type": "choice",
+          "instructions": "Inspect state.images[1].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.66,
+            "probabilities": {
+              "usable": 0.77,
+              "repair": 0.22,
+              "unclear": 0.01
+            }
+          },
+          "image_2": {
+            "type": "choice",
+            "choice": "repair",
+            "confidence": 0.4,
+            "probabilities": {
+              "usable": 0.36,
+              "repair": 0.6,
+              "unclear": 0.04
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 8963,
+          "output_tokens": 79
+        }
+      }
+    }
+  ]
+}

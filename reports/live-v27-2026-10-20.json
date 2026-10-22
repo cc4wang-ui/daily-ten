@@ -1,0 +1,33 @@
+{
+  "app": "https://daily-ten-app.vercel.app/",
+  "startedAt": "2026-10-20T00:51:50.457Z",
+  "pageErrors": [],
+  "version": "daily-ten-v27",
+  "initialCard": "每個動作的本次目標\n伏地挺身\n基準 10 → 本次 11 下／組\n\n已累積足夠完整訓練日回報輕鬆達標，本次增加次數。\n\n彈力帶肩上推\n基準 10 → 本次 11 下／組\n\n已累積足夠完整訓練日回報輕鬆達標，本次增加次數。\n\n比對阻力標記：紅帶\n\n依已儲存的工作組回報調整次數；沒有足夠回報就維持基準。這不代表彈力帶阻力自動增加。",
+  "prefill": "紅帶",
+  "saved": [
+    {
+      "id": "mvelwzk0-ppw38qu5-16",
+      "date": "2026-10-19",
+      "name": "彈力帶肩上推 第1組",
+      "target": 11,
+      "actual": 11,
+      "effort": "easy",
+      "pain": false,
+      "form": true,
+      "resistance": "藍帶／握短一格"
+    }
+  ],
+  "frozenTargets": [
+    11,
+    11
+  ],
+  "restoredPaused": "繼續",
+  "reopened": "藍帶／握短一格",
+  "nextCard": "每個動作的本次目標\n伏地挺身\n基準 10 → 本次 11 下／組\n\n已累積足夠完整訓練日回報輕鬆達標，本次增加次數。\n\n彈力帶肩上推\n基準 10 → 本次 10 下／組\n\n維持基準：尚無足夠的同變式工作組回報。\n\n比對阻力標記：藍帶／握短一格\n\n依已儲存的工作組回報調整次數；沒有足夠回報就維持基準。這不代表彈力帶阻力自動增加。",
+  "nextTargets": [
+    10,
+    10
+  ],
+  "pass": true
+}

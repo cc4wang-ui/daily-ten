@@ -170,7 +170,7 @@
     </section>
     <section class="card" aria-labelledby="tr-vids-title">
       <h2 class="card-title" id="tr-vids-title">動作庫</h2>
-      <p>已有 19 套 16 格站內示範（分腿蹲左右腳各一套，俯臥 T 舉兩種節奏共用一套）；可看項目會標示。其他動作仍缺完整示範。訓練中的說明會暫停計時，返回按鈕會留在視窗底部。</p>
+      <p>已有 33 套 16 格站內示範（左右側依動作分開；控制深蹲與深蹲、俯臥 T 舉兩種節奏各共用一套）；可看項目會標示。其他動作仍缺完整示範。訓練中的說明會暫停計時，返回按鈕會留在視窗底部。</p>
       <div id="vids"></div>
     </section>
   </section>
@@ -189,6 +189,19 @@
         <div class="kpi"><span class="kpi-lab">最佳連續</span><p class="kpi-val"><b id="h-best" class="num">0</b><span>天</span></p></div>
         <div class="kpi"><span class="kpi-lab">訓練天數</span><p class="kpi-val"><b id="st-count" class="num">0</b><span>天</span></p></div>
       </div>
+      <section class="card feedback-history" id="hist-feedback" aria-labelledby="hist-feedback-title">
+        <div class="card-head"><h2 id="hist-feedback-title" tabindex="-1">每組回報</h2></div>
+        <p class="small">保留達標、未達標與中途停止的回報。完成狀態只對照當日主課表紀錄，不代表這組達標。</p>
+        <button type="button" id="hist-feedback-back" class="btn-sub">回到訓練</button>
+        <div class="feedback-filters">
+          <label for="hist-feedback-movement">動作<select id="hist-feedback-movement"><option value="">全部動作</option></select></label>
+          <label for="hist-feedback-range">期間<select id="hist-feedback-range"><option value="28">近 28 天</option><option value="all">全部</option></select></label>
+        </div>
+        <p id="hist-feedback-count" class="small" role="status" aria-live="polite">顯示 0／0 組回報</p>
+        <p id="hist-feedback-empty" class="feedback-empty">尚無每組回報。</p>
+        <ol id="hist-feedback-list" class="feedback-list" aria-label="每組回報，由新到舊"></ol>
+        <button type="button" id="hist-feedback-more" class="btn-sub" hidden>再看 20 組</button>
+      </section>
       <section class="card" aria-labelledby="hi-heat-title">
         <div class="card-head"><h2 id="hi-heat-title">過去 8 週</h2><span class="card-note">右下＝今天</span></div>
         <div class="heat" id="hist-heat" role="img" aria-label="過去 8 週訓練紀錄"></div>
@@ -396,6 +409,7 @@
 <!-- 動作示範 -->
 <div id="demo-modal" role="dialog" aria-modal="true">
   <div class="box">
+    <div class="dm-body">
     <div class="eyebrow">動作說明 · 影片狀態</div>
     <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
     <div id="dm-video" class="exercise-video" aria-live="polite"></div>
@@ -405,7 +419,8 @@
     <p id="dm-training-note" hidden>計時已暫停。返回後仍在同一步，按「繼續」才會重新計時。</p>
     <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
     <button type="button" class="btn-sub" id="dm-skip" hidden>不熟悉動作 · 安全略過這一步</button>
-    <button class="btn-main" id="dm-close" style="margin-bottom:0">返回訓練</button>
+    </div>
+    <div class="dm-footer"><button class="btn-main" id="dm-close">返回訓練</button></div>
   </div>
 </div>
 
