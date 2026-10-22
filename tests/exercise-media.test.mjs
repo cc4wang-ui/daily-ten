@@ -21,7 +21,8 @@ test('storyboards cover only their exact movement variants', () => {
   assert.equal(getExerciseStoryboard('貓牛式')?.src, './media/exercises/cat-cow-storyboard.png');
   assert.equal(getExerciseStoryboard('伏地挺身 第1組 · 跪姿')?.src, './media/exercises/knee-push-up-storyboard.png');
   assert.equal(getExerciseStoryboard('伏地挺身 第1組')?.src, './media/exercises/push-up-storyboard-v2.png');
-  assert.equal(getExerciseStoryboard('HRP 伏地挺身測驗'), null);
+  assert.equal(getExerciseStoryboard('HRP 伏地挺身測驗')?.src, './media/exercises/hrp-push-up-storyboard.png');
+  assert.equal(getExerciseStoryboard('HRP 伏地挺身 第1組'), null);
   assert.equal(getExerciseStoryboard('派克伏地挺身 第1組')?.src, './media/exercises/pike-push-up-storyboard.png');
   assert.equal(getExerciseStoryboard('派克伏地挺身 第3組'), null);
   assert.equal(getExerciseStoryboard('腳抬高派克伏地挺身'), null);

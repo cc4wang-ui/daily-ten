@@ -56,7 +56,7 @@ test('十四張影格只貼精確動作；重複與靜態停留提示符合訓�
     '反向雪天使 加練', '超人式划船 第1組', '超人式划船 第2組', '超人式划船 加練',
     '深蹲', '控制深蹲', '派克伏地挺身 第3組', '腳抬高派克伏地挺身',
     '穿針式', '側平板', '側平板 · 左 第1組', '平板支撐 · 左',
-    '超人式划船', '超人式停留', '彈力帶肩外旋 · 左', 'HRP 伏地挺身測驗', '原地跑']);
+    '超人式划船', '超人式停留', '彈力帶肩外旋 · 左', 'HRP 伏地挺身 第1組', '原地跑']);
   for (const guide of GUIDES) expect(entries[guide.name]?.src).toBe(src(guide.asset));
   for (const name of ['穿針式 · 左', '穿針式 · 右', '俯臥半程雪天使', '派克伏地挺身']) {
     expect(entries[name].ms).toBe(4000);
@@ -79,7 +79,7 @@ test('十四張影格只貼精確動作；重複與靜態停留提示符合訓�
   expect(entries['控制深蹲']?.ms).toBe(4000);
   expect(entries['派克伏地挺身 第1組']?.src).toBe(src('pike-push-up-storyboard.png'));
   expect(entries['派克伏地挺身 第2組']?.src).toBe(src('pike-push-up-storyboard.png'));
-  for (const name of ['派克伏地挺身 第3組', '腳抬高派克伏地挺身', '穿針式', '側平板', '側平板 · 左 第1組', '平板支撐 · 左', '超人式划船', '超人式停留', '彈力帶肩外旋 · 左', 'HRP 伏地挺身測驗', '原地跑']) expect(entries[name]).toBeNull();
+  for (const name of ['派克伏地挺身 第3組', '腳抬高派克伏地挺身', '穿針式', '側平板', '側平板 · 左 第1組', '平板支撐 · 左', '超人式划船', '超人式停留', '彈力帶肩外旋 · 左', 'HRP 伏地挺身 第1組', '原地跑']) expect(entries[name]).toBeNull();
 });
 
 test('十四張動作庫影格可解碼、逐格、慢速、暫停與重播；375px 無溢出和遮擋', async ({ page }, testInfo) => {

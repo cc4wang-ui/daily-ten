@@ -39,7 +39,6 @@ export const VIDEOS=[
   ['彈力帶肩外旋','resistance band external rotation shoulder'],
   ['超人式划船（低阻力）','superman row prone back exercise'],
   ['反向雪天使','reverse snow angel prone arms sweep form'],
-  ['毛巾直臂下拉（自我對抗）','towel lat pulldown self resistance'],
   ['側平板 · 左','left forearm side plank static hold form'],
   ['側平板 · 右','right forearm side plank static hold form'],
   ['平板支撐','plank form'],
