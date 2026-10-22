@@ -15,6 +15,7 @@ import { startWorkout } from './train.js';
 import { startBoss } from './boss.js';
 import { icon } from './icons.js';
 import { todayKey, todayWeekday, summary, planLevel } from './game.js';
+import { openFeedbackHistory } from './feedback-history.js';
 
 const BOSS_ITEM = { hrp: 'HRP 伏地挺身 2 分鐘', plank: 'Plank 極限', run2mi: '2 英里跑' };
 
@@ -93,6 +94,14 @@ function renderPrescription(plan,lv){
       resistance.textContent='比對阻力標記：'+(target.resistance||'未記錄');
       row.append(resistance);
     }
+    const history=document.createElement('button');
+    history.type='button';
+    history.className='btn-sub prescription-history';
+    history.dataset.movement=target.movement;
+    history.textContent='查看回報';
+    history.setAttribute('aria-label',target.movement+' 查看回報');
+    history.onclick=()=>openFeedbackHistory(target.movement);
+    row.append(history);
     list.append(row);
   }
 }

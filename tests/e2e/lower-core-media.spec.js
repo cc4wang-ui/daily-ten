@@ -95,13 +95,15 @@ test('媒體只接受完全相同的動作名稱及工作組，不會誤貼第�
       left: ['分腿蹲 · 左', '分腿蹲 第1組 · 左', '分腿蹲 第2組 · 左'].map(src),
       right: ['分腿蹲 · 右', '分腿蹲 第1組 · 右', '分腿蹲 第2組 · 右'].map(src),
       plank: ['平板支撐', '平板支撐測驗'].map(src),
-      unknown: ['分腿蹲 第3組 · 左', '分腿蹲 第3組 · 右', '分腿蹲', '弓步蹲', '弓箭步 · 左', '弓箭步 · 右', '側平板', '側平板 · 左', '側平板 · 右', '高平板支撐', '平板支撐測驗 第1組'].map(src)
+      sides: ['側平板 · 左', '側平板 · 右'].map(src),
+      unknown: ['分腿蹲 第3組 · 左', '分腿蹲 第3組 · 右', '分腿蹲', '弓步蹲', '弓箭步 · 左', '弓箭步 · 右', '側平板', '高平板支撐', '平板支撐測驗 第1組'].map(src)
     };
   });
   expect(resolved.left).toEqual(Array(3).fill(assetPath(guides[0].asset)));
   expect(resolved.right).toEqual(Array(3).fill(assetPath(guides[1].asset)));
   expect(resolved.plank).toEqual(Array(2).fill(assetPath(guides[2].asset)));
-  expect(resolved.unknown).toEqual(Array(11).fill(null));
+  expect(resolved.sides).toEqual(['side-plank-left-storyboard.png', 'side-plank-right-storyboard.png'].map(assetPath));
+  expect(resolved.unknown).toEqual(Array(9).fill(null));
 });
 
 test('週二主課表左右分腿蹲在同一步開說明，返回後組數與已完成次數保持', async ({ page }) => {

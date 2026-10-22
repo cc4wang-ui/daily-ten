@@ -11,7 +11,7 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
 }),Object.freeze({
   names: Object.freeze(['控制深蹲']),
   src: './media/exercises/controlled-squat-storyboard.png', columns: 4, frames: 16,
-  frameMs: Object.freeze([150,150,450,450,450,450,450,450,150,150,170,170,170,170,170,150])
+  frameMs: Object.freeze([150,150,450,450,450,450,450,450,125,125,125,125,125,125,125,125])
 }),Object.freeze({
   names: Object.freeze(['臀橋','臀橋 第1組','臀橋 第2組']),
   src: './media/exercises/glute-bridge-storyboard.png', columns: 4, frames: 16
@@ -94,6 +94,82 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   sameMotionAs: '俯臥 T 舉',
   note: '俯臥時雙臂呈 T 字形，小幅度抬起手臂；軀幹與雙腿維持貼地。慢速影格每次循環約 4 秒。',
   frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
+}),Object.freeze({
+  names: Object.freeze(['穿針式 · 左']),
+  src: './media/exercises/needle-left-storyboard.png', columns: 4, frames: 16,
+  note: '左手從身體下方穿過、左肩慢慢靠近墊面，再回到四足跪姿；撐地手不移開。影格每次循環約 4 秒。',
+  frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
+}),Object.freeze({
+  names: Object.freeze(['穿針式 · 右']),
+  src: './media/exercises/needle-right-storyboard.png', columns: 4, frames: 16,
+  note: '右手從身體下方穿過、右肩慢慢靠近墊面，再回到四足跪姿；撐地手不移開。影格每次循環約 4 秒。',
+  frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
+}),Object.freeze({
+  names: Object.freeze(['側平板 · 左']),
+  src: './media/exercises/side-plank-left-storyboard.png', columns: 4, frames: 16,
+  note: '左前臂撐地，手肘在肩下，抬髖後靜態保持。影格包含進入、停留與退出；請依訓練計時器保持，不要跟著循環反覆抬落髖部。',
+  frameMs: Object.freeze([300,300,300,300,500,1500,1500,1500,1500,1500,1500,1500,500,300,300,300])
+}),Object.freeze({
+  names: Object.freeze(['側平板 · 右']),
+  src: './media/exercises/side-plank-right-storyboard.png', columns: 4, frames: 16,
+  note: '右前臂撐地，手肘在肩下，抬髖後靜態保持。影格包含進入、停留與退出；請依訓練計時器保持，不要跟著循環反覆抬落髖部。',
+  frameMs: Object.freeze([300,300,300,300,500,1500,1500,1500,1500,1500,1500,1500,500,300,300,300])
+}),Object.freeze({
+  names: Object.freeze(['嬰兒式側伸展']),
+  src: './media/exercises/child-side-stretch-storyboard.png', columns: 4, frames: 16,
+  note: '臀部坐回腳跟，雙手向一側移動並停留，時間過半再換邊；左右各做一半時間。影格只展示兩側路徑，不是實際停留的倒數速度，可暫停影格看姿勢。',
+  frameMs: Object.freeze([300,300,400,500,1200,1200,500,400,300,400,500,1200,1200,500,400,300])
+}),Object.freeze({
+  names: Object.freeze(['俯臥半程雪天使']),
+  src: './media/exercises/prone-half-floor-angel-storyboard.png', columns: 4, frames: 16,
+  note: '俯臥、軀幹與腿貼地，手臂由髖旁小幅抬離墊面，向外移動並彎肘成 W，再沿原路回到髖旁；維持這個半程範圍。影格每次循環約 4 秒。',
+  frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
+}),Object.freeze({
+  names: Object.freeze(['派克伏地挺身','派克伏地挺身 第1組','派克伏地挺身 第2組']),
+  src: './media/exercises/pike-push-up-storyboard.png', columns: 4, frames: 16,
+  note: '雙腳踩地、髖抬高成倒 V，彎肘讓頭部往雙手前方下放，再推回；選擇能控制的活動範圍。影格每次循環約 4 秒。',
+  frameMs: Object.freeze([250,250,250,250,250,250,250,250,250,250,250,250,250,250,250,250])
+}),Object.freeze({
+  names: Object.freeze(['躺姿脊椎扭轉']),
+  src: './media/exercises/supine-twist-storyboard.png', columns: 4, frames: 16,
+  note: '仰躺、雙臂打開，雙膝一起倒向一側、肩膀盡量貼地，時間過半回中再換邊；左右各做一半時間。影格前後兩段展示兩側路徑，不是實際停留的倒數速度，可暫停影格看姿勢。',
+  frameMs: Object.freeze([300,400,500,1200,1200,500,400,300,300,400,500,1200,1200,500,400,300])
+}),Object.freeze({
+  names: Object.freeze(['世界最強伸展 · 左']),
+  src: './media/exercises/worlds-greatest-stretch-left-storyboard.png', columns: 4, frames: 16,
+  note: '左腳在前弓步，右手撐地，左手肘往左腳內側下沉，再轉胸抬起左手並慢慢回到原位。影格展示進入伸展的路徑，請依訓練計時器完成，不用跟著循環計次。',
+  frameMs: Object.freeze([300,300,400,500,1000,500,500,1000,1500,1500,500,500,500,400,300,300])
+}),Object.freeze({
+  names: Object.freeze(['世界最強伸展 · 右']),
+  src: './media/exercises/worlds-greatest-stretch-right-storyboard.png', columns: 4, frames: 16,
+  note: '右腳在前弓步，左手撐地，右手肘往右腳內側下沉，再轉胸抬起右手並慢慢回到原位。影格展示進入伸展的路徑，請依訓練計時器完成，不用跟著循環計次。',
+  frameMs: Object.freeze([300,300,400,500,1000,500,500,1000,1500,1500,500,500,500,400,300,300])
+}),Object.freeze({
+  names: Object.freeze(['鴿式']),
+  src: './media/exercises/pigeon-pose-storyboard.png', columns: 4, frames: 16,
+  note: '前腿彎曲、後腿向後伸，雙手撐地，慢慢向前俯身停留；時間過半回到四足跪姿再換邊，左右各做一半時間。影格展示兩側進入與退出的路徑，不是實際停留的倒數速度，可暫停看姿勢。',
+  frameMs: Object.freeze([300,300,400,500,1200,1200,500,400,300,300,400,500,1200,1200,500,400])
+}),Object.freeze({
+  names: Object.freeze(['下犬↔上犬流動']),
+  src: './media/exercises/down-up-dog-flow-storyboard.png', columns: 4, frames: 16,
+  note: '下犬推地把髖往後上，慢慢移向上犬、胸口向前上方延伸，再回到下犬；膝蓋維持離地。影格示意轉換路徑，請依體感放慢，訓練時間以計時器為準。',
+  frameMs: Object.freeze([375,375,375,375,375,375,375,375,375,375,375,375,375,375,375,375])
+}),Object.freeze({
+  names: Object.freeze(['深蹲']),
+  src: './media/exercises/controlled-squat-storyboard.png', columns: 4, frames: 16,
+  sameMotionAs: '控制深蹲',
+  note: 'Boss Day 暖身深蹲：雙腳踩穩，屈髖屈膝下蹲再站起；與控制深蹲共用動作影格，本步驟每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['反向雪天使','反向雪天使 加練']),
+  src: './media/exercises/reverse-snow-angel-storyboard.png', columns: 4, frames: 16,
+  note: '俯臥、軀幹與腿貼地，雙臂小幅離地，由髖旁向外畫弧到頭頂，再回到髖旁。這是無負重上背控制，影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['超人式划船 第1組','超人式划船 第2組','超人式划船 加練','超人式划船（低阻力）']),
+  src: './media/exercises/superman-row-storyboard.png', columns: 4, frames: 16,
+  note: '俯臥、胸口微離地，雙臂由前伸拉回肋骨旁，再慢慢伸回前方。這是低阻力上背控制，非負重拉；俯視影格主要展示手臂路徑，胸口只需微離地、不刻意抬高。影格每次循環約 3 秒。',
+  frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;

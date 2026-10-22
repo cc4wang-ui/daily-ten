@@ -76,7 +76,9 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .dm-band{stroke:var(--amber);stroke-width:1.8px;vector-effect:non-scaling-stroke}
 #demo-modal{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
 #demo-modal.active{display:flex}
-#demo-modal .box{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+#demo-modal .box{display:flex;flex-direction:column;width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+#demo-modal .dm-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--sp-4)}
+#demo-modal .dm-footer{flex-shrink:0;padding:var(--sp-3) var(--sp-4) var(--sp-4);border-top:var(--sp-hair) solid var(--line);background:var(--panel)}
 #dm-svg{display:block;width:100%;aspect-ratio:20/13;background:var(--bg);border-radius:8px;margin:10px 0}
 #dm-svg[hidden]{display:none}
 #dm-cue{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px}
@@ -84,7 +86,7 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #dm-training-note{color:var(--amber)}
 #dm-skip{min-height:48px;font-weight:800;border-color:var(--amber);color:var(--amber)}
 #dm-skip[hidden]{display:none}
-#dm-close{position:sticky;bottom:0;z-index:1}
+#dm-close{margin-bottom:0}
 .exercise-storyboard{display:grid;gap:10px;margin:8px 0 14px}
 .exercise-video .exercise-storyboard p{font-size:13px;line-height:1.4;color:var(--ink);margin:0;text-align:left}
 .exercise-video .exercise-storyboard .exercise-storyboard-note{color:var(--ink-dim)}
@@ -99,6 +101,20 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 .training-prescription .prescription-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-1) var(--sp-3);font-weight:700}
 .training-prescription .prescription-dose{white-space:nowrap;color:var(--move-ink)}
 .training-prescription .prescription-reason{color:var(--c-ink-2)}
+.training-prescription .prescription-history{margin:var(--sp-1) 0 0}
+.feedback-history{scroll-margin-top:var(--sp-4)}
+.feedback-history #hist-feedback-back{margin:var(--sp-3) 0 var(--sp-1)}
+.feedback-filters{display:grid;gap:var(--sp-3);margin:var(--sp-4) 0}
+.feedback-filters label{display:grid;gap:var(--sp-1);font-size:14px;font-weight:700;min-width:0}
+.feedback-filters select{width:100%;min-width:0;min-height:var(--touch);padding:var(--sp-2h);border:var(--sp-hair) solid var(--c-line);border-radius:var(--r-xs);background:var(--c-card);color:var(--c-ink);font:inherit;font-size:16px}
+.feedback-list{list-style:none;display:grid;gap:var(--sp-3);margin:var(--sp-3) 0}
+.feedback-list li{display:grid;gap:var(--sp-1h);padding:var(--sp-3);border-radius:var(--r-xs);background:var(--c-fill);overflow-wrap:anywhere;line-height:1.5}
+.feedback-list .feedback-date{font-size:13px;color:var(--c-ink-2)}
+.feedback-list .feedback-name{font-size:16px}
+.feedback-list .feedback-dose{font-size:16px;font-weight:700}
+.feedback-list .feedback-detail,.feedback-list .feedback-completion{font-size:14px;color:var(--c-ink-2)}
+.feedback-list .feedback-completion{padding-top:var(--sp-1);border-top:var(--sp-hair) solid var(--c-line)}
+.feedback-empty{font-size:14px;line-height:1.6;margin:var(--sp-4) 0;color:var(--c-ink-2)}
 @media(max-height:700px){#train{justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}#t-demo-wrap{width:min(56vw,220px)}#t-name{font-size:30px}#t-count{font-size:72px}#t-next{margin-top:12px}}
 
 /* ---------- 2. 亮色區域：M1 變數改指向亮色值（沿用舊變數的 inline style 也看得清楚） ---------- */

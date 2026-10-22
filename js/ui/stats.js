@@ -7,6 +7,7 @@ import { $ } from './dom.js';
 import { summary } from './game.js';
 import { renderHist } from './history.js';
 import { renderBody } from './body.js';
+import { renderFeedbackHistory } from './feedback-history.js';
 
 export function renderKpis(sum = summary()) {
   const st = getState();
@@ -20,5 +21,6 @@ export function renderKpis(sum = summary()) {
 export function renderStats() {
   renderKpis();
   renderHist();
+  renderFeedbackHistory();
   renderBody();
 }

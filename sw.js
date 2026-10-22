@@ -3,7 +3,7 @@
    自動更新（D23）：新版啟用後通知每個開著的頁面。新版頁面回覆 DT_UPDATE_ACK，等閒置（不在訓練中）時自己重新載入；
    舊版頁面不認得通知，3 秒後由這裡直接重新導向同一網址，讓舊程式也能換成新版（瀏覽器不支援時就等下次開啟）。 */
 'use strict';
-const CACHE = 'daily-ten-v27';
+const CACHE = 'daily-ten-v28';
 const ACK_TIMEOUT_MS = 3000;
 const ASSETS = [
   './',
@@ -25,6 +25,7 @@ const ASSETS = [
   './js/ui/exercise-media.js',
   './js/ui/game.js',
   './js/ui/history.js',
+  './js/ui/feedback-history.js',
   './js/ui/home.js',
   './js/ui/icons.js',
   './js/ui/nav.js',
@@ -58,6 +59,20 @@ const ASSETS = [
   './media/exercises/band-lateral-raise-storyboard.png',
   './media/exercises/prone-y-raise-storyboard.png',
   './media/exercises/prone-t-raise-storyboard.png',
+  './media/exercises/side-plank-left-storyboard.png',
+  './media/exercises/side-plank-right-storyboard.png',
+  './media/exercises/child-side-stretch-storyboard.png',
+  './media/exercises/prone-half-floor-angel-storyboard.png',
+  './media/exercises/pike-push-up-storyboard.png',
+  './media/exercises/needle-left-storyboard.png',
+  './media/exercises/needle-right-storyboard.png',
+  './media/exercises/supine-twist-storyboard.png',
+  './media/exercises/down-up-dog-flow-storyboard.png',
+  './media/exercises/pigeon-pose-storyboard.png',
+  './media/exercises/worlds-greatest-stretch-left-storyboard.png',
+  './media/exercises/worlds-greatest-stretch-right-storyboard.png',
+  './media/exercises/reverse-snow-angel-storyboard.png',
+  './media/exercises/superman-row-storyboard.png',
   './js/state/store.js',
   './js/state/schema.js',
   './js/state/migrate.js',
