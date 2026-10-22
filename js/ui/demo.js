@@ -21,7 +21,7 @@ export function setTrainDemo(name,period,isNext){
 export function openDemo(k,q,onClose,exactName,fallbackCue,onSkip){
   const inf=HAS_DEMO?DT_DEMOS.info(k):null;
   const movementName=exactName||(onClose?q:(inf?inf.name:k));
-  $('dm-name').textContent=movementName;$('dm-cue').textContent=inf?inf.cue:(fallbackCue||'');
+  $('dm-name').textContent=k==='towelpd'&&inf?inf.name:movementName;$('dm-cue').textContent=inf?inf.cue:(fallbackCue||'');
   const link=$('dm-yt');
   link.href='https://www.youtube.com/results?search_query='+encodeURIComponent(q||movementName);
   link.style.display=onClose?'none':'block';

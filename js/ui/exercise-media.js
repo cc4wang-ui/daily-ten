@@ -170,6 +170,11 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   src: './media/exercises/superman-row-storyboard.png', columns: 4, frames: 16,
   note: '俯臥、胸口微離地，雙臂由前伸拉回肋骨旁，再慢慢伸回前方。這是低阻力上背控制，非負重拉；俯視影格主要展示手臂路徑，胸口只需微離地、不刻意抬高。影格每次循環約 3 秒。',
   frameMs: Object.freeze([190,190,190,180,190,190,190,180,190,190,190,180,190,190,190,180])
+}),Object.freeze({
+  names: Object.freeze(['HRP 伏地挺身','HRP 伏地挺身測驗']),
+  src: './media/exercises/hrp-push-up-storyboard.png', columns: 4, frames: 16,
+  note: '從手臂打直的撐體姿勢下放，讓胸口、髖部與大腿貼地；雙臂向兩側伸直成 T，再把雙手收回肩旁、全身一起推起。影格每次循環約 6 秒，只是示範節奏，非測驗配速或自動計次；HRP 測驗仍為 2 分鐘，請自行計數。',
+  frameMs: Object.freeze([375,375,375,375,375,375,375,375,375,375,375,375,375,375,375,375])
 })]);
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;

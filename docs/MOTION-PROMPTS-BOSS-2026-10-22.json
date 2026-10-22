@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-10-22",
+  "tool": "built-in image_gen only",
+  "reference": "https://www.army.mil/acft/index.html",
+  "hrp": {
+    "status": "candidate_for_independent_QA",
+    "selected_path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-3eae2a79-334c-40c6-8233-5aeedc6b41d2.png",
+    "dimensions_px": {
+      "width": 1448,
+      "height": 1086
+    },
+    "grid": "4 columns x 4 rows, 16 frames",
+    "attempts": [
+      {
+        "kind": "existing_prior_candidate",
+        "path": "/Users/crosswang/.codex/generated_images/01a156e9-30fc-7743-aedf-904962e1c9e0/exec-48fd11e1-2aad-44ec-a3a0-c31f4f850053.png",
+        "prompt": "Prior candidate; prompt not available in this agent context.",
+        "assessment": "Full sideways T visible; abrupt bottom-to-top jump from frames 11 to 12 and static final row."
+      },
+      {
+        "kind": "targeted_repair_1",
+        "path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-0c97e1d5-93b3-459c-aa00-5cebb2096764.png",
+        "prompt": "Use case: scientific-educational. Asset type: seamless 4×4 exercise animation contact sheet for a fitness app. Edit target: the provided 4×4 HRP storyboard image. Preserve EXACTLY the same 16 equal cells, same adult male identity, gray T-shirt, dark shorts, trainers, mat, gray studio, fixed three-quarter side camera, framing, lighting and natural photo style. Preserve frames 1–10: top plank, controlled lowering of chest/hips/thighs together, prone hand release with BOTH arms fully extended sideways along the floor into a clear T, and hands returning beneath the shoulders. Change ONLY frames 11–16 so the body rises as a single rigid unit through a gradual visible press: frame 11 hands under shoulders with chest/hips/thighs grounded; frame 12 barely lifted; frame 13 quarter height; frame 14 half height; frame 15 almost top; frame 16 fully straight elbows, full-body high plank. Maintain increasing elbow extension and chest/hip clearance in every consecutive frame 11–16. Keep toes anchored, straight neck-to-heel alignment during the press, both hands under shoulders, no jumping directly from bottom to top, no repeated static high-plank frames. Correct human anatomy, exactly two arms and two legs per frame, no text, labels, numbers, arrows, watermarks, borders, inset panels or extra objects.",
+        "assessment": "Preserved T and identity; bottom-to-top jump persisted."
+      },
+      {
+        "kind": "targeted_repair_2",
+        "path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-3eae2a79-334c-40c6-8233-5aeedc6b41d2.png",
+        "prompt": "Precise-object-edit of the attached 4x4 photo storyboard. Change only the bottom TWO ROWS, cells 9–16, to fix the push-up ascent. Keep rows 1–2 exactly as shown: same person, gray shirt, black shorts, mat, background, angle, camera and frame boundaries. Row 3 cells 9 and 10 should clearly show arms returning under shoulders while torso remains prone. Cell 11: hands under shoulders, elbows deeply bent, chest/hips/thighs on mat. Cell 12: both hands pressing, elbows still deeply bent, chest/hips/thighs just 2 cm above mat. Cell 13: elbows around 45 degrees, chest/hips/thighs lifted to quarter plank height. Cell 14: elbows around 70 degrees, body at half plank height. Cell 15: elbows almost extended, body nearly high plank. Cell 16: elbows fully extended, body in high plank. Each of cells 11–16 MUST be a different, visibly progressive height with uninterrupted increasing elbow extension; if cells 12–15 resemble the top plank, the result fails. Same rigid straight head-to-heel body line while rising, toes remain planted. Photorealistic continuous exercise animation contact sheet, 16 equal cells exactly. No added text, arrows, labels, watermark, extra limbs, borders, graphics, or altered clothing.",
+        "assessment": "Visible ascent across frames 11-16; last two frames remain similar, requiring independent QA before product use."
+      }
+    ],
+    "caveats": [
+      "Photo sequence starts and ends at high plank; official AFT repetition begins prone and includes whole-body press before lowering.",
+      "Frames 15 and 16 are close in pose; loop cadence may feel briefly static.",
+      "No claim of formal AFT scoring or pass validation."
+    ]
+  },
+  "running": {
+    "status": "rejected",
+    "selected_path": null,
+    "dimensions_px": {
+      "width": 1254,
+      "height": 1254
+    },
+    "grid": "4 columns x 4 rows, 16 frames",
+    "attempts": [
+      {
+        "kind": "fresh_generation",
+        "path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-381b1f5f-011a-4c5a-8bc0-d756d2481d6e.png",
+        "prompt": "Use case: scientific-educational. Asset type: photorealistic 16-frame exercise animation sprite sheet for the two-mile run movement in a fitness app. Create a precise 4×4 grid of SIXTEEN EQUAL SQUARE CELLS, reading left to right then top to bottom. In every cell show the SAME adult male runner with consistent face, short dark hair, heather gray fitted T-shirt, dark charcoal athletic shorts, plain gray running shoes. Neutral light gray studio wall and floor; fixed true SIDE PROFILE camera, full body head-to-shoe visible, runner centered in each cell with equal margin on all sides. Camera, scale, lighting and background fixed; no treadmill, track, road, distance marker, props or other people. The 16 frames show exactly one smooth looping running gait cycle in place with alternating LEFT and RIGHT foot strikes, distinct physically correct phases: left foot initial ground contact; left load; left midstance; left toe-off; left early flight; left late flight/right leg forward; right foot initial ground contact; right load; right midstance; right toe-off; right early flight; right late flight/left leg forward; left foot approaches contact; left foot contact; left loading into the same pose as beginning. Opposite arms swing naturally and alternate with the legs, elbows bent; upright posture with slight forward lean, gaze forward. Make EVERY adjacent cell a small continuous pose change and frame 16 connect smoothly back to frame 1. Keep two anatomically plausible legs and two arms in each cell, clear separation between limbs, shoes both visible, no duplicated or fused legs, no extra limbs. Uniform frame geometry and realistic foot-floor contact/shadows; subtle airborne moments only where appropriate. No captions, numerals, labels, arrows, gridlines, borders, watermarks or logos. This sheet depicts running mechanics only, not two miles of distance, pace, or performance validation.",
+        "assessment": "Same leading leg throughout and repeated poses; no alternating cycle."
+      },
+      {
+        "kind": "targeted_repair_1",
+        "path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-ca9c0c40-aba6-4ba0-9629-a78840ba38f4.png",
+        "prompt": "Edit this 4×4 running storyboard to FIX THE GAIT CYCLE. Keep 16 equal cells, same gray studio, same adult male identity, gray shirt/dark shorts/gray shoes, same full-body fixed side profile camera and scale. Replace the repeated right-foot-forward poses with a REAL ALTERNATING RUNNING CYCLE: frames 1–8 show right leg leading, right foot strike, support, toe-off, then flight; frames 9–16 show LEFT leg leading, LEFT foot strike, support, toe-off, then flight. Make the near-side and far-side legs visibly exchange roles in frames 9–16: left thigh comes forward and right thigh extends behind, with opposite arm swing. Include genuine flight poses where BOTH feet are visibly above ground, grounded stance poses with exactly one foot planted, and near contact poses. Each adjacent frame must be a distinct small motion change; frame 16 must lead naturally to frame 1. No near-identical hold poses, no repeated 4-cell rows, no treadmill, no captions, no numerals or watermarks. Correct anatomy with exactly two arms, two legs, two visible shoes in each cell; no cropping. Photorealistic exercise animation sheet.",
+        "assessment": "Adds flight phases but same leading leg in all rows."
+      },
+      {
+        "kind": "targeted_repair_2",
+        "path": "/Users/crosswang/.codex/generated_images/01a163ea-0242-7c62-81f8-6bf969434263/exec-8e24a0eb-adb7-44ca-bf78-2ac0d502b93f.png",
+        "prompt": "Precise edit of the attached 4x4 running contact sheet. The defect is that the RIGHT leg leads in all 16 cells, so it is not a running cycle. Keep the same person, clothing, gray studio, 4x4 equal panels, side camera, full body, scale, background, and the first TWO rows. Replace ONLY THE LOWER TWO ROWS (frames 9-16) with the opposite half of the gait: LEFT leg now swings forward and lands in front; RIGHT leg trails backward, then the legs exchange support and lift off. The forward knee and shoe in frames 9-16 must belong to the OTHER leg from frames 1-8, visibly marked by which leg is closest to camera and which is partly occluded. Make frames 9-16 distinct sequential poses with left-foot contact, left midstance, left toe-off, both feet in flight, right leg moving forward and preparing for frame 1. The arms counter-swing with the opposite leg. Keep exactly two arms and two legs, no extra/fused limbs, no missing feet. One full mechanically plausible LOOP, not a row of repeated jogging poses. Do not change faces, clothes or studio. No text or graphics.",
+        "assessment": "Still same leading leg in all rows; lower half not a distinct contralateral stride, so rejected."
+      }
+    ],
+    "caveats": [
+      "No complete alternating left/right stride cycle.",
+      "Not a two-mile distance, pace, or performance demonstration."
+    ]
+  },
+  "product_files_modified": false
+}

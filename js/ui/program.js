@@ -152,10 +152,6 @@ function pullSeqBodyweight(lv){
   }
   s.push(R('俯臥 T 舉 · 慢速','Prone T Raise ×10 · 小幅度控制',10,4));
   s.push(REST(40));
-  for(let i=1;i<=2;i++){
-    s.push(R('毛巾直臂下拉 第'+i+'組','Towel Pull-down ×10 · 雙手互相對抗，不固定在物體上',10,4));
-    s.push(REST(45));
-  }
   s.push(T('側平板 · 左','Side Plank L 20s',20));
   s.push(T('側平板 · 右','Side Plank R 20s',20));
   return s;
