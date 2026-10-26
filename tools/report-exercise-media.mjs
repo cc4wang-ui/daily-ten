@@ -66,9 +66,9 @@ const lines = [
   '',
   '> 由 `node tools/report-exercise-media.mjs --write` 產生。這是素材製作與審核清單，不是動作品質認證。',
   '',
-  `目前課表與 Boss 共 **${inventory.length} 個精確名稱**；完整本機影片 **${covered}**，AI 16 格連續影格 **${storyboardCovered}**，兩者都沒有的名稱 **${inventory.length - covered - storyboardCovered}**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。`,
+  `目前課表與 Boss 共 **${inventory.length} 個精確名稱**；完整本機影片 **${covered}**，AI 動作影格 **${storyboardCovered}**，兩者都沒有的名稱 **${inventory.length - covered - storyboardCovered}**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。`,
   '',
-  '| 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 16 格連續影格 |',
+  '| 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 動作影格 |',
   '| --- | --- | --- | --- |'
 ];
 for (const name of inventory) {

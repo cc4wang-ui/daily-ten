@@ -1,0 +1,134 @@
+{
+  "state": {
+    "publicPR": "https://github.com/cc4wang-ui/daily-ten/pull/26",
+    "scope": "Personal offline workout MVP. Independent relatedbrowserQA40passed, repo33checks, media7passed. IncludesactualBosshelp/offline/normalreturn/oldcheckpoint/L1to5. FullCI pending. No personal data. Summary judgment only for these five requirements; images were independently judged in separate calls.",
+    "movement": "34 AI16framePNGs cover64of71 exactnames.7missing,0complete realvideos. NewHRP completeplank-down-floor-armsT-handsunder-pressup cycle6seconds illustrative nottestcadence. PrimaryArmydefinition andindependentvisualQA checked. Noaliasnormal/knee/pike. Running3AIattemptsfailedsamefootleading, rejected. Calf/deadbug/bandrotationmissing; reusablepublicsourcesbeingsearched.",
+    "help": "NewactualBossHRP andPlank help reachablefrommeasurement view: savesremainingseconds andpauses beforeopen; closekeepspaused formanualresume; reloadsamepausedseconds; cleanupclearseventhandler, result andnormaltrainingdonotleak. HRP2min+selfcountunchanged. Inapptraininghelp andcheckpointalreadyshipped. iPhoneOS evictionunverified.",
+    "timing": "Repcount×tempo,holds,rest,prep/transitions determineestimate. Control squat corrected from4300to4000ms, Boss warmup3000ms. Bilateralholdmidpointsidecue. No physiologicalvalidation.",
+    "program": "Newbodyweightpull removes2towelsets+rests duecontradictorystraightarmname/bentcue andlimitedlatload. Keeps2supermanrow,slowproneT,core; notloadedpullsubstitute. Noaddedjunkyreplacement. NewsequenceL1to5exactly170secondsshorter includingprep and estimates matchactual. Bandplanunchanged. Legacycheckpointseq/idx/count/exactnamepreserved; helpdeclaresremoved, nosubstitutedimage/autoXP, normalskip. Existingweeklysplit/variantprogression/bandcontextsremain; noautomusclevolumeadjustment.",
+    "navigation": "Targetcardroutes exactmovementreadonlyhistory, date28/all, paging, zero/negative/unfinished retained; XSSsafe and no storagewrites/XP. Backtotrain. Activeworkoutguard preserved. No userstudy."
+  },
+  "questions": {
+    "movement": {
+      "type": "choice",
+      "instructions": "Judge requirement movement from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "help": {
+      "type": "choice",
+      "instructions": "Judge requirement help from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "timing": {
+      "type": "choice",
+      "instructions": "Judge requirement timing from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "program": {
+      "type": "choice",
+      "instructions": "Judge requirement program from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "navigation": {
+      "type": "choice",
+      "instructions": "Judge requirement navigation from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "mvp": {
+      "type": "choice",
+      "instructions": "Can this ship as an iterative personal MVP with all stated media/iPhone limitations disclosed? Not full product completion.",
+      "criteria": {
+        "ship_mvp": "Useful iterative MVP; disclose limitations.",
+        "draft_only": "Central gaps prevent even iterative release."
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.14.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.92,
+        "probabilities": {
+          "pass": 0,
+          "partial": 0.95,
+          "fail": 0.05
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 1,
+        "probabilities": {
+          "pass": 0,
+          "partial": 1,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.95,
+        "probabilities": {
+          "pass": 0.01,
+          "partial": 0.97,
+          "fail": 0.02
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.77,
+        "probabilities": {
+          "pass": 0.13,
+          "partial": 0.85,
+          "fail": 0.02
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.62,
+        "probabilities": {
+          "pass": 0.24,
+          "partial": 0.75,
+          "fail": 0.01
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.9,
+        "probabilities": {
+          "ship_mvp": 0.95,
+          "draft_only": 0.05
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1506,
+      "output_tokens": 213
+    }
+  }
+}

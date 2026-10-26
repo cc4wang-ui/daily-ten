@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  EXERCISE_MEDIA, getApprovedExerciseMedia, getExerciseStoryboard, isApprovedExerciseMedia, mountExerciseVideo
+  EXERCISE_MEDIA, getApprovedExerciseMedia, getExerciseStoryboard, getStoryboardLabel,
+  isApprovedExerciseMedia, isValidStoryboardPlayback, mountExerciseVideo
 } from '../js/ui/exercise-media.js';
 
 const clip = () => ({
@@ -21,10 +22,39 @@ test('storyboards cover only their exact movement variants', () => {
   assert.equal(getExerciseStoryboard('貓牛式')?.src, './media/exercises/cat-cow-storyboard.png');
   assert.equal(getExerciseStoryboard('伏地挺身 第1組 · 跪姿')?.src, './media/exercises/knee-push-up-storyboard.png');
   assert.equal(getExerciseStoryboard('伏地挺身 第1組')?.src, './media/exercises/push-up-storyboard-v2.png');
-  assert.equal(getExerciseStoryboard('HRP 伏地挺身測驗'), null);
+  assert.equal(getExerciseStoryboard('HRP 伏地挺身測驗')?.src, './media/exercises/hrp-push-up-storyboard.png');
+  assert.equal(getExerciseStoryboard('HRP 伏地挺身 第1組'), null);
   assert.equal(getExerciseStoryboard('派克伏地挺身 第1組')?.src, './media/exercises/pike-push-up-storyboard.png');
   assert.equal(getExerciseStoryboard('派克伏地挺身 第3組'), null);
   assert.equal(getExerciseStoryboard('腳抬高派克伏地挺身'), null);
+});
+
+test('ordered storyboard validation rejects malformed source frames, timeline and timing', () => {
+  const order = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1];
+  const valid = { names: ['QA eight poses'], src: './media/exercises/qa.png', frames: 8,
+    columns: 4, playbackOrder: order, frameMs: Array(14).fill(100) };
+  assert.equal(isValidStoryboardPlayback(valid), true);
+  assert.equal(getStoryboardLabel(valid), '8 張姿勢／往返播放 14 步');
+  assert.equal(getStoryboardLabel({ ...valid, playbackOrder: [0, 1, 2, 3, 4, 5, 6, 7], frameMs: Array(8).fill(100) }),
+    '8 張姿勢／依序播放 8 步');
+  assert.equal(getStoryboardLabel({ frames: 16, columns: 4 }), '16 格');
+  const sparseOrder = [...order]; delete sparseOrder[4];
+  const sparseTiming = [...valid.frameMs]; delete sparseTiming[4];
+  for (const invalid of [
+    null, {}, { ...valid, frames: 7 }, { ...valid, frames: 17 },
+    { ...valid, columns: 1 }, { ...valid, columns: 7 }, { ...valid, columns: 4.5 },
+    { ...valid, playbackOrder: [] }, { ...valid, playbackOrder: '0,1,2' },
+    { ...valid, playbackOrder: [1, ...order.slice(1)] },
+    { ...valid, playbackOrder: [0, 1, 2, 3, 4, 5, 6] },
+    { ...valid, playbackOrder: [0, 1, 2, 3, 4, 5, 6, 8] },
+    { ...valid, playbackOrder: [0, 1, 2, 3, 4, 5, 6, 7.5] },
+    { ...valid, playbackOrder: Array(65).fill(0) },
+    { ...valid, playbackOrder: sparseOrder },
+    { ...valid, frameMs: Array(8).fill(100) },
+    { ...valid, frameMs: Array(14).fill(100).map((ms, i) => i === 2 ? 49 : ms) },
+    { ...valid, frameMs: Array(14).fill(100).map((ms, i) => i === 2 ? 2001 : ms) },
+    { ...valid, frameMs: sparseTiming }
+  ]) assert.equal(isValidStoryboardPlayback(invalid), false);
 });
 
 test('only exact, uniquely approved movement names resolve', () => {

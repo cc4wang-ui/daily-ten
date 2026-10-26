@@ -7,7 +7,8 @@ import { initAudio, beep, speak } from './audio.js';
 import { lockScreen, unlockScreen } from './wakelock.js';
 import { fullSeq } from './program.js';
 import { bossItem } from './session.js';
-import { setTrainDemo, stopDemo } from './demo.js';
+import { setTrainDemo, stopDemo, openDemo, closeDemo } from './demo.js';
+import { getExerciseStoryboard, getStoryboardLabel } from './exercise-media.js';
 import { startWorkout, setExternalTraining, recordAndGain, streakDays, showBonusNote } from './train.js';
 import { renderHome } from './home.js';
 
@@ -86,7 +87,8 @@ function bossTimer(c,restored=false){
   $('t-name').textContent=hrp?'HRP 伏地挺身測驗':'平板支撐測驗';
   $('t-sub').textContent=hrp?'2:00 · 自己計數；姿勢失控就停止':'姿勢維持不住就按「結束」';
   $('t-next').textContent='';$('t-abort').textContent='結束';
-  setTrainDemo(hrp?'HRP':'平板支撐',null,false);
+  const demoName=hrp?'HRP 伏地挺身測驗':'平板支撐測驗';
+  const demoKey=setTrainDemo(demoName,null,false);
   const draw=()=>{
     $('t-count').textContent=Math.floor(c.seconds/60)+':'+String(c.seconds%60).padStart(2,'0');
     $('t-bar').style.width=hrp?Math.round((120-c.seconds)/120*100)+'%':'0%';
@@ -123,9 +125,19 @@ function bossTimer(c,restored=false){
   cleanup=()=>{
     closed=true;stopTimer();
     document.removeEventListener('visibilitychange',hidden);window.removeEventListener('pagehide',pagehide);
-    $('t-pause').onclick=$('t-abort').onclick=null;
-    stopDemo();unlockScreen();setExternalTraining(false);$('train').classList.remove('active');
+    $('t-pause').onclick=$('t-abort').onclick=$('t-show-demo').onclick=null;
+    $('t-show-demo').hidden=true;
+    closeDemo();stopDemo();unlockScreen();setExternalTraining(false);$('train').classList.remove('active');
     try{speechSynthesis.cancel();}catch{}
+  };
+  $('t-show-demo').hidden=false;
+  const storyboard=getExerciseStoryboard(demoName);
+  $('t-show-demo').textContent=storyboard?`查看 ${getStoryboardLabel(storyboard)}動作影格 · 計時會暫停`:'查看動作說明 · 計時會暫停';
+  $('t-show-demo').onclick=()=>{
+    if(closed)return;
+    setPaused(true);
+    // Help returns to this paused checkpoint; only the resume button restarts it.
+    openDemo(demoKey,demoName,()=>{},demoName);
   };
   $('t-pause').onclick=()=>setPaused(!paused);
   $('t-abort').onclick=()=>{
@@ -143,6 +155,12 @@ function bossInput(c,restored=false){
   if(item==='hrp')card.innerHTML='<h3>2 分鐘內完成幾下？</h3><div class="inputrow"><input type="number" id="bi-1" min="0" max="200" inputmode="numeric"><span>下</span></div>';
   else if(item==='plank')card.innerHTML='<h3>本次成績</h3><p class="boss-result num">'+Math.floor(c.seconds/60)+':'+String(c.seconds%60).padStart(2,'0')+'</p>';
   else card.innerHTML='<h3>戶外跑 2 英里（3.2 km），回來輸入時間</h3><div class="inputrow"><input type="number" id="bi-m" min="0" max="59" placeholder="分" inputmode="numeric"><span>分</span><input type="number" id="bi-s" min="0" max="59" placeholder="秒" inputmode="numeric"><span>秒</span></div><p>雨天可改跑步機或延後至下午，當日輸入即可。</p>';
+  const runGuide=item==='run2mi'?document.createElement('button'):null;
+  if(runGuide){
+    runGuide.id='bi-show-demo';runGuide.type='button';runGuide.className='btn-sub';
+    runGuide.textContent='查看跑姿影格 · 保留已填時間';
+    card.append(runGuide);
+  }
   const date=document.createElement('p');date.id='bi-date';date.textContent='測驗日期：'+c.date;
   const interruption=document.createElement('p');interruption.id='bi-interrupted';
   interruption.textContent='本次測驗曾中斷，顯示的是分段計時；確認後再儲存自記成績。';
@@ -165,7 +183,16 @@ function bossInput(c,restored=false){
     closed=true;
     document.removeEventListener('visibilitychange',onHide);window.removeEventListener('pagehide',onHide);
     save.onclick=abort.onclick=null;for(const [id] of fields)$(id).oninput=null;
+    if(runGuide){runGuide.onclick=null;runGuide.hidden=true;closeDemo();}
     setExternalTraining(false);
+  };
+  if(runGuide)runGuide.onclick=()=>{
+    if(saving||closed)return;
+    persist(c);
+    openDemo(null,'2 英里跑',()=>{},'2 英里跑');
+    // This page records an externally timed run; there is no App timer to pause.
+    $('dm-training-note').hidden=true;
+    $('dm-close').textContent='返回成績輸入';
   };
   abort.onclick=()=>{if(saving)return;cleanup();active=null;clearCheckpoint();showScreen('s-home');renderHome();};
   save.onclick=async()=>{

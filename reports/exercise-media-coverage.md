@@ -2,11 +2,11 @@
 
 > 由 `node tools/report-exercise-media.mjs --write` 產生。這是素材製作與審核清單，不是動作品質認證。
 
-目前課表與 Boss 共 **73 個精確名稱**；完整本機影片 **0**，AI 16 格連續影格 **63**，兩者都沒有的名稱 **10**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。
+目前課表與 Boss 共 **71 個精確名稱**；完整本機影片 **0**，AI 動作影格 **71**，兩者都沒有的名稱 **0**。不同組數、左右側與阻力變式只有逐一核對後才能共用同一份素材。
 
-| 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 16 格連續影格 |
+| 課表顯示的精確名稱 | 出現處 | 完整本機影片 | 動作影格 |
 | --- | --- | --- | --- |
-| 2 英里跑 | Boss 測驗 | — | — |
+| 2 英里跑 | Boss 測驗 | — | ./media/exercises/running-storyboard.png |
 | 90/90 髖旋轉 · 右 | 彈力帶／保底、彈力帶／週一、彈力帶／週五、彈力帶／週六、彈力帶／週日、無帶／保底、無帶／週一、無帶／週五、無帶／週六、無帶／週日 | — | ./media/exercises/hip-90-90-storyboard.png |
 | 90/90 髖旋轉 · 左 | 彈力帶／保底、彈力帶／週一、彈力帶／週五、彈力帶／週六、彈力帶／週日、無帶／保底、無帶／週一、無帶／週五、無帶／週六、無帶／週日 | — | ./media/exercises/hip-90-90-storyboard.png |
 | 下犬↔上犬流動 | 彈力帶／週三、彈力帶／週六、無帶／週三、無帶／週六 | — | ./media/exercises/down-up-dog-flow-storyboard.png |
@@ -15,8 +15,6 @@
 | 分腿蹲 第2組 · 右 | 彈力帶／週二、彈力帶／週五、無帶／週二、無帶／週五 | — | ./media/exercises/split-squat-right-storyboard.png |
 | 分腿蹲 第2組 · 左 | 彈力帶／週二、彈力帶／週五、無帶／週二、無帶／週五 | — | ./media/exercises/split-squat-left-storyboard.png |
 | 反向雪天使 加練 | 無帶／週三 | — | ./media/exercises/reverse-snow-angel-storyboard.png |
-| 毛巾直臂下拉 第1組 | 無帶／週三 | — | — |
-| 毛巾直臂下拉 第2組 | 無帶／週三 | — | — |
 | 世界最強伸展 · 右 | 彈力帶／週三、彈力帶／週六、無帶／週三、無帶／週六 | — | ./media/exercises/worlds-greatest-stretch-right-storyboard.png |
 | 世界最強伸展 · 左 | 彈力帶／週三、彈力帶／週六、無帶／週三、無帶／週六 | — | ./media/exercises/worlds-greatest-stretch-left-storyboard.png |
 | 平板支撐 | 彈力帶／保底、彈力帶／週日、無帶／保底、無帶／週日 | — | ./media/exercises/forearm-plank-storyboard.png |
@@ -27,7 +25,7 @@
 | 伏地挺身 第1組 · 跪姿 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | ./media/exercises/knee-push-up-storyboard.png |
 | 伏地挺身 第2組 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | ./media/exercises/push-up-storyboard-v2.png |
 | 伏地挺身 第2組 · 跪姿 | 彈力帶／週一、彈力帶／週四、無帶／週一、無帶／週四 | — | ./media/exercises/knee-push-up-storyboard.png |
-| 死蟲式 | 彈力帶／週二、無帶／週二 | — | — |
+| 死蟲式 | 彈力帶／週二、無帶／週二 | — | ./media/exercises/dead-bug-storyboard.png |
 | 派克伏地挺身 第1組 | 無帶／週一、無帶／週四 | — | ./media/exercises/pike-push-up-storyboard.png |
 | 派克伏地挺身 第2組 | 無帶／週一、無帶／週四 | — | ./media/exercises/pike-push-up-storyboard.png |
 | 穿針式 · 右 | 彈力帶／週二、彈力帶／週六、彈力帶／週四、無帶／週二、無帶／週六、無帶／週四 | — | ./media/exercises/needle-right-storyboard.png |
@@ -51,9 +49,9 @@
 | 控制深蹲 | 彈力帶／週二、無帶／週二 | — | ./media/exercises/controlled-squat-storyboard.png |
 | 深蹲 | 彈力帶／週日、無帶／週日 | — | ./media/exercises/controlled-squat-storyboard.png |
 | 深蹲蹲坐 | 彈力帶／週一、彈力帶／週五、彈力帶／週六、彈力帶／週日、無帶／週一、無帶／週五、無帶／週六、無帶／週日 | — | ./media/exercises/deep-squat-hold-storyboard.png |
-| 單腳提踵 · 右 | 彈力帶／週二、無帶／週二 | — | — |
-| 單腳提踵 · 左 | 彈力帶／週二、無帶／週二 | — | — |
-| 提踵 | 彈力帶／週日、無帶／週日 | — | — |
+| 單腳提踵 · 右 | 彈力帶／週二、無帶／週二 | — | ./media/exercises/calf-raise-right-storyboard.png |
+| 單腳提踵 · 左 | 彈力帶／週二、無帶／週二 | — | ./media/exercises/calf-raise-left-storyboard.png |
+| 提踵 | 彈力帶／週日、無帶／週日 | — | ./media/exercises/calf-raise-storyboard.png |
 | 超人式划船 加練 | 無帶／週三 | — | ./media/exercises/superman-row-storyboard.png |
 | 超人式划船 第1組 | 無帶／週三、無帶／週五 | — | ./media/exercises/superman-row-storyboard.png |
 | 超人式划船 第2組 | 無帶／週三、無帶／週五 | — | ./media/exercises/superman-row-storyboard.png |
@@ -63,8 +61,8 @@
 | 彈力帶划船 第3組 | 彈力帶／週三 | — | ./media/exercises/seated-band-row-storyboard.png |
 | 彈力帶肩上推 第1組 | 彈力帶／週一、彈力帶／週四 | — | ./media/exercises/band-overhead-press-storyboard.png |
 | 彈力帶肩上推 第2組 | 彈力帶／週一、彈力帶／週四 | — | ./media/exercises/band-overhead-press-storyboard.png |
-| 彈力帶肩外旋 · 右 | 彈力帶／週三 | — | — |
-| 彈力帶肩外旋 · 左 | 彈力帶／週三 | — | — |
+| 彈力帶肩外旋 · 右 | 彈力帶／週三 | — | ./media/exercises/band-external-rotation-right-storyboard.png |
+| 彈力帶肩外旋 · 左 | 彈力帶／週三 | — | ./media/exercises/band-external-rotation-left-storyboard.png |
 | 彈力帶側平舉 | 彈力帶／週一、彈力帶／週四 | — | ./media/exercises/band-lateral-raise-storyboard.png |
 | 彈力帶開肩 加練 | 彈力帶／週三 | — | ./media/exercises/band-pull-apart-storyboard.png |
 | 彈力帶開肩 第1組 | 彈力帶／週三 | — | ./media/exercises/band-pull-apart-storyboard.png |
@@ -78,6 +76,6 @@
 | 臀橋 第1組 | 彈力帶／週二、彈力帶／週五、無帶／週二、無帶／週五 | — | ./media/exercises/glute-bridge-storyboard.png |
 | 臀橋 第2組 | 彈力帶／週二、彈力帶／週五、無帶／週二、無帶／週五 | — | ./media/exercises/glute-bridge-storyboard.png |
 | 鴿式 | 彈力帶／週一、彈力帶／週五、彈力帶／週六、彈力帶／週日、無帶／週一、無帶／週五、無帶／週六、無帶／週日 | — | ./media/exercises/pigeon-pose-storyboard.png |
-| HRP 伏地挺身測驗 | Boss 測驗 | — | — |
+| HRP 伏地挺身測驗 | Boss 測驗 | — | ./media/exercises/hrp-push-up-storyboard.png |
 
 未對應的動作仍顯示缺片。連續影格是 AI 生成的順序圖，不等於完整影片；發佈時須如實標示覆蓋率。

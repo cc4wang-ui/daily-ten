@@ -1,0 +1,135 @@
+{
+  "state": {
+    "publicPR": "https://github.com/cc4wang-ui/daily-ten/pull/26",
+    "scope": "Personal offline workout MVP. Independent visual and actual browser QA cover all new guides, source playback mapping, offline decode and exact names. Full CI pending; read individual QA reports for counts. IncludesactualBosshelp/offline/normalreturn/oldcheckpoint/L1to5. FullCI pending. No personal data. Summary judgment only for these five requirements; images were independently judged in separate calls.",
+    "movement": "41 AIposePNGs cover71of71 exactnames,0complete realvideos. Sources8or16poses with explicit orderedreturnwhereappropriate. Seven newly reference-informed atlases independently checked foractualanatomicalside, oppositepairing, floorcontactandarm/legtransition. Playbackcontrols, offline, checkpoint tests separatelyverified. NewHRP completeplank-down-floor-armsT-handsunder-pressup cycle6seconds illustrative nottestcadence. PrimaryArmydefinition andindependentvisualQA checked. Noaliasnormal/knee/pike. Rejected running drafts samefootlead/frozenarms; accepted finalalternatesfeetandoppositearms. Deadbugoppositepairbothsides. Calf3variantsandbandrotationL/Rspecific, noexternalanchor. Oldv28pike/supermanJevcaveatsremain, notclaimingvideorealism.",
+    "help": "NewactualBossHRP,Plank andrunresult help reachablefrommeasurement view: savesremainingseconds andpauses beforeopen; closekeepspaused formanualresume; reloadsamepausedseconds; cleanupclearseventhandler, result andnormaltrainingdonotleak. HRP2min+selfcountunchanged. Inapptraininghelp andcheckpointalreadyshipped. Running result help preserves unsaved minutes/seconds/notes and checkpoint. iPhoneOS evictionunverified.",
+    "timing": "Repcount×tempo,holds,rest,prep/transitions determineestimate. Control squat corrected from4300to4000ms, Boss warmup3000ms. Bilateralholdmidpointsidecue. No physiologicalvalidation.",
+    "program": "Newbodyweightpull removes2towelsets+rests duecontradictorystraightarmname/bentcue andlimitedlatload. Keeps2supermanrow,slowproneT,core; notloadedpullsubstitute. Noaddedjunkyreplacement. NewsequenceL1to5exactly170secondsshorter includingprep and estimates matchactual. Bandplanunchanged. Legacycheckpointseq/idx/count/exactnamepreserved; helpdeclaresremoved, nosubstitutedimage/autoXP, normalskip. Existingweeklysplit/variantprogression/bandcontextsremain; noautomusclevolumeadjustment.",
+    "navigation": "Targetcardroutes exactmovementreadonlyhistory, date28/all, paging, zero/negative/unfinished retained; XSSsafe and no storagewrites/XP. Backtotrain. Activeworkoutguard preserved. No userstudy."
+  },
+  "questions": {
+    "movement": {
+      "type": "choice",
+      "instructions": "Judge requirement movement from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "help": {
+      "type": "choice",
+      "instructions": "Judge requirement help from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "timing": {
+      "type": "choice",
+      "instructions": "Judge requirement timing from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "program": {
+      "type": "choice",
+      "instructions": "Judge requirement program from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "navigation": {
+      "type": "choice",
+      "instructions": "Judge requirement navigation from supplied public summary. Material missing features or unverified behavior means partial. Do not infer full completion from test counts.",
+      "criteria": {
+        "pass": "Requirement met without material gaps.",
+        "partial": "Useful implementation with remaining gaps or unverified behavior.",
+        "fail": "Central requirement unmet."
+      }
+    },
+    "mvp": {
+      "type": "choice",
+      "instructions": "Can this ship as an iterative personal MVP with all stated media/iPhone limitations disclosed? Not full product completion.",
+      "criteria": {
+        "ship_mvp": "Useful iterative MVP; disclose limitations.",
+        "draft_only": "Central gaps prevent even iterative release."
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.14.0",
+    "answers": {
+      "movement": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.79,
+        "probabilities": {
+          "pass": 0.09,
+          "partial": 0.86,
+          "fail": 0.05
+        }
+      },
+      "help": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.98,
+        "probabilities": {
+          "pass": 0.01,
+          "partial": 0.99,
+          "fail": 0
+        }
+      },
+      "timing": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.94,
+        "probabilities": {
+          "pass": 0.01,
+          "partial": 0.96,
+          "fail": 0.03
+        }
+      },
+      "program": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.77,
+        "probabilities": {
+          "pass": 0.13,
+          "partial": 0.85,
+          "fail": 0.02
+        }
+      },
+      "navigation": {
+        "type": "choice",
+        "choice": "partial",
+        "confidence": 0.58,
+        "probabilities": {
+          "pass": 0.27,
+          "partial": 0.72,
+          "fail": 0.01
+        }
+      },
+      "mvp": {
+        "type": "choice",
+        "choice": "ship_mvp",
+        "confidence": 0.92,
+        "probabilities": {
+          "ship_mvp": 0.96,
+          "draft_only": 0.04
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 1644,
+      "output_tokens": 213
+    }
+  },
+  "evaluatedOn": "2026-10-27"
+}
