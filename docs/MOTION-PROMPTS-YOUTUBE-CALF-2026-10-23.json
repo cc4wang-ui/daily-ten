@@ -1,0 +1,161 @@
+{
+  "reference": {
+    "title": "Heel Raise Exercise to Strengthen Calf Muscles",
+    "creator": "Margaret Martin, Physical Therapist",
+    "url": "https://www.youtube.com/watch?v=FRw-Oe7wcSY",
+    "method": "Watched YouTube playback in CUA browser; source used only to study movement, never copied or downloaded into the app.",
+    "observations": [
+      {
+        "time": "2:57",
+        "chapter": "Double Heel Raise",
+        "visual": "Side-facing demonstrator upright beside chair for balance; both feet flat before movement."
+      },
+      {
+        "time": "3:07-3:09",
+        "chapter": "Double Heel Raise",
+        "visual": "Feet visible on mat during demonstration; voice instructs heel rise and return downward. Forefoot stays on mat while body remains upright."
+      },
+      {
+        "time": "4:49",
+        "chapter": "Single Heel Raises",
+        "visual": "Demonstrator begins one-leg setup with other knee bent."
+      },
+      {
+        "time": "4:52-4:54",
+        "chapter": "Single Heel Raises",
+        "visual": "Close view shows one support foot flat on mat and other foot held off ground behind it."
+      }
+    ]
+  },
+  "accepted_candidates": {
+    "double": {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-41fd2486-a8f5-4e2f-9a04-9cc9269651fd.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "cell": [
+        384,
+        512
+      ],
+      "review": "Root accepted. Eight visually distinct ascending heel positions, forefeet meet visible opaque gray floor, complete figure in each cell. Reverse same frames for descending half."
+    },
+    "left_single": {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-ef388f09-91a0-4a99-83cb-102536cfcc58.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "cell": [
+        384,
+        512
+      ],
+      "review": "Agent candidate; one straight bearing leg, one bent non-bearing leg, heel rise while toe remains on floor. Faces right. Side profile limits independent anatomical verification of left/right."
+    },
+    "right_single": {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-110bb88f-656a-4ce5-9d9d-4fb8a1c9a720.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "cell": [
+        384,
+        512
+      ],
+      "review": "Agent candidate; mirrored-facing counterpart with one straight bearing leg and one bent non-bearing leg. Side profile limits independent anatomical verification of left/right."
+    }
+  },
+  "rejected_candidates": [
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-b9dd9c6a-cd8b-4a1d-9c57-dff8e0b6347c.png",
+      "reason": "4x4 16-frame double sheet had nearly static flats/peaks and no visible descending half."
+    },
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-05655366-4ad7-4cb1-a89f-cacfa0e19cb3.png",
+      "reason": "8-frame double sheet had ambiguous floating toe on dark vignette background."
+    },
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-3a9774aa-0ccf-4a67-a027-351330ff551f.png",
+      "reason": "Single-left first pass lacked visible ground."
+    },
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-d7cc8bc4-dcac-4504-8e07-f0f4e6a7bb3b.png",
+      "reason": "Single-right first pass lacked visible ground."
+    },
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-9fae6d02-f806-4a22-b99f-0398e4141b24.png",
+      "reason": "Transparent/dark background; superseded by light floor version."
+    },
+    {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-484c86c1-ee9d-4f1e-be38-d11e8f8b4c34.png",
+      "reason": "Single-left attempt added an extra straight leg/third shoe."
+    }
+  ],
+  "playback": {
+    "source_unique_poses": 8,
+    "row_major": true,
+    "pingpong_indices_zero_based": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1
+    ],
+    "steps_per_cycle": 14,
+    "target_cycle_seconds": 2
+  },
+  "prompts": {
+    "double_final": "Create a NEW original exactly eight-cell 4-column × 2-row sprite sheet of a standing TWO-LEG CALF RAISE, using the attached image only for the same camera and person style. More legible movement: all eight images show same full-body adult facing LEFT in three-quarter side view. He wears a gray T-shirt and gray shorts, white flexible training shoes. Neutral well-lit light gray exercise studio backdrop in each cell, a visible light-gray flat gym FLOOR with one thin horizontal floor seam at identical y in each panel; no transparency, no dark vignette. The shoe TOE TIPS AND BALLS OF BOTH FEET must TOUCH that exact floor seam every frame. Pose #1 full flat soles. For poses #2 through #8 both HEELS gradually and markedly rise away from floor, shoes bend at forefoot, ankle points downward; progressively increasing angle: 0°, 5°, 10°, 15°, 20°, 25°, 30°, 35°. In pose 8 the toe tips visibly remain ON floor as heels are high. Head/hips rise with calf extension. Knees remain straight. No foot sliding, jumping, knees bending, floating toes, alternating feet, text, arrows, frame labels, background props, or cell borders. Crop all eight cells equally with full head and complete feet visible, generous space. This is a biomechanics diagram showing eight distinctive ascent phases to be played backward for descent.",
+    "left_single_final": "Edit the INPUT single-leg eight-frame sprite sheet into a polished original exercise sprite sheet. Keep EXACTLY the TWO existing legs and TWO shoes per figure: one straight weight-bearing LEFT leg/shoe, one bent lifted RIGHT leg/shoe. Do not add or clone a second straight leg or any extra shoe. Preserve same adult identity, gray athletic outfit, side profile facing RIGHT, exactly 4 columns × 2 rows, eight complete full-body panels. Replace dark vignette with a LIGHT GRAY OPAQUE exercise studio wall and clearly visible flat gray floor seam across each cell, at same level; no props or text. Strengthen the upstroke: row-major frame1 left stance heel flat, frame2 slight heel lift, 3 more, 4 moderate, 5 high, 6 higher, 7 near peak, 8 maximum. The straight LEFT leg's FRONT TOE AND BALL OF FOOT remain visibly planted ON SAME FLOOR SEAM every cell, while left HEEL and rear shoe pivot up, leaving a progressively larger visible gap. Free RIGHT knee stays bent behind and right shoe never touches ground. Torso upright, stance knee straight, hips/head rise slightly. No third foot, no floating toes, no hopping, no background vignette, no labels or arrows.",
+    "right_single_final": "Create a NEW original OPPOSITE-LEG companion to the input single calf raise sprite sheet. Exactly eight equal cells in 4 columns × 2 rows, full-body man same identity, realistic gray fitted athletic outfit and white shoes, same opaque light-gray studio floor and wall, same camera distance. Mirror entire figure and exercise so he FACES LEFT and balances on anatomical RIGHT foot only. The right stance leg is straight; the anatomical LEFT leg bends backward, its single shoe off the floor. Exactly TWO shoes total per figure, one on the floor and one lifted; NEVER add a third leg or second stance shoe. Show eight DISTINCT ascending steps left-to-right/top-to-bottom: right heel flat in cell1, rising progressively higher through 2-8; right TOE TIP AND BALL remain firmly touching same physical floor location in every cell; heel and rear shoe angle rise to ~35° by frame8. Hips and head rise gradually; no floating toe, no jumping, no knee squat. The bent free left foot stays off the ground in same relative pose. Keep a visible flat gray floor at same location for every cell. No labels, arrows, borders, props or shadows that obscure shoe-floor contact.",
+    "left_single_targeted": "Precisely EDIT the attached LEFT-support calf-raise sprite sheet. Deliver EXACTLY 4 columns × 2 rows, 8 complete equal-size full-body frames, same gray-clothed adult, same opaque light gray exercise studio and visible gray floor. Change camera to a LOW FRONT THREE-QUARTER view (about 30 degrees from frontal, looking slightly toward athlete's left side) so viewer can trace both separate hip→knee→ankle chains and can see a gap behind the raised support heel. Anatomical LEFT leg is the WEIGHT-BEARING straight leg and must occupy the VIEWER'S RIGHT side in a frontal view. Mark anatomical LEFT ankle sock and shoe with a clear but modest ORANGE ankle cuff and ORANGE shoe heel patch in ALL eight frames. Anatomical RIGHT leg is the FREE leg, bent backward off ground in ALL frames, on viewer's left; mark RIGHT ankle sock/shoe with BLUE ankle cuff and BLUE heel patch in ALL frames. Exactly TWO legs and TWO shoes, no extra foot. Eight row-major UPSTROKE phases: frame 1 orange left support foot fully flat, frames 2-8 increasing visible orange heel gap and foot angle until maximum in frame 8. The orange LEFT FOREFOOT/TOE BOX touches the SAME floor spot in every frame, no hopping, no sliding; blue right free foot never touches floor. Stance knee straight, torso upright. The support ankle color must remain orange and free ankle color blue without any swap in all eight frames. Clear enough at app thumbnail scale. No text, no letters, no arrows, no cell borders, no cropping.",
+    "right_single_targeted": "Precisely EDIT the attached RIGHT-support calf-raise sprite sheet into an unambiguous opposite-side companion. EXACTLY 4 columns × 2 rows, 8 complete equal-size full-body frames; SAME adult and gray outfit, opaque light gray studio floor. Camera LOW FRONT THREE-QUARTER view, athlete nearly facing viewer and turned about 30° toward athlete's right; both hip→knee→ankle chains visible, support heel gap discernible. Anatomical RIGHT leg is the straight WEIGHT-BEARING leg, positioned on VIEWER'S LEFT in frontal view. Its shoe and ankle sock have an unmistakable BLUE cuff and BLUE heel patch in EVERY frame. Anatomical LEFT leg is BENT BEHIND and held off floor at all times, on VIEWER'S RIGHT, with ORANGE cuff and ORANGE heel patch. Exactly TWO shoes/legs total. Same color assignment in all 8 frames, no swap. Eight row-major upward phases: frame1 blue RIGHT stance shoe fully flat; then heel gap grows visibly at frames 2,3,4,5,6,7,8; toe and ball of blue shoe remain TOUCHING the same floor point in all frames; heel pivots around planted forefoot, never hop. Free orange LEFT shoe never contacts floor. Stance knee straight, torso upright, head/hips rise slightly. Gray actual floor with consistent seam, no text, no arrows, no labels, no borders, no cropped parts."
+  },
+  "targeted_single_edits": {
+    "left_support": {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-7057d7b7-136f-4bab-a6da-0745751b8011.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "review": "Front three-quarter camera; orange cuff on bearing leg, blue cuff on bent free leg. Eight upstroke poses with planted front shoe. Frame 1 bearing shoe has a stray blue heel accent despite orange ankle cuff, so color coding is imperfect. Anatomical identity still partly prompt-defined."
+    },
+    "right_support": {
+      "path": "/Users/crosswang/.codex/generated_images/01a16589-ebf5-71e0-97e0-294195326aec/exec-7718aad7-7e2d-4b32-9ccd-82e190e0f6a5.png",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "review": "Front three-quarter camera; blue cuff on bearing leg and orange cuff on bent free leg in all eight cells. Planted forefoot and increasing heel rise are clear. Anatomical identity still partly prompt-defined."
+    }
+  }
+}

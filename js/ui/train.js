@@ -13,7 +13,7 @@ import { recordSession, recordSetFeedback } from './session.js';
 import { summary, todayKey } from './game.js';
 import { latestResistance } from '../game/training-progression.js';
 import { demoCtl, stopDemo, setTrainDemo, openDemo, closeDemo } from './demo.js';
-import { getApprovedExerciseMedia, getExerciseStoryboard } from './exercise-media.js';
+import { getApprovedExerciseMedia, getExerciseStoryboard, getStoryboardLabel } from './exercise-media.js';
 import { renderHome } from './home.js';
 
 /* ================= TIMER ENGINE ================= */
@@ -158,13 +158,13 @@ export function startWorkout(seq,type,after,opts){
     const demoCue=isRest||isPrep?(nextMovement?nextMovement.sub:''):st.sub;
     const demoKey=setTrainDemo(demoName,st.mode==='reps'&&demoName===st.name?st.tempo:null,demoName!==st.name);
     const approvedMedia=!!getApprovedExerciseMedia(demoName);
-    const storyboard=!!getExerciseStoryboard(demoName);
+    const storyboard=getExerciseStoryboard(demoName);
     $('t-show-demo').hidden=!demoName;
-    $('t-show-demo').textContent=storyboard?'查看 16 格動作影格 · 計時會暫停':'查看動作說明 · 計時會暫停';
+    $('t-show-demo').textContent=storyboard?`查看 ${getStoryboardLabel(storyboard)}動作影格 · 計時會暫停`:'查看動作說明 · 計時會暫停';
     $('t-demo-safety').hidden=true;
     $('t-no-demo').hidden=approvedMedia||isRest;
     $('t-no-demo').textContent=storyboard
-      ? '有 16 格 AI 動作影格試作；目前仍沒有完整真人影片。'
+      ? `有 ${getStoryboardLabel(storyboard)} AI 動作影格試作；目前仍沒有完整真人影片。`
       : isPrep
       ? '下一個動作尚無完整示範；如果不熟悉，請先查看說明，開始後可略過該動作。'
       : '目前沒有此動作的完整示範；如果不熟悉，請略過這一步。';

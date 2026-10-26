@@ -1,0 +1,46 @@
+{
+  "experimentalImages": true,
+  "publicCommit": "4f30409efa0c60344d5ba372227d3bb4f99d578b",
+  "batches": [
+    {
+      "manifest": [
+        {
+          "name": "hrp-push-up",
+          "url": "https://raw.githubusercontent.com/cc4wang-ui/daily-ten/4f30409efa0c60344d5ba372227d3bb4f99d578b/media/exercises/hrp-push-up-storyboard.png",
+          "sha256": "6adb170646d4b1672a9bd35710ff000e4d77d62e49cedd8e1be32df09a6ea956",
+          "question": "image_1"
+        }
+      ],
+      "questions": {
+        "image_1": {
+          "type": "choice",
+          "instructions": "Inspect state.images[0].photo directly. Does it show the named motion with a coherent complete sequence, enough intermediate poses, two arms/two legs and consistent framing? Verify anatomical side where specified. Repeated static hold frames are valid; incorrect arm/leg/side or missing main phases require repair.",
+          "criteria": {
+            "usable": "Named movement and meaningful coherent sequence are visible. Minor proportional jitter may remain.",
+            "repair": "Material mismatch, extra limb, wrong side, missing main phase or confusing sequence needs repair.",
+            "unclear": "Cannot confidently verify named movement or side from image."
+          }
+        }
+      },
+      "response": {
+        "model": "jev-1.14.0",
+        "answers": {
+          "image_1": {
+            "type": "choice",
+            "choice": "usable",
+            "confidence": 0.33,
+            "probabilities": {
+              "usable": 0.55,
+              "repair": 0.41,
+              "unclear": 0.04
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 4618,
+          "output_tokens": 41
+        }
+      }
+    }
+  ]
+}

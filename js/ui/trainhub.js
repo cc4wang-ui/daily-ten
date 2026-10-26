@@ -8,7 +8,7 @@ import { getState } from '../state/store.js';
 import { $ } from './dom.js';
 import { VIDEOS } from './content.js';
 import { HAS_DEMO, openDemo } from './demo.js';
-import { getApprovedExerciseMedia, getExerciseStoryboard } from './exercise-media.js';
+import { getApprovedExerciseMedia, getExerciseStoryboard, getStoryboardLabel } from './exercise-media.js';
 import { hasBand, blockLabel, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, blockTargets, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, bossItem, weeklyStrengthEvidence } from './session.js';
 import { startWorkout } from './train.js';
@@ -144,7 +144,8 @@ export function renderTrain(sum) {
 export function renderVideos() {
   $('vids').innerHTML = VIDEOS.map((v, i) => {
     if (!v[1]) return `<h3 class="vid-group">${v[0].replace(/^—\s*|\s*—$/g, '')}</h3>`;
-    const badge=getExerciseStoryboard(v[0])?'<small class="vid-ready">16 格站內示範</small>':'';
+    const storyboard=getExerciseStoryboard(v[0]);
+    const badge=storyboard?`<small class="vid-ready">${getStoryboardLabel(storyboard)}站內示範</small>`:'';
     return `<div class="vidline"><span class="vid-name">${v[0]}${badge}</span><span class="vid-acts">`
       + `<button type="button" class="vid-btn" data-i="${i}" aria-label="${v[0]} 動作說明">說明</button>`
       + `<a class="vid-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(v[1])}" target="_blank" rel="noopener"`

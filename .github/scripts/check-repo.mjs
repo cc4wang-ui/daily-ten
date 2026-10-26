@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { execSync } from 'node:child_process';
-import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, isApprovedExerciseMedia } from '../../js/ui/exercise-media.js';
+import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, isApprovedExerciseMedia, isValidStoryboardPlayback } from '../../js/ui/exercise-media.js';
 
 const ROOT = process.cwd();
 const BASE_REF = process.env.CHECK_BASE_REF || 'origin/main'; // 比對 CACHE 版號的基準（CI 需 fetch-depth: 0）
@@ -94,10 +94,7 @@ const storyboardEntries = new Map();
 const storyboardNames = new Set();
 for (const entry of EXERCISE_STORYBOARDS) {
   if (!/^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.png$/.test(entry.src) ||
-      !Number.isInteger(entry.columns) || entry.columns < 2 ||
-      !Number.isInteger(entry.frames) || entry.frames < 8 || entry.frames > entry.columns ** 2 ||
-      (entry.frameMs && (!Array.isArray(entry.frameMs) || entry.frameMs.length !== entry.frames ||
-        entry.frameMs.some(ms => !Number.isInteger(ms) || ms < 50 || ms > 2000))) ||
+      !isValidStoryboardPlayback(entry) ||
       !Array.isArray(entry.names) || !entry.names.length) {
     fail('media', '連續影格登錄資料無效');
     continue;
@@ -105,6 +102,7 @@ for (const entry of EXERCISE_STORYBOARDS) {
   const shared = entry.sameMotionAs && storyboardEntries.get(entry.sameMotionAs);
   const explicitTempoVariant = shared && shared.src === entry.src &&
     shared.columns === entry.columns && shared.frames === entry.frames &&
+    JSON.stringify(shared.playbackOrder || null) === JSON.stringify(entry.playbackOrder || null) &&
     Array.isArray(shared.frameMs) && Array.isArray(entry.frameMs) &&
     JSON.stringify(shared.frameMs) !== JSON.stringify(entry.frameMs);
   if (entry.sameMotionAs && !explicitTempoVariant) fail('media', `連續影格共用節奏登錄無效：${entry.sameMotionAs}`);

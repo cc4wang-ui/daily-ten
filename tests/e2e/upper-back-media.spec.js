@@ -120,8 +120,10 @@ test('精確 catalog：開肩兩組和加練可用，普通 T 與慢速 T 同圖
   expect(entries.slowT.ms).toBeGreaterThanOrEqual(3800);
   expect(entries.slowT.ms).toBeLessThanOrEqual(4200);
   expect(entries.other[0]?.src).not.toBe(entries.lateral?.src); // Existing shoulder press has its own illustration.
+  expect(entries.other[1]?.src).toBe(src('band-external-rotation-left-storyboard.png'));
+  expect(entries.other[2]?.src).toBe(src('band-external-rotation-right-storyboard.png'));
   expect(entries.other[3]?.src).toBe(src('prone-half-floor-angel-storyboard.png'));
-  expect(entries.other.slice(1, 3).concat(entries.other.slice(4))).toEqual(Array(7).fill(null));
+  expect(entries.other.slice(4)).toEqual(Array(5).fill(null));
 });
 
 test('週一有帶肩日：側平舉、Y 與普通 T 求助返回仍是原動作和次數', async ({ page }) => {

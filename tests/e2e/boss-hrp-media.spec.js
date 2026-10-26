@@ -24,7 +24,7 @@ test('HRP 僅精確 library 與 Boss 測驗名稱可用；6 秒影格不充當�
       const e = getExerciseStoryboard(name);
       return [name, e && { src: e.src, ms: e.frameMs?.reduce((sum, x) => sum + x, 0) ?? null, note: e.note }];
     }));
-  }, [NAME, TEST_NAME, 'HRP 伏地挺身 第1組', '伏地挺身 第1組', '伏地挺身 · 跪姿', '派克伏地挺身', '2 英里跑']);
+  }, [NAME, TEST_NAME, 'HRP 伏地挺身 第1組', '伏地挺身 第1組', '伏地挺身 · 跪姿', '派克伏地挺身', '2 英里跑 第1組']);
   expect(entries[NAME]?.src).toBe(ASSET);
   expect(entries[TEST_NAME]?.src).toBe(ASSET);
   expect(entries[NAME].ms).toBe(6000);
@@ -32,7 +32,7 @@ test('HRP 僅精確 library 與 Boss 測驗名稱可用；6 秒影格不充當�
   expect(entries[TEST_NAME].note).toContain('2 分鐘');
   expect(entries['HRP 伏地挺身 第1組']).toBeNull();
   for (const name of ['伏地挺身 第1組', '伏地挺身 · 跪姿', '派克伏地挺身']) expect(entries[name]?.src).not.toBe(ASSET);
-  expect(entries['2 英里跑']).toBeNull();
+  expect(entries['2 英里跑 第1組']).toBeNull();
 });
 
 test('HRP 動作庫影格原比例解碼，暫停、逐格、慢速、重播及 375px 視窗可用', async ({ page }, testInfo) => {

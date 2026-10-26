@@ -175,10 +175,77 @@ export const EXERCISE_STORYBOARDS = Object.freeze([Object.freeze({
   src: './media/exercises/hrp-push-up-storyboard.png', columns: 4, frames: 16,
   note: '從手臂打直的撐體姿勢下放，讓胸口、髖部與大腿貼地；雙臂向兩側伸直成 T，再把雙手收回肩旁、全身一起推起。影格每次循環約 6 秒，只是示範節奏，非測驗配速或自動計次；HRP 測驗仍為 2 分鐘，請自行計數。',
   frameMs: Object.freeze([375,375,375,375,375,375,375,375,375,375,375,375,375,375,375,375])
+}),Object.freeze({
+  names: Object.freeze(['提踵']),
+  src: './media/exercises/calf-raise-storyboard.png', columns: 4, frames: 8,
+  note: '雙腳前腳掌踩穩地面，腳跟一起抬起，再慢慢放下。8 張由腳跟落地到抬高的姿勢往返播放，每次循環約 2 秒；不要跟著播放自行增加訓練次數。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1]),
+  frameMs: Object.freeze([143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 142, 142])
+}),
+Object.freeze({
+  names: Object.freeze(['單腳提踵 · 左']),
+  src: './media/exercises/calf-raise-left-storyboard.png', columns: 4, frames: 8,
+  note: '左腳支撐、右腳離地；左側支撐腳踝以橙色標記，右側離地腳踝以藍色標記。前腳掌踩穩，左腳跟抬起再慢慢放下，不在本組換腳。8 張姿勢往返播放，每次循環約 2 秒。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1]),
+  frameMs: Object.freeze([143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 142, 142])
+}),
+Object.freeze({
+  names: Object.freeze(['單腳提踵 · 右']),
+  src: './media/exercises/calf-raise-right-storyboard.png', columns: 4, frames: 8,
+  note: '右腳支撐、左腳離地；右側支撐腳踝以藍色標記，左側離地腳踝以橙色標記。前腳掌踩穩，右腳跟抬起再慢慢放下，不在本組換腳。8 張姿勢往返播放，每次循環約 2 秒。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1]),
+  frameMs: Object.freeze([143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 142, 142])
+}),
+Object.freeze({
+  names: Object.freeze(['彈力帶肩外旋 · 左']),
+  src: './media/exercises/band-external-rotation-left-storyboard.png', columns: 4, frames: 16,
+  note: '左手肘貼身彎約 90 度，右手在腹部前方穩住帶子，左前臂向外轉開再慢慢回到腹部前；上臂貼身，不把帶子固定在門、牆或其他物體上。16 張向外旋轉的姿勢往返播放，共 30 步，每次循環約 3 秒。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
+  frameMs: Object.freeze([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
+}),
+Object.freeze({
+  names: Object.freeze(['彈力帶肩外旋 · 右']),
+  src: './media/exercises/band-external-rotation-right-storyboard.png', columns: 4, frames: 16,
+  note: '右手肘貼身彎約 90 度，左手在腹部前方穩住帶子，右前臂向外轉開再慢慢回到腹部前；上臂貼身，不把帶子固定在門、牆或其他物體上。16 張向外旋轉的姿勢往返播放，共 30 步，每次循環約 3 秒。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
+  frameMs: Object.freeze([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
+}),Object.freeze({
+  names: Object.freeze(['死蟲式']),
+  src: './media/exercises/dead-bug-storyboard.png', columns: 4, frames: 16,
+  note: '仰躺、下背輕貼墊面，同色手腕與腳踝標記代表對側搭配。先將一側對側手腳慢慢伸遠、回到中位，再換另一側；不要同時伸出同側手腳。16 張姿勢依左右兩段往返路徑播放，共 30 步、約 6 秒；這是兩側動作示意，訓練時間仍依計時器，不跟著影格計次。',
+  playbackOrder: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15, 14, 13, 12, 11, 10, 9, 8]),
+  frameMs: Object.freeze([200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200])
+}),
+Object.freeze({
+  names: Object.freeze(['2 英里跑']),
+  src: './media/exercises/running-storyboard.png', columns: 4, frames: 16,
+  note: '16 格依時間順序展示跑步時左右腳交替支撐與擺臂；橙色標記為左腳、藍色為右腳。上身自然直立，肩膀放鬆，手臂自然前後擺動。這是跑姿觀察示意，不是測驗配速、步頻或自動計數；2 英里跑仍須自行完成距離並記錄時間。',
+  frameMs: Object.freeze([200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200])
 })]);
+/* frames counts source poses, while playbackOrder (when present) counts timeline
+   steps. Timing belongs to those steps, including repeated source poses. */
+export function isValidStoryboardPlayback(entry){
+  if(!entry||![8,16].includes(entry.frames)||!Number.isInteger(entry.columns)
+    ||entry.columns<2||entry.columns>6)return false;
+  const order=entry.playbackOrder;
+  if(order!==undefined&&(!Array.isArray(order)||order.length===0||order.length>64
+    ||order[0]!==0||Array.from(order).some(i=>!Number.isInteger(i)||i<0||i>=entry.frames)
+    ||new Set(order).size!==entry.frames))return false;
+  const steps=order===undefined?entry.frames:order.length;
+  return entry.frameMs===undefined||Array.isArray(entry.frameMs)&&entry.frameMs.length===steps
+    &&Array.from(entry.frameMs).every(ms=>Number.isInteger(ms)&&ms>=50&&ms<=2000);
+}
+export function getStoryboardLabel(entry){
+  if(!isValidStoryboardPlayback(entry))return '';
+  if(entry.playbackOrder===undefined)return `${entry.frames} 格`;
+  const outAndBack=Array.from({length:entry.frames},(_,i)=>i)
+    .concat(Array.from({length:entry.frames-2},(_,i)=>entry.frames-2-i));
+  const direction=JSON.stringify(entry.playbackOrder)===JSON.stringify(outAndBack)?'往返播放':'依序播放';
+  return `${entry.frames} 張姿勢／${direction} ${entry.playbackOrder.length} 步`;
+}
 export function getExerciseStoryboard(name){
   if(typeof name!=='string')return null;
-  return EXERCISE_STORYBOARDS.find(entry=>entry.names.includes(name))||null;
+  return EXERCISE_STORYBOARDS.find(entry=>isValidStoryboardPlayback(entry)&&entry.names.includes(name))||null;
 }
 
 const LOCAL_VIDEO = /^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.(?:mp4|webm)$/;
@@ -284,14 +351,17 @@ function mountExerciseStoryboard(container,name,entry){
   const wrap=document.createElement('div');
   wrap.className='exercise-storyboard';
   const heading=document.createElement('p');
-  heading.textContent='AI 動作影格試作 · 16 格循環（非真人影片）';
+  const label=getStoryboardLabel(entry),ordered=entry.playbackOrder!==undefined;
+  heading.textContent=`AI 動作影格試作 · ${label}${ordered?'':'循環'}（非真人影片）`;
   const note=entry.note?document.createElement('p'):null;
   if(note){note.className='exercise-storyboard-note';note.textContent=entry.note;}
   const frameEl=document.createElement('div');
   frameEl.className='exercise-storyboard-frame';
   frameEl.setAttribute('role','img');
-  frameEl.setAttribute('aria-label',`${name} 16 格動作循環`);
-  frameEl.style.backgroundSize=`${entry.columns*100}% ${entry.columns*100}%`;
+  frameEl.setAttribute('aria-label',`${name} ${label}${ordered?'':'動作循環'}`);
+  const rows=Math.ceil(entry.frames/entry.columns);
+  const order=entry.playbackOrder||Array.from({length:entry.frames},(_,i)=>i);
+  frameEl.style.backgroundSize=`${entry.columns*100}% ${rows*100}%`;
   const controls=document.createElement('div');
   controls.className='exercise-video-actions';
   const status=document.createElement('p');
@@ -308,11 +378,10 @@ function mountExerciseStoryboard(container,name,entry){
   scrub.type='range';scrub.min='0';scrub.max=String(entry.frames-1);scrub.value='0';
   scrub.setAttribute('aria-label','逐格查看動作');
   let stopped=false,loaded=false,attempt=0,image=null,loadTimer=null,slowHintTimer=null;
-  let frame=0,paused=!!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches),slowMode=false,timer=null;
+  let stepIndex=0,paused=!!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches),slowMode=false,timer=null;
   const draw=()=>{
-    const col=frame%entry.columns,row=Math.floor(frame/entry.columns);
-    const denom=entry.columns-1;
-    frameEl.style.backgroundPosition=`${col/denom*100}% ${row/denom*100}%`;
+    const frame=order[stepIndex],col=frame%entry.columns,row=Math.floor(frame/entry.columns);
+    frameEl.style.backgroundPosition=`${col/(entry.columns-1)*100}% ${rows>1?row/(rows-1)*100:0}%`;
     scrub.value=String(frame);
   };
   const stopTimer=()=>{if(timer!==null){clearTimeout(timer);timer=null;}};
@@ -321,16 +390,21 @@ function mountExerciseStoryboard(container,name,entry){
     const step=()=>{
       timer=setTimeout(()=>{
         if(stopped||!loaded||paused)return;
-        frame=(frame+1)%entry.frames;draw();step();
-      },(entry.frameMs?.[frame]||180)*(slowMode?2:1));
+        stepIndex=(stepIndex+1)%order.length;draw();step();
+      },(entry.frameMs?.[stepIndex]||180)*(slowMode?2:1));
     };
     step();
   };
   const updatePlay=()=>{play.textContent=paused?'播放影格':'暫停影格';startTimer();};
   play.onclick=()=>{if(stopped||!loaded)return;paused=!paused;updatePlay();};
   slow.onclick=()=>{if(stopped||!loaded)return;slowMode=!slowMode;slow.textContent=slowMode?'恢復 1×':'慢速 0.5×';startTimer();};
-  replay.onclick=()=>{if(stopped||!loaded)return;frame=0;draw();};
-  scrub.oninput=()=>{if(stopped||!loaded)return;paused=true;frame=Number(scrub.value);draw();updatePlay();};
+  replay.onclick=()=>{if(stopped||!loaded)return;stepIndex=0;draw();if(ordered)startTimer();};
+  scrub.oninput=()=>{
+    if(stopped||!loaded)return;
+    const source=Number(scrub.value),index=order.indexOf(source);
+    if(index<0)return;
+    paused=true;stepIndex=index;draw();updatePlay();
+  };
   controls.append(play,slow,replay);
   wrap.append(heading);
   if(note)wrap.append(note);
@@ -370,8 +444,8 @@ function mountExerciseStoryboard(container,name,entry){
         if(typeof pending.decode==='function')await pending.decode();
         if(!active())return;
         if(!pending.naturalWidth||!pending.naturalHeight){fail();return;}
-        // The square grid preserves the source sheet's aspect ratio per frame.
-        frameEl.style.aspectRatio=`${pending.naturalWidth} / ${pending.naturalHeight}`;
+        // Each source pose is one cell, including rectangular 4-by-2 sheets.
+        frameEl.style.aspectRatio=`${pending.naturalWidth*rows} / ${pending.naturalHeight*entry.columns}`;
         // Keep the exact local URL so retries can use the offline cache too.
         frameEl.style.backgroundImage=`url("${entry.src}")`;
         ++attempt;clearLoad();setReady(true);

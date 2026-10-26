@@ -1,0 +1,376 @@
+{
+  "createdDate": "2026-10-23",
+  "tool": "Built-in image_gen__imagegen only",
+  "copyright": "YouTube footage watched in browser as biomechanical reference only. No footage downloaded, extracted, copied into app, or provided as imagegen input. Original generated actors/studios.",
+  "sources": [
+    {
+      "exercise": "contralateral deadbug",
+      "url": "https://www.youtube.com/watch?v=o4GKiEoYClI",
+      "title": "Dead Bug Exercise For Core Stability | Pursuit Physical Therapy",
+      "channel": "Pursuit Physical Therapy",
+      "inspection": "Actual YouTube player through CUA screenshots and timeline seeking; not snippet only",
+      "timestamps": [
+        {
+          "time": "0:02",
+          "observed": "Presenter seated before setup"
+        },
+        {
+          "time": "0:11",
+          "observed": "Supine with both straight arms toward ceiling and hips/knees90 tabletop; back resting on mat"
+        },
+        {
+          "time": "0:14",
+          "observed": "One arm lowers overhead while opposite leg extends; other arm ceiling and knee tabletop"
+        },
+        {
+          "time": "0:15",
+          "observed": "Alternating opposite arm/leg extension"
+        },
+        {
+          "time": "0:17",
+          "observed": "Controlled return to arms ceiling and both hips/knees tabletop"
+        }
+      ],
+      "designAdaptation": "Original actor graystudio; high footend angle instead of source treatment table, to visually distinguish actual anatomical left/right; original sweatbands identify pair but anatomy also checked."
+    },
+    {
+      "exercise": "single shoulder external rotation with hand anchoring",
+      "url": "https://www.youtube.com/watch?v=sL7fvQ2DuGE",
+      "title": "Shoulder Theraband External and Internal Rotation",
+      "channel": "stoneclinicPT",
+      "inspection": "Actual YouTube player through CUA screenshots and timeline seeking",
+      "timestamps": [
+        {
+          "time": "0:59",
+          "observed": "Towel placed between upper arm and thorax to maintain elbow against body"
+        },
+        {
+          "time": "1:08",
+          "observed": "Neutral working forearm, opposite hand holds other end of band"
+        },
+        {
+          "time": "1:14",
+          "observed": "Forearm/wrist aligned; therapist explains avoiding flexion"
+        },
+        {
+          "time": "1:24",
+          "observed": "Set upright posture, abdominals engaged, other hand remains fixed"
+        },
+        {
+          "time": "1:29",
+          "observed": "Right forearm externally rotated away from opposite hand, upper arm at towel and elbow against waist"
+        },
+        {
+          "time": "1:31",
+          "observed": "Working hand returns toward neutral while other hand stays anchored"
+        }
+      ],
+      "designAdaptation": "Source opposite hand is held near opposite waist, not exact navel. Product request adapts to fixed navel midline self-anchor; original left and right sheets generated separately, towel retained as visual elbow pivot."
+    },
+    {
+      "exercise": "rejected shoulder reference",
+      "url": "https://www.youtube.com/watch?v=4fM554Org3o",
+      "title": "Shoulder External Rotation with Resistance Band",
+      "channel": "Onyx Physical Therapy and Wellness",
+      "timestamps": [
+        {
+          "time": "0:05",
+          "observed": "Elbow tucked, but band extends out of frame to external anchor"
+        }
+      ],
+      "decision": "Not used for required hand-anchor mechanics"
+    }
+  ],
+  "assets": [
+    {
+      "id": "deadbug-initial",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-8fed9337-5693-425c-95be-fdff7d8ca4b4.png",
+      "prompt": "Create an ORIGINAL exercise motion sprite sheet, 4 columns x 4 rows, EXACTLY 16 equal rectangular cells, row major chronological order. Entire image 1536x1024. No outer border, no gutters, no grid lines, no numbers, text, arrows or captions. Gray seamless studio background and dark gray mat; same photoreal athletic adult male, short brown hair, gray t shirt, black shorts, gray trainers in every frame. Head-to-toe visible with generous margins in each cell. Fixed camera, identical scale and mat position throughout, left three-quarter side view, subject lying supine with head screen-left and feet screen-right. Camera looks from anatomical LEFT flank and slightly above, so both legs and arms remain distinguishable. The nearer anatomical LEFT shoulder/arm is at lower image edge; anatomical RIGHT side farther from camera. This is a CONTRALATERAL DEAD BUG, not same-side. The man's head, both shoulders, rib cage, pelvis and low back remain resting flat on mat at every moment, no abdominal crunch, no rolling, no bridge. Start with both straight arms pointing vertically above shoulders, hips flexed 90, knees bent 90 and shins horizontal. Motion A is near LEFT arm lowering overhead toward head screen-left, simultaneously the far RIGHT leg extends and lowers screen-right until straight hovering above mat. The near LEFT leg stays bent in tabletop; far RIGHT arm stays vertical. Motion B swaps: far RIGHT arm overhead and near LEFT leg straight and hovering, while near LEFT arm stays vertical and far RIGHT leg stays bent. Each move is continuous, anatomically plausible and slow, with many visibly distinct intermediate poses. Row1 cells1-4 = neutral, A 33 percent extended, A 66 percent extended, A fully extended. Row2 cells5-8 = A 85 percent extended returning, A 55 percent returning, A 25 percent returning, completely neutral tabletop. Row3 cells9-12 = B 25 percent extended, B 50 percent extended, B 75 percent extended, B fully extended. Row4 cells13-16 = B 75 percent returning, B 50 percent returning, B 25 percent returning, fully neutral tabletop. Leg and arm of each moving opposite pair ALWAYS move together; the OTHER two limbs ALWAYS stay in tabletop/vertical. Keep exactly two arms and two legs, hand and foot positions never teleport, no missing limb, no switched limb identity. This is an instructional motion sheet based on observed exercise mechanics, create original person and original studio, do not imitate any video appearance. Accurate opposite limb coordination is highest priority.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Same-side appearance; second phase limb ambiguity; return jump",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1974041
+    },
+    {
+      "id": "left-band-initial",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-ddc4fcba-ace8-45e1-b8be-cb334efec686.png",
+      "prompt": "Use case scientific-educational. Create an ORIGINAL photoreal exercise sprite sheet, EXACTLY 4 columns by 4 rows with 16 equal cells at 1536x1024, no grid lines no gutters, no frame numbers, no text. One same athletic adult man with short brown hair, gray t-shirt, black shorts, gray trainers, full body head to feet fully visible in EACH cell, standing on seamless gray studio floor/background. Fixed almost frontal camera slightly above waist so horizontal forearm rotation is visible. Constant feet, body, elbows, head, scale and camera throughout. ANATOMICAL LEFT shoulder external rotation: viewer's RIGHT arm is moving. Both upper arms hang vertically against ribs, both elbows bent exactly90 degrees at waist and glued to ribs. His RIGHT hand (viewer left) grips the red resistance band's other end at his NAVEL, fixed in exactly that position in every frame. It never moves. His LEFT hand (viewer right) holds the working end; LEFT forearm stays horizontal and swings outward toward viewer right in a flat horizontal arc around the pinned left elbow; no bending/straightening elbow, no upper arm lift, no torso turning. Red band stretches directly hand to hand; no wall/door/furniture/external anchor. Begin left fist pointing forward ahead of left elbow with light band tension. Finish left forearm rotated outward about60 degrees; band longer. Return over same arc to start. SIXTEEN successive images form one controlled smooth repetition: frame1 zero rotation, 2=8degrees,3=16,4=24,5=32,6=40,7=50,8=60,9=60,10=50,11=40,12=32,13=24,14=16,15=8,16=0. Row1 four progressive early positions; row2 four progressive opening positions reaching max; row3 four progressive RETURN positions; row4 four final return positions. Every adjacent pose must differ by a small amount with exact same elbow pivot and anchored other hand. Do NOT make a band pull apart; only LEFT forearm rotates and RIGHT hand remains at navel. Do not make biceps curl, no elbows flaring, no switch to other arm. Shoulders relaxed and level. No copy of any video person or scene. Accurate elbow-pinned external rotation and stationary hand anchor have highest priority.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Later working upper arm flares; row3 abrupt reset",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1717450
+    },
+    {
+      "id": "left-band-forward-v1",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-a94f2667-f41b-43c5-b862-e0f992b5bd0d.png",
+      "prompt": "ORIGINAL photoreal exercise animation sprite sheet. 1536x1024. EXACT 4x4 grid =16 equal rectangular frames. No text, labels, borders, gutters or white grid lines. Same adult athletic male with short brown hair, gray tee, black shorts, gray trainers, standing FULL BODY head to shoes, on plain gray studio background. Fixed frontal camera slightly elevated, identical person/scale/ground/body throughout. Exercise: single ANATOMICAL LEFT shoulder external rotation, viewed front (moving arm at SCREEN RIGHT). This sheet shows ONLY ONE GRADUAL OUTWARD PHASE, NO RETURN at all. There are 16 consecutively increasing tiny forearm rotations, frame1 neutral0deg,2=3deg,3=6deg,4=9deg,5=12deg,6=15deg,7=18deg,8=21deg,9=24deg,10=27deg,11=30deg,12=33deg,13=36deg,14=39deg,15=42deg,16=45deg. NO RESTART ANYWHERE. Both upper arms point straight down, tucked tightly to ribs. A small WHITE ROLLED TOWEL is clamped firmly BETWEEN LEFT ELBOW AND WAIST at screen right in EVERY frame. LEFT elbow stays in identical position against that towel; shoulder/upper arm never move. LEFT ELBOW ALWAYS BENT90 degrees, forearm horizontally pivots, palm thumb-up. Crucial: even the last frame has the elbow below shoulder and pressed against towel/waist, NOT a straight arm reaching to side. His RIGHT hand remains FIXED against his NAVEL holding one end of a short RED resistance band. His LEFT hand holds other end, moves from pointing forward at the elbow to slightly outward about45degrees, stretching band. Only left hand and horizontal forearm move; right anchor hand/body/elbow/towel don't move. This is NOT a pull-apart, NOT a biceps curl, NOT arm abduction. Make limited realistic range and subtle evenly spaced differences, never straighten elbow. Entire man within each cell, no crop. Original character/studio, no video copy. Biomechanical precision over dramatic movement. Left elbow must never leave its white towel pivot.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Later elbow/forearm lengthening; first few plausible",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1689080
+    },
+    {
+      "id": "deadbug-side-colors",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-d354ae97-98f7-4154-bb6d-f66804e36d87.png",
+      "prompt": "Original photographic exercise sprite sheet for contralateral DEAD BUG. 4 columns x4 rows, sixteen equal frames, 1536x1024, row-major. NO lines or borders or text. Gray studio, same man gray shirt black shorts gray trainers lying supine on dark gray mat, head left feet right, full body always visible, same camera and scale. IMPORTANT use HIGH THREE-QUARTER VIEW from man's LEFT flank at60degrees above floor, so you can SEE both shoulders and both hips separately. Near/LOWER shoulder is LEFT, far/UPPER shoulder is RIGHT. Near/LOWER hip is LEFT; far/UPPER hip is RIGHT. Add tiny ORANGE fitness bands to LEFT WRIST and RIGHT ANKLE. Add tiny BLUE bands to RIGHT WRIST and LEFT ANKLE. These fixed color pair identities are essential throughout. First EIGHT frames show ONLY ORANGE pair extending (LEFT ARM + RIGHT LEG) while BLUE pair stays tabletop. Second EIGHT frames show ONLY BLUE pair extending (RIGHT ARM+LEFT LEG) while ORANGE pair stays tabletop. Every frame head, spine, pelvis, shoulders lie FLAT against mat. No crunch or torso lift. Neutral pose both straight arms vertical above shoulders, both thighs vertical at90hip flexion and knees bent90, shins horizontal. First8 frames: frame1 neutral;2 orange pair10%extension;3 25%;4 40%;5 55%;6 70%;7 85%;8 100%. Orange LEFT arm (NEAR shoulder) lowers overhead left toward floor while simultaneously orange RIGHT leg (FAR hip) lengthens straight out right hovering above mat. BLUE right arm (FAR shoulder) remains straight vertical and BLUE left thigh/knee(NEAR hip) remains at90/90 tabletop, immobile. Second8 frames RESTART at neutral: frame9 neutral;10 blue pair10%;11 25%;12 40%;13 55%;14 70%;15 85%;16 100%. Blue RIGHT arm(FAR shoulder) lowers overhead left while blue LEFT leg(NEAR hip) straightens right hovering above mat. ORANGE left arm(NEAR shoulder) remains vertical, ORANGE right leg(FAR hip) remains tabletop. There is NO RETURN PHASE on sheet. It is TWO separate gradual OUTWARD phases, each eight distinct poses, both starting neutral. Keep two arms and two legs and correct joint connections. The extended arm and extended leg must be opposite anatomical sides, never same side. Both moving opposite limbs move together, same progress percent. Small natural differences between consecutive stages. The colored bands prove limb identity, do not swap their colors or move them to another limb. Precise contralateral pairing most important. Keep all fingers shoes and head within every cell.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Generator changed band identities instead of actual opposite leg",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1917546
+    },
+    {
+      "id": "left-band-final",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-9272c18e-9c51-473b-bb72-f35121390680.png",
+      "prompt": "Make a 4x4 exercise motion sheet with sixteen equal cells, photoreal same man gray shirt black shorts gray shoes on gray studio.1536x1024. Full body in every cell. No gutters lines labels text. ANATOMICAL LEFT external shoulder rotation, moving arm screen RIGHT, other hand fixed at navel. Camera fixed high45degree overhead front threequarter on his LEFT side so both upper arm and forearm are clearly seen. EACH pose has left upper arm VERTICAL AND TOUCHING RIBS, elbow90degrees. Small white towel under LEFT upper arm against torso fixes elbow position. ONLY horizontal forearm pivots out gradually, NO elbow extension or arm lift. Motion is ONE forward movement spread across all16frames, NOT return. Neutral forearm points forward, successive sixteen frames rotate0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45 degrees out to his left. Other hand stays against belly button, gripping red band from navel to moving hand. Feet and torso motionless. Frame1 through16 shoulder to elbow length and elbow to wrist length STAY IDENTICAL; do not stretch or lengthen either limb segment. Last pose still has elbow below shoulder directly at side of body, never across a gap. Elbow should be at roughly55%of each frame width from left and39%of cell height in EVERY cell. Working wrist follows a small arc only from about58%width/44%height to64%width/39%height. Working wrist NEVER goes beyond66%frame width. Towel stays clamped at same small spot touching waist elbow. Do not show biceps curl, no straight arm side reaching, no bilateral pull apart. Highest priorities pinned elbow, forearm only rotation, tiny gradual increments, fixed opposite-hand anchor. Same camera every cell, no perspective change.",
+      "generationMode": "built-in generate",
+      "status": "candidate-accepted-by-root",
+      "review": "Elevated view, towel/waist elbow pivot, navel hand anchor fixed, small forearm arc; forward phase; some subtle source positions. Root independently reviewed and copied.",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1896949
+    },
+    {
+      "id": "right-band-final",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-17f77afa-09da-4696-a696-416e2cbce997.png",
+      "prompt": "Make an ORIGINAL 4x4 exercise motion sheet with sixteen equal cells, photoreal same man gray shirt black shorts gray shoes on gray studio.1536x1024. Full body in every cell. No gutters lines labels text. ANATOMICAL RIGHT external shoulder rotation, moving arm screen LEFT, other hand fixed at navel. Camera fixed high45degree overhead front threequarter on his RIGHT side so both upper arm and forearm are clearly seen. EACH pose has right upper arm VERTICAL AND TOUCHING RIBS, elbow90degrees. Small white towel under RIGHT upper arm against torso fixes elbow position. ONLY horizontal forearm pivots out gradually, NO elbow extension or arm lift. Motion is ONE forward movement spread across all16frames, NOT return. Neutral forearm points forward, successive sixteen frames rotate0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45 degrees out to his right. Other LEFT hand stays against belly button, gripping red band from navel to moving RIGHT hand. Feet and torso motionless. Frame1 through16 shoulder to elbow length and elbow to wrist length STAY IDENTICAL; do not stretch or lengthen either limb segment. Last pose still has elbow below shoulder directly at side of body, never across a gap. Elbow should be at roughly45%of each frame width from left and39%of cell height in EVERY cell. Working wrist follows a small arc only from about42%width/44%height to36%width/39%height. Working wrist NEVER goes beyond34%frame width. Towel stays clamped at same small spot touching waist elbow. Do not show biceps curl, no straight arm side reaching, no bilateral pull apart. Highest priorities pinned elbow, forearm only rotation, tiny gradual increments, fixed opposite-hand anchor. Same camera every cell, no perspective change.",
+      "generationMode": "built-in generate",
+      "status": "candidate-accepted-by-root",
+      "review": "Elevated view, elbow near towel, navel opposite-hand anchor fixed; forward phase. Early poses subtle. Root independently reviewed and copied.",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1964776
+    },
+    {
+      "id": "deadbug-overhead-v1",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-8f10e812-6004-440e-910a-647004c69c8e.png",
+      "prompt": "Create ORIGINAL high quality exercise photo sprite sheet at1536x1024, 4columns4rows exactly16equal cells,no borders,gutters,text. Same gray shirt blackshorts athletic man on darkgraymat against graybackground. Camera fixed ABOVE HIM looking DOWN from high70degree elevation at FOOT END: head at TOP CENTER of each cell and feet pointing BOTTOM CENTER. Do NOT use side view. Both left and right shoulders and hips MUST be separately visible on opposite sides of his midline. FULLBODY fits everycell, head, hands,feet nevercropped. Exercise CONTRALATERAL DEADBUG, he is supine with back pelvis shoulders head firmly flat on mat. Start tabletop knees bent90hips90 and straight arms reaching upward toward ceiling. His LEFT body side is on viewer RIGHT. His RIGHT body side is viewer LEFT. Orange narrow sweatband on anatomical LEFT wrist(viewerRIGHT) and anatomical RIGHT ankle(viewerLEFT); blue sweatbands anatomical RIGHT wrist(viewerLEFT) and anatomical LEFT ankle(viewerRIGHT). Colors fixed on those anatomical sides throughout. Rows1and2: ONLY leftarm(viewerRIGHT orange wrist) reaches BACK OVERHEAD toward TOP RIGHT and simultaneously rightleg(viewerLEFT orange ankle) extends STRAIGHT toward BOTTOM LEFT, hovering just above mat. Other rightarm(viewerLEFT blue wrist) remains raised vertically ceiling and other leftleg(viewerRIGHT blue ankle) remains hip/knee90tabletop. Thus moving arm/leg are DIAGONAL across body center, a clear X pair, never same side. Eight increasingly extended positions row1cells1-4=row2cells5-8:0%,14%,28%,43%,57%,71%,85%,100%. No return. Rows3and4 restart neutral, then ONLY rightarm(viewerLEFT BLUE wrist)reaches TOP LEFT and leftleg(viewerRIGHT BLUE ankle) extends BOTTOM RIGHT,while orange pair stays vertical/tabletop. Eight positions0%,14%,28%,43%,57%,71%,85%,100% in rows3and4. Limb connections must stay on their actual shoulder/hip. Do not swap band colors between sides. First2rows show ORANGE diagonal motion; last2rows BLUE diagonal motion. Arms always straight, spine grounded, inactive leg tabletop and inactive arm vertical. Do not situp, don't extend bothlegs or lower botharms. Same man scale camera mat in16frames. Each consecutive pose subtle progression. This is original studio instructional imagery, not copied from video. Highestpriority actual opposite anatomical limb pairing.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Actual contralateral pairing correct; each row resets and limbs abduct diagonally",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 2063961
+    },
+    {
+      "id": "deadbug-overhead-edit",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-3aeb4997-e763-42a4-9054-499980694ddc.png",
+      "prompt": "EDIT this existing exercise sheet, preserve same man, gray studio, mat, elevated foot-end camera, overhead headtop-feetbottom layout,16equal4x4cells and correct LEFT/RIGHT limb identity and fixed orange/blue band assignments. Fix TWO mechanical problems: 1) limbs must move forward/back in SAGITTAL lanes, NO side spreading. Working LEFT arm (orange wrist SCREEN RIGHT) extends straight BACK OVERHEAD toward TOP, parallel to man's head-to-foot axis, beside LEFT EAR, NOT diagonally out to side. Working RIGHT leg(orange ankle SCREEN LEFT) extends straight DOWN toward BOTTOM along its own hip-width lane, not outward to side. At full range the orange hand lies next to left ear above head level, orange foot lies below its right hip, centered narrow lane, with core/back/head flat on mat. Blue limbs remain tabletop/ceiling. For blue phase reverse actual limbs: blue RIGHT hand SCREEN LEFT reaches straight overhead beside RIGHT EAR at TOP; blue LEFT leg SCREEN RIGHT extends straight DOWN hip-width lane to bottom. Orange limbs remain tabletop. 2) Each phase needs EIGHT different increasingly extended positions, not four. Top2rows form ONE uninterrupted increasing ORANGE extension: row1cells1-4:0%,14%,28%,43%. row2cells5-8:57%,71%,85%,100%. DO NOT reset row2cell1; it must be57% already extended. Bottom2rows form ONE uninterrupted BLUE extension: row3cells9-12:0%,14%,28%,43%; row4cells13-16:57%,71%,85%,100%. DO NOT reset row4cell1;it must be57%already extended. Only cell1 andcell9 are full neutral tabletop. No return phase. At all stages opposite inactive arm remains raised vertically toceiling and opposite inactive leg knee90hip90. Correct actual limb pairing already shown is mandatory to preserve. Full body visible in everycell. Keep exact mat/person position, no rotation, no extra limbs. No text/borders/gutters. Most important: no sideways diagonal reach, no legs apart; straight overhead arm+straight lower leg in two narrow parallel hip-width lanes, and16continuous source poses.",
+      "generationMode": "built-in edit/composite",
+      "status": "rejected",
+      "review": "Actual pairing correct but orange arm resets index4; blue phase also resets",
+      "viewed": true,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "bytes": 1862085,
+      "referencedImagePaths": [
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-8f10e812-6004-440e-910a-647004c69c8e.png"
+      ]
+    },
+    {
+      "id": "deadbug-16-forward",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5a998e03-23b8-4f1b-970d-8638dfc8a294.png",
+      "prompt": "Sixteen consecutive photographic exercise animation frames in EXACT 4x4 grid, equal cells,no white lines,no words. Original same man gray T-shirt blackshorts barefoot on graymat in graystudio. Camera stays high directly above feet looking down70degrees, headatTOP feetatBOTTOM, body centered vertically. Fullbody in eachcell. Exercise deadbug, torso headback flat onmat, both shoulders and hips fully visible. Leftwrist viewerRIGHT and rightankle viewerLEFT wearorange bands. Rightwrist viewerLEFT and leftankle viewerRIGHT wearblue bands. Thesecolorsneverchange. One continuous firstside extension over FIRST TWO ROWS: OrangeLEFTarm and orangeRIGHTleg extend together. BlueRIGHTarm ALWAYS points ceiling, blueLEFTleg ALWAYS bent tabletop. Orange arm goes straight above head beside left ear, orange leg straight below righthip. No sideways spread. FIRST ROW: cell1neutral tabletop,cell2 slightmovement10%,cell3 slightmovement20%,cell4 earlymovement30%. SECOND ROW: ALL FOUR POSES ALREADY EXTENDED over halfway! cell5orangehand alreadyaboveforehead and orangeleg70%straight,cell6orangehand nexttoear orangeleg80%straight,cell7orangehand beyondhead orangeleg90%straight,cell8orangehand fullyabovehead closemat and orangelegfullystraightclosemat. SECOND ROW MAY NOT CONTAIN NEUTRAL POSES. Then secondside extension acrossLAST TWO ROWS: BlueRIGHTarm and blueLEFTleg extend together, orangeLEFTarm ALWAYSliftedtowardceiling and orangeRIGHTleg ALWAYSbenttabletop. Bluearmgoesaboveheadbesiderightear,bluelegstraightbelowlefthip. THIRDROW:cell9neutral tabletop,cell10slight10%,cell11slight20%,cell12early30%. FOURTHROW: ALL FOUR POSES ALREADYEXTENDED overhalfway! cell13bluehand alreadyaboveforehead and blueleg70%straight,cell14bluehand nexttoear blueleg80%straight,cell15bluehand beyondhead blueleg90%straight,cell16bluehand fullyabovehead closemat and bluelegfullystraightclosemat. FOURTHROW MUSTNOTCONTAIN NEUTRAL. No returnmotion. Eachside8forwardposes. Bothworkinglimbs move together and remain OPPOSITE SIDES. Graymat stationary, head and pelvis rest onmat everyframe. Only two arms twolegs, no torso twist. Top2rows orange diagonal pair moves;bottom2rows blue diagonal pairmoves. ALL limbs in sagittal lanes alongbodyaxis, inactive leg staysTABLETOP, inactivearm staysceiling. Precise anatomicallyoppositecoordination and rowcontinuity essential.",
+      "generationMode": "built-in generate",
+      "status": "rejected",
+      "review": "Arms remain nearly unchanged while legs progress",
+      "viewed": true,
+      "dimensions": [
+        1247,
+        1261
+      ],
+      "bytes": 2071288
+    },
+    {
+      "id": "deadbug-leftarm-rightleg-source",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-451636d8-a892-4dde-8320-07190bd16815.png",
+      "prompt": "Create EIGHT ORIGINAL photographic sequential motion frames arranged4columns2rows,1536x768pixels,eachcell384square. NOT16frames. No text/borders/gutters. Same man grayTshirt blackshorts barefoot on graymat, fullbodycompletelyvisible, fixedcamera high70degrees ABOVE feet lookingdown alongbody, headtowardTOP feetBOTTOM. Neutral pose he liesflat onmat with bothstraightarms pointingUP INTOCAMERA, FORESHORTENED so HANDS ARE DIRECTLY OVER CHEST, NOTABOVEHEAD. Bothknees hip90knee90tabletop. Leftbody viewerRIGHT,rightbody viewerLEFT. Animate only his LEFTARM viewerRIGHT plus RIGHTLEG viewerLEFT: leftstraightarm slowly lowers from CEILING vertically aboveCHEST backwardOVERHEAD besideLEFTEAR endingwithleft handabovehead atTOPofmat. SIMULTANEOUS rightleg unfolds straight belowrighthip endingnearBOTTOMofmat. His rightarm viewerLEFT NEVERMOVES stayspointingtowardceiling withright handdirectlyabovechest, leftleg viewerRIGHT NEVERMOVES staysbent90tabletop. Orangeband marksLEFTwrist andRIGHTankle; smallbluebandsRIGHTwristLEFTankle. Constantanatomicalidentities. Eightgradedposes rowmajor: pose1neutral,2one-seventhextension,3two-sevenths,4three-sevenths,5four-sevenths,6five-sevenths,7six-sevenths,8full. ROW2CONTINUES,row2firstpose isOVERHALFWAYEXTENDED. Viewvisualpath: LEFTmovinghand SCREENRIGHT startsabovechest around60%cellheight? Correct physically fromcamera. Render strongFORESHORTENING atneutral, armgraduallylengthensitsprojection towardTOPbesideear. Atfullleftarm liesstraight besideLEFTear aboveheadwhile rightlegstraightnearbottom, rightarm isstillforeshortenedabovechest andleftlegstilltabletop. DO NOTputbotharmsabovehead atneutral. DO NOTspreadarmssideways. LEFTarm+RIGHTleg oppositeactualsides. Backheadpelvisshouldersgroundedinall8. Keep fullbody sizeandmatpositionconstant. No returnphase. Eightdistinctpositionswithsmoothprogression.",
+      "generationMode": "built-in generate",
+      "status": "accepted-by-root",
+      "review": "Actual contralateral pairing; neutral->four transitional stages, then controlled endpoint hold. 8 source frames, NOT claimed 8 unique angles.",
+      "viewed": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "bytes": 2046142
+    },
+    {
+      "id": "deadbug-leftarm-rightleg-edit",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5f37caf8-1098-46fe-bdda-002660bbb3f7.png",
+      "prompt": "Edit only motion timing/poses of this 4x2 eight-frame exercise sheet, preserving character appearance, original gray studio, mat, camera, anatomy, full-body framing, and orange left wrist/right ankle and blue right wrist/left ankle identities. It currently reaches full deadbug extension too early at frame4 and then repeats. FIX that timing, so eight frames are eight clearly DISTINCT poses of one slow forward phase. KEEP FIRST FRAME EXACTLY and KEEP LAST FRAME EXACTLY. Change frames2-7 by interpolating ANATOMICALLY CORRECT LEFT ARM and RIGHT LEG between first and last pose. Both moving limbs progress together: frame2 is only one-seventh complete, frame3 two-sevenths, frame4 three-sevenths (still EARLY, hand only halfway between chest and forehead, right knee still visibly bent), frame5 four-sevenths, frame6 five-sevenths, frame7 six-sevenths, frame8 complete. The LEFT hand visible at screen RIGHT starts projecting over upper chest and gradually moves past left temple and finally beyond head beside ear; it must NOT already be beside head in frame4. Specific moving LEFT shoulder flexion measured from arm alongside trunk: frame1=90degrees(ceiling),2=103degrees,3=116degrees,4=129degrees,5=141degrees,6=154degrees,7=167degrees,8=180degrees(overhead). Working RIGHT knee bend: frame1=90degrees,2=77degrees,3=64degrees,4=51degrees,5=39degrees,6=26degrees,7=13degrees,8=0degrees(straight). Working RIGHT hip flexion90,77,64,51,39,26,13,0 sequentially. TOP ROW four early stages; BOTTOM ROW four later stages. Both arms remain STRAIGHT at elbow; ONLY left shoulder rotates overhead. Inactive RIGHT hand screen LEFT always stationary foreshortened above chest, inactive LEFT leg screen RIGHT always tabletop90/90. Torso/head/pelvis flat on mat and motionless. No side reach. No full extension until very last cell. Do NOT change into two reps. Eight smooth distinct frames, no text/gutters/lines.",
+      "generationMode": "built-in edit/composite",
+      "status": "not-selected",
+      "review": "Extra intermediate arm movement introduces diagonal abduction; original source selected.",
+      "viewed": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "bytes": 1876538,
+      "referencedImagePaths": [
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-451636d8-a892-4dde-8320-07190bd16815.png"
+      ]
+    },
+    {
+      "id": "deadbug-rightarm-leftleg-source",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5f0769dd-7721-44eb-b1fe-9e0bf8132f65.png",
+      "prompt": "Create the OPPOSITE SIDE companion to this original 4-column 2-row exercise sheet. Keep EXACT same photographic man, gray shirt black shorts barefoot, mat, gray backdrop, camera, full body size and position. Output 4columns2rows, EIGHT equal frames. At pose1 neutral same as source: both straight arms point to ceiling above chest and both knees/hips90tabletop, head and back resting flat. Change ONLY which anatomical pair moves: this new sheet extends his RIGHT ARM (viewer LEFT, BLUE wristband) and LEFT LEG (viewer RIGHT, BLUE ankleband). Anatomical LEFT arm(viewerRIGHT ORANGE wrist) MUST stay stationary pointing at ceiling, foreshortened hand above chest in all8frames; anatomical RIGHT leg(viewerLEFT ORANGE ankle) MUST stay stationary in bent90/90tabletop in all8frames. Actual body sides and bands remain unchanged, don't just swap colors. Frame1 neutral. Frame2 small amount of bluepair extending. Frame3 half extended. Frame4 threequarter extended. Frames5-8 settle gradually to full extension then hold: BLUE RIGHT straight arm sweeps BACK OVERHEAD to beside RIGHT ear at top of mat, BLUE LEFT leg unfolds straight toward bottom below LEFT hip hovering just above mat. Same controlled sequence as source but actual opposite limbs move. No torso rotation, no head lifting, no arm sideways abduction. RIGHT working arm ends beside right ear parallel to mat's long axis, not diagonal. LEFT working leg stays narrow hipwidth lane, not out to side. All head hand foot visible in every cell. No numbers, no text, no borders or gutters. Keep first neutral exactly matched for seamless side change. Photographic instructional exercise, natural anatomy two arms two legs.",
+      "generationMode": "built-in edit/composite",
+      "status": "candidate",
+      "review": "Actual blue rightarm/leftleg pairing; orange pair stationary, neutral matches other source. Arm initial transition quicker; leg0->1->2->3 has intermediate path; final row endpoint hold.",
+      "viewed": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "bytes": 1894103,
+      "referencedImagePaths": [
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-451636d8-a892-4dde-8320-07190bd16815.png"
+      ]
+    },
+    {
+      "id": "deadbug-final",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5a1f56cd-cbac-4fd9-a43c-4ddeee8fa276.png",
+      "prompt": "COMPOSITE THESE TWO ORIGINAL EXERCISE SHEETS INTO ONE FINAL SHEET. Output EXACTLY 1536x1536 pixels, square, never larger than1568 in either dimension. Final layout EXACT4columns4rows=16equal squarecells, everycell384x384. InputIMAGE1 is an existing4columns2rows sheet of LEFT ARM+RIGHT LEG orange pair extension; place Image1 unchanged as TOP TWO ROWS cells1-8. InputIMAGE2 is an existing4columns2rows sheet of RIGHT ARM+LEFT LEG blue pair extension; place Image2 unchanged as BOTTOM TWO ROWS cells9-16. Precisely stack the entire firstsheet above entire secondsheet. Preserve the ORIGINAL CONTENT of every source cell: same graystudio man blackshorts mat camera, poses, limb identities, bandcolors, fullbodyframing. Do NOT invent or interpolate new movements. Do NOT mirror or swap limbs. Do NOT repeat the firstsheet in lowerrows. Do NOT alternate sides across cells. The first8cells must show orangeLEFTwrist viewerRIGHT reachingoverhead plusorangeRIGHTankle viewerLEFT extending; blueotherarmandlegstationary. Last8cells must show blueRIGHTwrist viewerLEFT reachingoverhead plusblueLEFTankle viewerRIGHT extending; orangeotherarmandlegstationary. At cells1 and9 both are neutral tabletop. Othercells progress outward then hold, exactly same as respective source. Keep original head/back/shoulders/pelvis grounded. No titles, no arrows, no frame numbers, no gutters, no white borders or grid lines. Equal accurate4x4 cell boundaries and sourcevisual preservation are mandatory. This is precise layout compositing of original supplied images, no photo pose redesign.",
+      "generationMode": "built-in edit/composite",
+      "status": "candidate-final",
+      "review": "4x4 stack preserves two source phases. Neutral0/8, top8 leftarm/rightleg, bottom8 rightarm/leftleg; torso/head/pelvis grounded; endpoint holds; no resets within either group. Root independent QA requested.",
+      "viewed": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 1947051,
+      "referencedImagePaths": [
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-451636d8-a892-4dde-8320-07190bd16815.png",
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5f0769dd-7721-44eb-b1fe-9e0bf8132f65.png"
+      ]
+    },
+    {
+      "id": "deadbug-final-two-cell-edit",
+      "path": "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-e8f7a25b-caff-4b69-b38c-1c114502ff5c.png",
+      "prompt": "TARGETED EDIT of the supplied FINAL 4x4 deadbug sprite sheet. Preserve the existing sheet exactly except BLUE RIGHT ARM in TWO CELLS ONLY: row3 column2 (zero-based frame9) and row3 column3 (frame10). Do not redesign, do not regenerate person or legs. All other14cells must remain identical. In row3col2 currently BLUE right arm is already fully overhead: change ONLY that blue RIGHT arm (viewer LEFT) into an INTERMEDIATE half-way shoulder flexion pose between frame8 neutral and frame11 overhead. The straight working arm should be roughly halfway through its backward sweep, foreshortened toward camera: hand projects between the stationary neutral blue hand position of row3col1 and the full overhead blue hand position of row3col4. Keep working elbow straight. Hand should be around forehead/temple height in image, still noticeably forward/above mat, not already above head. In row3col3 change ONLY BLUE right arm to about70percent of that same sweep: straight arm hand nearer right ear/head edge, but still short of row3col4 fully overhead. The arm moves in its sagittal plane close beside RIGHT EAR, NO sideways abduction. From row3col1 to2 to3 to4 the blue RIGHT arm should visibly progress neutral ceiling, HALF extension, THREEQUARTER extension, FULL overhead. KEEP BLUE LEFT LEG and its existing knee/hip positions in row3col2/3 EXACTLY unchanged; keep orange stationary left arm and right leg exactly unchanged. Preserve blue right wrist/left ankle, orange left wrist/right ankle identities on actual anatomical sides. Preserve torso/head/pelvis flat onmat, same man gray shirt black shorts barefoot, gray backdrop, camera, mat, shadows, every cell framing and 4x4 layout. Do not alter row1,row2,row4 at all. Do not alter row3col1 or row3col4. Final square resolution1254x1254 or1536x1536, maximum edge1568. No text labels arrows borders gutters. Only two blue arm positions need changing; absolutely no other motion edits.",
+      "referencedImagePaths": [
+        "/Users/crosswang/.codex/generated_images/01a1658a-377c-77f3-826a-c248afece00f/exec-5a1f56cd-cbac-4fd9-a43c-4ddeee8fa276.png"
+      ],
+      "generationMode": "built-in targeted edit",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 1771379,
+      "viewed": true,
+      "status": "recommended-to-root-for-final-QA",
+      "review": "Requested one targeted edit only to frames9/10 blue RIGHT arm. Frame9 now clearly intermediate foreshortened hand around forehead; frame10 near-overhead (subtler change), frame11 full. Actual contralateral pairing retained; blue LEFT leg and other14cells visually preserved. Removes abrupt neutral-to-full arm snap. Root independent QA requested."
+    }
+  ],
+  "playback": {
+    "band": {
+      "sourceFrameCount": 16,
+      "sourceMeaning": "one outward phase; source positions not advertised as 16 unique joint angles",
+      "order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "durationPerFrameMs": 100
+    },
+    "deadbug": {
+      "sourceFrameCount": 16,
+      "sourceMeaning": "8 source frames leftarm/rightleg then8 rightarm/leftleg, each includes controlled endpoint hold; no false claim of16uniqueangles",
+      "order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8
+      ],
+      "durationPerFrameMs": 200
+    }
+  },
+  "productFilesEdited": false,
+  "recommendedFinalDeadbug": "deadbug-final-two-cell-edit"
+}
