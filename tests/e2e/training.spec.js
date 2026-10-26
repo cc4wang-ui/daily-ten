@@ -327,13 +327,24 @@ test.describe('訓練流程（假時鐘）', () => {
     await expect(page.locator('#t-pause')).toBeVisible();
     await expect(page.locator('#t-pause')).toHaveText('暫停');
     await expect(page.locator('#t-skip')).toBeHidden();
-    await expect(page.locator('#t-show-demo')).toBeHidden();
+    await expect(page.locator('#t-show-demo')).toHaveText('查看 16 格動作影格 · 計時會暫停');
+    await page.locator('#t-show-demo').click();
+    await expect(page.locator('#dm-name')).toHaveText('HRP 伏地挺身測驗');
+    await expect(page.locator('#dm-video').getByRole('img', { name: 'HRP 伏地挺身測驗 16 格動作循環', exact: true })).toBeVisible();
+    await tick(page, 12);
+    await expect(page.locator('#t-count')).toHaveText('2:00');
+    await page.locator('#dm-close').click();
+    await expect(page.locator('#t-pause')).toHaveText('繼續');
+    await tick(page, 12);
+    await expect(page.locator('#t-count')).toHaveText('2:00');
+    await page.locator('#t-pause').click();
     await tick(page, 30);
     await expect(page.locator('#t-count')).toHaveText('1:30');
     await tickUntil(page, () => document.getElementById('s-boss').classList.contains('active'),
       { every: 1, maxSeconds: 200, label: 'HRP 輸入畫面' });
     await expect(page.locator('#b-title')).toHaveText('HRP 成績輸入');
-    await expect(page.locator('#bi-interrupted')).toBeHidden();
+    await expect(page.locator('#bi-interrupted')).toBeVisible();
+    await expect(page.locator('#bi-interrupted')).toContainText('分段計時');
     const raw = await rawMain(page);
     await page.click('#bi-save');
     await expect(page.locator('#bi-status')).toHaveText('請輸入 0–200 的整數次數');

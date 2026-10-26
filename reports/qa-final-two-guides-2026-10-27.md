@@ -24,3 +24,9 @@
 - Optional broadened browser run completed **41 passing tests** across Boss recovery, mobility, upper-back and training-demo coverage. Its remaining eight `training.spec.js` tests produced no output for more than three minutes; the run was stopped at 4.3 minutes. This is **not** a 49-test pass or a failure verdict for those eight. Full repository CI will determine that result.
 
 Only `tests/**` and this `reports/qa-*.md` file were edited for this final QA pass; no product files or commits were made by QA.
+
+## Full CI follow-up
+
+The first full CI run reported 1039 passed, 8 skipped and one failure. The sole failure was an outdated assertion in the Sunday HRP end-to-end test: it expected the help button to be hidden. The approved Boss guide now intentionally shows that button and pauses the two-minute timer when opened. The test now opens the real guide, verifies the timer stays at 2:00 while help is shown and after closing, requires a manual resume, then completes its original 18-repetition PR flow. Because opening help interrupts the timer, the results page correctly displays the segmented-timing notice; that expectation was updated too. No product code changed.
+
+Focused rerun: formerly failing HRP training test **1/1 passed**; related Boss HRP/Plank media suite **5/5 passed**. Full CI must be rerun by the parent for a repository-wide green result.
