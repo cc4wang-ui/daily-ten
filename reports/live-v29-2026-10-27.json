@@ -1,0 +1,240 @@
+{
+  "checkedOn": "2026-10-27",
+  "url": "https://daily-ten-app.vercel.app/",
+  "cache": "daily-ten-v29",
+  "uniquePNGs": 41,
+  "decoded": [
+    {
+      "src": "./media/exercises/push-up-storyboard-v2.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/controlled-squat-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/glute-bridge-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/seated-band-row-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/cat-cow-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/knee-push-up-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/hip-90-90-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/deep-squat-hold-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/band-overhead-press-storyboard.png",
+      "width": 1426,
+      "height": 1103
+    },
+    {
+      "src": "./media/exercises/band-rdl-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/march-in-place-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/step-jack-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/split-squat-left-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/split-squat-right-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/forearm-plank-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/band-pull-apart-storyboard.png",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "src": "./media/exercises/band-lateral-raise-storyboard.png",
+      "width": 1310,
+      "height": 1200
+    },
+    {
+      "src": "./media/exercises/prone-y-raise-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/prone-t-raise-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/needle-left-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/needle-right-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/side-plank-left-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/side-plank-right-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/child-side-stretch-storyboard.png",
+      "width": 1287,
+      "height": 1222
+    },
+    {
+      "src": "./media/exercises/prone-half-floor-angel-storyboard.png",
+      "width": 1261,
+      "height": 1247
+    },
+    {
+      "src": "./media/exercises/pike-push-up-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/supine-twist-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/worlds-greatest-stretch-left-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/worlds-greatest-stretch-right-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/pigeon-pose-storyboard.png",
+      "width": 1402,
+      "height": 1122
+    },
+    {
+      "src": "./media/exercises/down-up-dog-flow-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/reverse-snow-angel-storyboard.png",
+      "width": 1271,
+      "height": 1238
+    },
+    {
+      "src": "./media/exercises/superman-row-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/hrp-push-up-storyboard.png",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "src": "./media/exercises/calf-raise-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/calf-raise-left-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/calf-raise-right-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/band-external-rotation-left-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/band-external-rotation-right-storyboard.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "src": "./media/exercises/dead-bug-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "src": "./media/exercises/running-storyboard.png",
+      "width": 1254,
+      "height": 1254
+    }
+  ],
+  "guideNames": [
+    "提踵",
+    "單腳提踵 · 左",
+    "單腳提踵 · 右",
+    "彈力帶肩外旋 · 左",
+    "彈力帶肩外旋 · 右",
+    "死蟲式",
+    "2 英里跑",
+    "HRP 伏地挺身"
+  ],
+  "checks": {
+    "library": true,
+    "hrpHelpFreezeAndReload113s": true,
+    "runDraft18m42sHelpAndReload": true,
+    "offlineNewGuides": true
+  },
+  "pageErrors": [],
+  "mergeCommit": "4852b2d648524572b06389a2c5ce9ac5221f6e33",
+  "pullRequest": "https://github.com/cc4wang-ui/daily-ten/pull/26",
+  "ciRun": 40359682971,
+  "testedHead": "cc9b61c75e359d27d72e347d5ee876c10e87edd7",
+  "ci": {
+    "passed": 1040,
+    "skipped": 8,
+    "failed": 0
+  },
+  "pagesDeployment": 40361193241
+}
