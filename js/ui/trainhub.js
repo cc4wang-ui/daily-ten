@@ -12,7 +12,7 @@ import { getApprovedExerciseMedia, getExerciseStoryboard, getStoryboardLabel } f
 import { hasBand, blockLabel, DOW, WEEK, estMin, fullSeq, restSeq, planSeq, blockSeq, blockTargets, minimalSeq, todayPlan } from './program.js';
 import { sessionOn, bossItem, weeklyStrengthEvidence } from './session.js';
 import { startWorkout } from './train.js';
-import { startBoss } from './boss.js';
+import { startBoss, startPractice } from './boss.js';
 import { icon } from './icons.js';
 import { todayKey, todayWeekday, summary, planLevel } from './game.js';
 import { openFeedbackHistory } from './feedback-history.js';
@@ -134,6 +134,14 @@ export function renderTrain(sum) {
   } else plus.hidden = true;
   $('tr-minimal').innerHTML = opt('stopwatch', '保底版', `約 ${estMin(minimalSeq(plv))} 分鐘`, '最少做這個，今天就算數');
   $('h-rain').innerHTML = opt('rain', '雨天／出差替代', '約 10 分鐘', '低衝擊原地快走＋側步；先確認地面乾燥防滑');
+  for (const item of ['hrp', 'plank', 'run2mi']) {
+    $('tr-practice-' + item).onclick = () => {
+      const status = $('tr-practice-status');
+      const started = startPractice(item);
+      status.hidden = started;
+      status.textContent = started ? '' : '仍有未完成的訓練或成績，請先完成或取消後再加練。';
+    };
+  }
   $('tr-boss-item').textContent = BOSS_ITEM[bossItem()];
   renderWeek(lv, wd, plv);
   renderStrengthEvidence();

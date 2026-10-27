@@ -131,6 +131,17 @@
       <p class="plan-meta" id="tr-plan-meta"></p>
       <button type="button" class="btn-main" id="tr-start">開始今日課表</button>
     </section>
+    <section class="card practice-card" id="tr-practice" aria-labelledby="tr-practice-title">
+      <div class="card-head"><h2 id="tr-practice-title">加練</h2><span class="card-note">隨時選一項</span></div>
+      <p>直接開始，不受本週測驗輪替限制。請先自行暖身；這裡不會帶十動作暖身。</p>
+      <div class="practice-options">
+        <button type="button" class="btn-sub" id="tr-practice-hrp"><b>HRP 伏地挺身</b><span>2 分鐘倒數 · 自己計數</span></button>
+        <button type="button" class="btn-sub" id="tr-practice-plank"><b>Plank 平板支撐</b><span>正向碼表 · 結束後記錄</span></button>
+        <button type="button" class="btn-sub" id="tr-practice-run2mi"><b>2 英里跑</b><span>自行計時 · 輸入分、秒</span></button>
+      </div>
+      <p class="small">只儲存三項成績（PR），不計入今日課表、XP 或連續天數。</p>
+      <p id="tr-practice-status" role="status" hidden></p>
+    </section>
     <section class="card" id="tr-prescription" aria-labelledby="tr-prescription-title" hidden>
       <h2 class="card-title" id="tr-prescription-title">每個動作的本次目標</h2>
       <ul class="training-prescription" id="tr-prescription-list"></ul>
@@ -291,7 +302,7 @@
 
   <!-- ===== Boss Day 成績輸入（測驗計時畫面在 #train，保持 M1） ===== -->
   <section class="screen" id="s-boss" aria-labelledby="b-title">
-    <p class="card-eyebrow">Boss Day · 成績輸入</p>
+    <p class="card-eyebrow" id="b-context">Boss Day · 成績輸入</p>
     <h1 class="title" id="b-title">—</h1>
     <div class="card" id="b-card"></div>
   </section>

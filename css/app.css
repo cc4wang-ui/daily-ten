@@ -326,6 +326,11 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #app .ci-soon{display:flex;align-items:center;gap:var(--sp-2);font-size:14px;color:var(--c-ink)}
 
 /* ---------- 8. 訓練分頁（js/ui/trainhub.js） ---------- */
+.practice-options{display:grid;gap:var(--sp-2);margin:var(--sp-3) 0}
+#app .practice-options .btn-sub{display:flex;flex-direction:column;align-items:flex-start;gap:var(--sp-1);min-height:64px;text-align:left;width:100%;padding:var(--sp-3);background:var(--move-soft);color:var(--move-ink)}
+.practice-options b{font-size:15px}
+.practice-options span{font-size:13px;font-weight:500}
+#app #tr-practice-status{font-size:13px;color:var(--c-ink-2)}
 .plan-card{display:flex;flex-direction:column;gap:var(--sp-1h)}
 #app .plan-card h2{font-size:20px;font-weight:900;line-height:1.35;color:var(--c-ink)}
 #app .plan-desc{color:var(--c-ink-2)}

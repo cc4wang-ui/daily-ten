@@ -185,7 +185,13 @@ async function boot(){
   $('h-minimal').onclick=minimal;
   $('tr-minimal').onclick=minimal;
   $('h-rain').onclick=()=>startWorkout(rainSeq(),'rain');
-  $('d-ok').onclick=()=>{$('done').classList.remove('active');if(!goTo('s-home'))renderHome();};
+  $('d-ok').onclick=()=>{
+    const target=$('d-ok').dataset.return==='s-train'?'s-train':'s-home';
+    delete $('d-ok').dataset.return;
+    $('d-ok').textContent='回報完成';
+    $('done').classList.remove('active');
+    if(!goTo(target)&&target==='s-home')renderHome();
+  };
   $('dm-close').onclick=closeDemo;
   $('demo-modal').onclick=e=>{if(e.target===$('demo-modal'))closeDemo();};
   wireCheckIn();
