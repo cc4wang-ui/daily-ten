@@ -1,0 +1,94 @@
+{
+  "evaluatedOn": "2026-10-27",
+  "state": {
+    "publicPR": "https://github.com/cc4wang-ui/daily-ten/pull/27",
+    "publicCommit": "dcf4e92",
+    "task": "User asks any-day extra practice entrances for HRP, Plank, two-mile running. Judge this feature only, not overall whole product.",
+    "implementation": "Train tab offers three buttons below main plan, bypasses weekly rotation and full ten-movement warmup with concise own-warmup note. HRP120sec selfcount, Plankelapsed timer, two-mile externallytimed result input. Existing workout/Boss prevents overwrite. Help pauses timedsessions; close retains paused state; reload restores checkpoint; runhelp retains enteredtime. Practice only explicitly appends standard PR record, no daily session/coursecompletion/XP/streak or rotationchange. Cancel discardsdraft; practice result returns to training. Old Boss checkpoints lacking practice flag retain old behavior. Save-failure journal preserves idempotence. Raw PR entries use same existing format; no per-set routine builder or GPS running tracker.",
+    "validation": "Independent browser QA and code audit cover real DOM routes, any-day selectors, partial inputs, cancel/guard, timer/help/reload, save failure/doubleclick, no session or XP mutation; old Boss flow regression. Complete repository CI and live deployment are separate gates, do not infer them complete. No user study or real iPhone OS-eviction verification.",
+    "limitations": "PR-only practice counts as recorded score for existing progress summaries but does not mark daily workout complete. User-requested entry feature scope; no full adjustable training-program editor."
+  },
+  "questions": {
+    "entry": {
+      "type": "choice",
+      "instructions": "Does the implementation address requested three any-day practice entrances?",
+      "criteria": {
+        "met": "All three clearly reachable on train tab without weekly rotation prerequisite.",
+        "partial": "Useful but one important entrance missing.",
+        "unmet": "No useful direct entrances."
+      }
+    },
+    "integrity": {
+      "type": "choice",
+      "instructions": "From supplied independent QA summary, assess preservation of main training progress and no extra daily completion/XP.",
+      "criteria": {
+        "supported": "Explicit implementation and independent checks support correct separation.",
+        "partial": "Some support but material gaps.",
+        "unsupported": "Central contamination or overwrite unaddressed."
+      }
+    },
+    "copy": {
+      "type": "choice",
+      "instructions": "Review described copy for shaming, diagnosis, claims of official AFT certification or misleading automatic running measurement.",
+      "criteria": {
+        "clear": "No such unsupported claim in supplied copy.",
+        "revise": "A described claim requires correction."
+      }
+    },
+    "release": {
+      "type": "choice",
+      "instructions": "Is this suitable to release as the requested incremental personal MVP after remaining CI and production gates pass?",
+      "criteria": {
+        "ship_after_gates": "Feature is coherent; finish separate CI and live gates before release.",
+        "repair": "Material requirement mismatch needs repair first."
+      }
+    }
+  },
+  "response": {
+    "model": "jev-1.14.0",
+    "answers": {
+      "entry": {
+        "type": "choice",
+        "choice": "met",
+        "confidence": 1,
+        "probabilities": {
+          "met": 1,
+          "partial": 0,
+          "unmet": 0
+        }
+      },
+      "integrity": {
+        "type": "choice",
+        "choice": "supported",
+        "confidence": 0.8,
+        "probabilities": {
+          "supported": 0.87,
+          "partial": 0.13,
+          "unsupported": 0
+        }
+      },
+      "copy": {
+        "type": "choice",
+        "choice": "clear",
+        "confidence": 0.98,
+        "probabilities": {
+          "clear": 0.99,
+          "revise": 0.01
+        }
+      },
+      "release": {
+        "type": "choice",
+        "choice": "ship_after_gates",
+        "confidence": 0.98,
+        "probabilities": {
+          "ship_after_gates": 0.99,
+          "repair": 0.01
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 968,
+      "output_tokens": 139
+    }
+  }
+}
