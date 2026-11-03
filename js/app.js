@@ -175,6 +175,7 @@ async function boot(){
   onScreen('s-stats',renderStats);
   onScreen('s-hist',renderStats);
   onScreen('s-body',renderStats);
+  onScreen('s-progress',renderStats);
   onScreen('s-checkin',renderCheckIn);
   onScreen('s-setup',()=>{renderSetup();if(updateUi)updateUi.renderAppVersion();});
   /* 分頁列、今日右上齒輪、統計的兩段：data-s＝要去的畫面；「‹ 今日」回今日 */

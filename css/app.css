@@ -58,7 +58,7 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 #t-more-rest{margin-top:16px;min-height:44px;padding:10px 16px}
 #t-more-rest[hidden]{display:none}
 .t-ctrl{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;gap:12px;width:calc(100% - 48px);max-width:472px}
-.t-ctrl button{flex:1;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
+.t-ctrl button{flex:1;min-height:44px;padding:14px;border-radius:10px;font-size:14px;font-weight:700}
 #t-pause{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 #t-skip{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
 #t-abort{background:transparent;color:var(--red);border:1px solid var(--red)}
@@ -539,3 +539,69 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 }
 body:has(#train.active) .ring-arc.sweep,body:has(#train.active) .toast.in{animation-play-state:paused}
 body:has(#train.active) .cele,body:has(#train.active) .cele *{animation-play-state:paused}
+
+/* Phase 0：upbeat 慶祝與今日新面板（T1：慶祝感強、明亮；不改任何既有數值） */
+#p0 .p0-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#p0 .p0-row .btn-main,#p0 .p0-row .btn-sub{width:auto;flex:1 1 140px}
+#p0 .p0-list{margin:8px 0 8px 18px;line-height:1.7}
+#p0 .p0-list li{margin:4px 0}
+#p0 .p0-held{opacity:.65;text-decoration:line-through}
+#p0 .p0-pain{width:auto;display:inline-flex;align-items:center;min-height:44px;padding:6px 10px;margin-left:8px;font-size:12px;box-sizing:border-box}
+#p0 .p0-task{border:2px solid var(--c-line);border-radius:12px;padding:12px;margin:8px 0}
+#p0 .p0-cele{font-size:18px;font-weight:900;text-align:center;padding:12px;border-radius:12px;background:var(--quest-bg,#fff3c4);margin:8px 0}
+#p0 .p0-pop{animation:p0-pop .45s ease-out}
+@keyframes p0-pop{0%{transform:scale(.92);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#p0 .p0-pop{animation:none}}
+
+/* Phase 1：健身房面板（記錄輸入、計時器、PR 清單、Plan 控制） */
+#p1 .p1-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#p1 .p1-row .btn-main,#p1 .p1-row .btn-sub{width:auto;flex:1 1 140px}
+#p1 .p1-list{margin:8px 0 8px 18px;line-height:1.7}
+#p1 .p1-ex{margin:10px 0}
+#p1 .p1-sets{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+#p1 .p1-set{display:inline-flex;align-items:center;gap:2px}
+#p1 .p1-w{width:76px}
+#p1 .p1-r{width:56px}
+#p1 .p1-good{display:flex;align-items:center;min-height:44px;margin:4px 0}
+#p1 .p1-sug{display:block}
+#p1 .p1-held-note{color:var(--c-bad,#b3261e);font-weight:700}
+#p1 .p1-timer{font-size:28px;font-weight:900;text-align:center;margin:8px 0}
+#p1 .p1-day{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box}
+#p1 .p1-swap-group{border:2px solid var(--c-line);border-radius:12px;padding:12px;margin:8px 0}
+
+/* Phase 2：無障礙稽核修復（全站）＋進度儀表板
+   稽核結論（見 PHASE2.md）：
+   - 對比：亮色文字皆 ≥4.5:1（次要字 #5F635C 6.13:1、分頁未選 #6B6F68 5.12:1、支柱加深色 5.40–6.51:1）；
+     #app 內的 --amber 已改指向 --move-ink（5.54:1），故 .vid-ready 在亮色畫面亦達標；暗色訓練畫面的
+     琥珀字在深底上亦 ≥4.5:1。唯一修復：本段不改任何顏色字面值（token 規則）。
+   - 觸控：全站按鈕／分頁／開關本已 ≥44px；本次補齊剩餘缺口：Phase 0 疼痛按鈕（原約 30px）、
+     所有 select（Phase 1 互換選單原無 min-height）、動作影格 range 滑桿、訓練控制列按鈕。
+   - 語義：焦點框已由 #app :focus-visible 提供；Phase 2 新增的進度條用 role=progressbar＋aria-valuenow，
+     匯入的檔案／單位／貼上欄位皆有 label，錯誤區 role=alert、結果區 role=status。
+   - 200% 放大：index.html 拿掉 user-scalable=no（允許縮放）；本段加 min-width:0／換行／小寬度堆疊，
+     使文字放大 200% 時卡片內容換行而不橫向溢出；375px 既有版面不受影響（堆疊門檻為 340px）。
+   - 動畫：全站 keyframes 只動 transform／opacity；減少動態時既有分項規則已把三環／toast／
+     慶祝／彩帶／Phase 0 慶祝改為淡入或停用。注意：本段刻意不加 `*` 全域 transition-duration 規則——
+      repo 的 reduced-motion 測試要求資料保護元素（錯誤卡、匯入控制項、啟動失敗卡）的
+     transitionDuration 嚴格為 0，全域規則會讓它們變成 0.01ms 而破壞該契約（第一輪全套件因此
+     失敗 3 題，修掉後重跑見 PHASE2.md）。Phase 2 本身不新增任何動畫，故無需額外停用規則。 */
+#app select{min-height:44px}
+.exercise-storyboard input[type=range]{min-height:44px}
+#app .card,#app .kpi,#app .tile{min-width:0;overflow-wrap:anywhere}
+#app .prline,#app .vidline,#app .fieldrow{flex-wrap:wrap}
+#app .seg{flex-wrap:wrap}
+@media (max-width:340px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .tiles,.strength-evidence{grid-template-columns:1fr}
+}
+/* Phase 2：進度儀表板（只在統計的進度分段 #p2；首頁不新增進度） */
+#p2 .p2-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#p2 .p2-row .btn-main,#p2 .p2-row .btn-sub{width:auto;flex:1 1 140px}
+#p2 .p2-track{height:10px;background:var(--c-track);border-radius:5px;overflow:hidden;margin:8px 0}
+#p2 .p2-fill{display:block;height:100%;background:var(--move-ink)}
+#p2 .p2-week{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--c-line);font-size:13px}
+#p2 .p2-textlabel{display:block;font-size:14px;font-weight:700;margin:4px 0}
+#p2 .field input[type=file],#p2 .field select{min-width:0;flex:1}
+#p2 textarea{min-height:160px}
+#p2 .p2-errlist{margin:8px 0 8px 18px;line-height:1.6;font-size:13px}
+#p2 .banner{margin:8px 0}

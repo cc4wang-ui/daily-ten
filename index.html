@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <title>Daily Ten</title>
 <link rel="stylesheet" href="css/tokens.css">
@@ -62,6 +62,7 @@
     <section class="card rings-card" id="h-rings" aria-label="今日三環" hidden>
       <div class="rings" id="h-rings-svg" role="img" aria-label="今日進度"></div>
       <div class="legend" id="h-legend"></div>
+      <p class="small" id="h-rewards" hidden></p>
     </section>
     <div id="h-banner" class="banner" role="status"></div>
     <!-- V2a D6 降量卡（js/ui/home.js）：engine 的 deload.label 有值才顯示；「恢復 L{n}」只在降量中出現，10 秒內可復原 -->
@@ -80,6 +81,10 @@
       <div class="aft-rows" id="h-aft-rows"></div>
       <p class="small">以歷來最佳成績計算。</p>
     </section>
+    <!-- Phase 0 今日新面板（js/ui/phase0.js）：健身房自選日、寬容連續、最小課、伸展、提醒、探索洗牌、匯出／刪除 -->
+    <section class="card" id="p0" aria-label="Phase 0 今日新面板" hidden></section>
+    <!-- Phase 1 健身房面板（js/ui/phase1.js）：預填記錄、可暫停計時器、雙重漸進建議、PR 清單、達標率 x/4、Plan 建議日與互換 -->
+    <section class="card" id="p1" aria-label="Phase 1 健身房面板" hidden></section>
   </section>
 
   <!-- ===== 早安打卡（js/ui/checkin.js）：1 次點擊記錄起床＋確認昨晚熄燈；10 秒內可復原 ===== -->
@@ -192,6 +197,7 @@
     <div class="seg" role="tablist" aria-label="統計內容">
       <button type="button" role="tab" id="st-tab-hist" data-s="s-hist" aria-controls="s-hist" aria-selected="true">訓練紀錄</button>
       <button type="button" role="tab" id="st-tab-body" data-s="s-body" aria-controls="s-body" aria-selected="false" tabindex="-1">身體指標</button>
+      <button type="button" role="tab" id="st-tab-progress" data-s="s-progress" aria-controls="s-progress" aria-selected="false" tabindex="-1">進度</button>
     </div>
 
     <div class="panel active" id="s-hist" role="tabpanel" aria-labelledby="st-tab-hist">
@@ -297,6 +303,11 @@
         肝腎功能、鐵與鐵蛋白、維生素 D、甲狀腺（若持續疲倦）</p>
         <p class="small">體脂率若有 InBody 或 DEXA 可每季一次；沒有的話「腰圍＋照片」已經夠用，而且更便宜。</p>
       </div>
+    </div>
+
+    <div class="panel" id="s-progress" role="tabpanel" aria-labelledby="st-tab-progress">
+      <!-- Phase 2 進度儀表板（js/ui/phase2.js）：28 天活動率、量趨勢、睡眠趨勢、滾動 30 天觀察、Strong／Hevy CSV 匯入；只在統計的進度分段，不在首頁 -->
+      <section class="card" id="p2" aria-label="Phase 2 進度儀表板" hidden></section>
     </div>
   </section>
 

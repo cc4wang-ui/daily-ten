@@ -17,7 +17,8 @@
       "d12_returnQuest": "D19：活躍日＝至少完成 1 個已解鎖支柱（訓練或早安打卡都算）。中斷＝連續 1 天以上沒有活躍日（之前要有過活躍日，第一次使用不算）。回歸徽章＝中斷後的第一個活躍日（隔天回來或過幾天才回來都給）。加成：徽章當天起 3 天內（含當天），第一個完成 2 個支柱（P1＝動＋眠）的日子，那天的基礎 XP（各支柱 XP 合計）×1.5，多出來的四捨五入放進 bonus；Perfect Day 的 +30 不乘。每次中斷只給一次；3 天內又中斷，就從下一次回歸重新算。中斷期間 stage＝return，畫面只顯示回歸任務、不提中斷了幾天。理由：「絕不錯過兩次」——回來的第一天就有獎勵；×1.5 只乘基礎 XP，數字好預期，也不會和其他獎勵疊乘。",
       "d13_level": "中央等級＝總 XP（動＋眠＋探＋bonus）的等級，曲線不變（200 + 50 ×（等級 − 1））。升級卡由 UI 比較 summary.level.lv 與 data-guardian 的已看等級，engine 不記錄看過沒；V2a 第一次開啟時已看等級＝目前等級，不補發舊等級的卡。bonus 讓上線當天的等級一次跳好幾級時，也只出現最新等級的一張卡。理由：首頁只有一個等級數字；「看過沒」是資料寫入，屬於 data-guardian。",
       "d14_sim": "90 天平衡模擬：node tools/sim/run.mjs（純 Node、離線、決定性；只印結果、不寫檔）。三種人設各 60 份種子 × 90 天，每天只新增當天的紀錄、晚上用真的 engine 重算，取中位數。人設（出席率／不在時平均連續／起床在時段內／保底・主課表・加一輪）：認真 90%／1.2 天／85%／5・70・25%；普通 65%／1.6 天／70%／20・70・10%；常中斷 35%／3.5 天／55%／40・55・5%。「曲線合理」10 條判準全部通過：C1 每天總 XP 與等級都不下降；C2 每個人設都會升級；C3 投入越多等級越高；C4 普通第 14 天 Lv 4–6、第 90 天 Lv 10–15；C5 中斷不被懲罰也不划算（額外 XP 倍率 常中斷 ≥ 認真，每個出席日的 XP 常中斷 ≤ 認真）；C6 認真第 90 天 ≤ Lv 20、bonus ≤ 總 XP 的 40%；C7 Perfect Day 每週 認真 ≥ 5、普通 2.5–5、常中斷 ≥ 0.5；C8 Freeze 認真至少用到 1 張、常中斷 ≤ 2 張；C9 常中斷 ≥ 5 次回歸徽章、≥ 1 次加成；C10 認真 21 天內達成 P1→P2 條件。結果 Lv（第 7／14／30／60／90 天）：認真 4／6／10／15／18、普通 3／5／8／12／15、常中斷 2／3／6／8／11。所有數值維持不變（等級曲線也不動：加陡會讓現有等級倒退）。待 Cross 決定：普通人設在目前的 P1→P2 門檻（近 14 天 10 天）下，中位數第 77 天才達成（9 天約第 34 天、8 天約第 23 天）；探索 V4 才開放，不影響本版。V2b 的每週目標 +50 會讓普通第 90 天超過 Lv 15，到時重跑。理由：判準檢查設計意圖（不懲罰、努力有回報、獎勵不喧賓奪主），不是單一數字；sim 用的是真的 engine，規則一改重跑就知道。",
-      "d15_noReverseDualWrite": "engine 不讀舊欄位：最上層的 xp 與連續天數，以及 game 物件裡的 xp、連續天數、freezeTokens、perfectDays、level。畫面上的 XP、等級、連續天數、Freeze 張數、Perfect Day 全部由 sessions＋habits.sleep.log 推導。舊版 App 改寫這些舊欄位不影響畫面，所以不需要反向雙寫（state 側由 data-guardian 確認）。理由：推導值是唯一來源，不會有兩份數字打架。"
+      "d15_noReverseDualWrite": "engine 不讀舊欄位：最上層的 xp 與連續天數，以及 game 物件裡的 xp、連續天數、freezeTokens、perfectDays、level。畫面上的 XP、等級、連續天數、Freeze 張數、Perfect Day 全部由 sessions＋habits.sleep.log 推導。舊版 App 改寫這些舊欄位不影響畫面，所以不需要反向雙寫（state 側由 data-guardian 確認）。理由：推導值是唯一來源，不會有兩份數字打架。",
+      "d16_rewards": "正向回饋加強包（遊戲化優化）：里程碑、Perfect Day 連續、本週目標、新 PR 都是徽章／文案，不進 xp.bonus、不改等級曲線，所以既有總 XP 不會倒退（d6），舊測試的 xp 數字不變。全部由紀錄推導、每次重算；首頁一行永遠往前看（下一個里程碑、本週進度），不提漏了幾天、不扣分。數值在 rewards 區塊，程式只讀不寫死。"
     },
     "sections": {
       "day": "rolloverHour：04:00 前算前一天，熬夜後的訓練與早上的打卡都落在對的一天；跨時區用當地時間。",
@@ -108,6 +109,25 @@
   },
   "perfectDay": {
     "xp": 30
+  },
+  "rewards": {
+    "milestones": [3, 7, 14, 21, 30, 60, 90, 180, 365],
+    "perfectStreakMilestones": [3, 7, 14, 30],
+    "weekPerfectGoal": 5,
+    "copy": {
+      "streakMilestoneTitle": "連續 {n} 天",
+      "streakMilestone": "連續 {n} 天了，穩穩地前進。",
+      "perfectStreakTitle": "Perfect Day 連續 {n} 天",
+      "perfectStreak": "動和眠都到齊，連續 {n} 天 Perfect Day。",
+      "weekGoalTitle": "本週 Perfect Day 達標",
+      "weekGoal": "本週 Perfect Day 已經 {n} 天，達標了。",
+      "weekProgress": "本週 Perfect Day {have}/{need} 天",
+      "nextMilestone": "下一個里程碑 {n} 天，還差 {left} 天",
+      "nextMilestoneDone": "已經超過最遠的里程碑，繼續保持",
+      "newPrTitle": "新 PR",
+      "newPr": "新 PR！{name} {value}",
+      "firstPr": "{name} 第一次成績：{value}"
+    }
   },
   "freeze": {
     "earnEvery": 7,

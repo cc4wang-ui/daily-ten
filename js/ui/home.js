@@ -25,6 +25,8 @@ import { renderRings, legendMarkup } from './rings.js';
 import { renderAft } from './aft.js';
 import { renderTrain, runPlan } from './trainhub.js';
 import { renderKpis } from './stats.js';
+import { renderPhase0Panel } from './phase0.js';
+import { renderPhase1Panel } from './phase1.js';
 
 const KINDS = ['checkin', 'workout', 'boss', 'done'];
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -75,6 +77,10 @@ function renderRingsCard(sum) {
   const lg = $('h-legend');
   lg.innerHTML = legendMarkup(d);
   lg.querySelectorAll('[data-go]').forEach((b) => { b.onclick = () => goTo(b.dataset.go); });
+  /* 正向回饋加強包：首頁一行，永遠往前看（下一個里程碑＋本週進度）；今天有慶祝時直接寫慶祝文案 */
+  const rw = $('h-rewards');
+  const line = sum && sum.rewards && typeof sum.rewards.homeLine === 'string' ? sum.rewards.homeLine.trim() : '';
+  if (rw) { rw.textContent = line; rw.hidden = !line; }
 }
 
 /* 完成狀態：已解鎖的支柱都做了才說「都完成了」；早安打卡沒打（時段已過）或沒有遊戲層時只說課表完成，不誇大 */
@@ -237,5 +243,7 @@ export function renderHome(){
   renderMoveCard();
   renderTrain(sum);
   renderKpis(sum);
+  renderPhase0Panel(renderHome);
+  renderPhase1Panel(renderHome);
   queueCelebrations(sum);
 }

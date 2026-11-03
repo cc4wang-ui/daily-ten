@@ -1,4 +1,5 @@
-/* Daily Ten — 統計分頁：上方三格（累計 XP、最佳連續、訓練天數）＋「訓練紀錄」（history.js）／「身體指標」（body.js）兩段。
+/* Daily Ten — 統計分頁：上方三格（累計 XP、最佳連續、訓練天數）＋「訓練紀錄」（history.js）／「身體指標」（body.js）／
+   「進度」（phase2.js，Phase 2 儀表板與 CSV 匯入）三段。進度面板只在統計分段渲染，首頁不新增進度。
    三格的數字跟著 renderHome() 一起更新（同 M1 首頁的 XP／BEST），隱藏中也不會是舊值。
    B1：累計 XP＝engine 的 summary.xp.total、最佳連續＝summary.streak.best（全 App 只有新尺度一種 XP）；
    遊戲層未就緒時退回舊欄位 xp／streak.best。 */
@@ -8,6 +9,7 @@ import { summary } from './game.js';
 import { renderHist } from './history.js';
 import { renderBody } from './body.js';
 import { renderFeedbackHistory } from './feedback-history.js';
+import { renderPhase2Panel } from './phase2.js';
 
 export function renderKpis(sum = summary()) {
   const st = getState();
@@ -23,4 +25,5 @@ export function renderStats() {
   renderHist();
   renderFeedbackHistory();
   renderBody();
+  renderPhase2Panel();
 }

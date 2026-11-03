@@ -239,6 +239,17 @@ function bossInput(c,restored=false){
     saving=true;save.disabled=abort.disabled=true;
     for(const [id] of fields)$(id).disabled=true;
     status.textContent='正在儲存成績…';
+    /* 正向回饋加強包：儲存前先算舊最佳，儲存後才能說是不是新 PR（第一次不算新 PR，只算基準） */
+    const prevPrs=getState().prs[item]||[];
+    const prevField=item==='hrp'?'reps':'sec';
+    let prevBest=null;
+    for(const p of prevPrs){
+      const v=p&&typeof p[prevField]==='number'?p[prevField]:null;
+      if(v===null||v<0||(item==='run2mi'&&v===0))continue;
+      if(prevBest===null||(item==='run2mi'?v<prevBest:v>prevBest))prevBest=v;
+    }
+    const isNewPr=prevBest!==null&&typeof value==='number'
+      &&(item==='run2mi'?value<prevBest:value>prevBest);
     if(!alreadyRecorded(c)){
       // A restored index can be stale or malformed. Persist the actual append
       // position before recording, so a failed save can retry idempotently.
@@ -255,16 +266,25 @@ function bossInput(c,restored=false){
       persist(c);return;
     }
     cleanup();active=null;clearCheckpoint();
+    /* 新 PR 文案（加練也算 PR，但不計 XP；非加練時先顯示原本的 bonus，再把新 PR 接在後面） */
+    const prName={hrp:'HRP 伏地挺身',plank:'Plank',run2mi:'2 英里跑'}[item]||item;
+    const prValue=item==='hrp'?`${value} 下`:`${Math.floor(value/60)}:${String(value%60).padStart(2,'0')}`;
+    const prLine=isNewPr?`新 PR！${prName} ${prValue}`:'';
     if(c.practice===true){
       $('d-identity').textContent='加練完成，成績已記錄。';
       $('d-xp').textContent='僅記錄 PR · 不計入今日課表或 XP';
-      $('d-bonus').textContent='';$('d-bonus').hidden=true;
+      $('d-bonus').textContent=prLine;$('d-bonus').hidden=!prLine;
       $('d-ok').textContent='返回訓練';$('d-ok').dataset.return='s-train';
     }else{
       $('d-identity').textContent='測驗完成，成績已記錄。';
       $('d-xp').textContent='+'+gain+' XP　·　連續 '+streakDays()+' 天';
       $('d-ok').textContent='回報完成';delete $('d-ok').dataset.return;
       showBonusNote();
+      if(prLine){
+        const el=$('d-bonus');
+        el.textContent=el.hidden||!el.textContent?prLine:`${el.textContent} · ${prLine}`;
+        el.hidden=false;
+      }
     }
     $('done').classList.add('active');
   };
