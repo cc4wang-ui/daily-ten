@@ -208,7 +208,7 @@ test.describe('Perfect Day 慶祝', () => {
     await runMinimal(page);
     const after = await storedSummary(page);
     expect(after.level.lv).toBe(before.level.lv);
-    await expectDoneScreen(page, before, after, { bonus: `含 Perfect Day +${PD_XP} XP` });
+    await expectDoneScreen(page, before, after, { bonus: `含 Perfect Day +${PD_XP} XP · 動和眠都到齊，連續 3 天 Perfect Day。` });
     await page.click('#d-ok');
     await expectPerfectCard(page, after);
     await page.click('#cele-ok');
@@ -739,7 +739,7 @@ test.describe('D6 降量', () => {
     await expect(cele(page), 'Boss 完成畫面開著不播').toBeHidden();
     const after = await storedSummary(page);
     expect(after.perfectDay.done).toBe(true);
-    const gain = await expectDoneScreen(page, before, after, { bonus: `含 Perfect Day +${PD_XP} XP` });
+    const gain = await expectDoneScreen(page, before, after, { bonus: `含 Perfect Day +${PD_XP} XP · 動和眠都到齊，連續 3 天 Perfect Day。` });
     expect(gain).toBe(RULES.move.tiers.plus.xp + PD_XP);
     await page.click('#d-ok');
     await expectPerfectCard(page, after);
