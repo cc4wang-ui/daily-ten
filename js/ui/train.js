@@ -59,7 +59,9 @@ export function streakDays(){
   const s=summary();
   return s&&s.streak&&Number.isFinite(s.streak.days)?s.streak.days:getState().streak.current;
 }
-/* 這次記錄新出現的額外 XP（Perfect Day、回歸加成）→ 完成畫面的一行說明；沒有就空字串 */
+/* 這次記錄新出現的額外 XP（Perfect Day、回歸加成）＋今天的里程碑／新 PR → 完成畫面的一行說明；沒有就空字串
+   正向回饋加強包：rewards.celebrations 只含今天發生的事（連續里程碑、Perfect Day 連續、本週達標、新 PR），
+   本身不帶 XP，所以和上面的 XP 說明分開寫，不會讓人誤以為里程碑也加了 XP。 */
 function bonusNote(before,after){
   if(!before||!after)return '';
   const parts=[];
@@ -68,7 +70,10 @@ function bonusNote(before,after){
   const qa=after.returnQuest,qb=before.returnQuest;
   const boost=(qa&&Number.isFinite(qa.boostXp)?qa.boostXp:0)-(qb&&Number.isFinite(qb.boostXp)?qb.boostXp:0);
   if(qa&&qa.stage==='boost'&&boost>0)parts.push(`回歸加成 ×${qa.multiplier} +${boost} XP`);
-  return parts.length?'含 '+parts.join('、'):'';
+  const cele=after.rewards&&Array.isArray(after.rewards.celebrations)
+    ?after.rewards.celebrations.map(c=>c&&typeof c.text==='string'?c.text.trim():'').filter(Boolean):[];
+  const xpLine=parts.length?'含 '+parts.join('、'):'';
+  return [xpLine,cele.join('、')].filter(Boolean).join(' · ');
 }
 let lastBonus='';
 /* 記錄並回傳這次增加的 XP（新尺度）；遊戲層未就緒時回 M1 XP 表的值 */
@@ -81,7 +86,7 @@ export function recordAndGain(type,opts){
   lastBonus=bonusNote(before,after);
   return tb!==null&&ta!==null?Math.max(0,ta-tb):XP[type];
 }
-/* 完成畫面 #d-bonus：上一次 recordAndGain 的額外 XP 說明（沒有就隱藏） */
+/* 完成畫面 #d-bonus：上一次 recordAndGain 的額外 XP＋今天里程碑說明（沒有就隱藏） */
 export function showBonusNote(){
   const el=$('d-bonus');
   if(!el)return;

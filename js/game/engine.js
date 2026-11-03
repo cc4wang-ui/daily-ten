@@ -23,7 +23,10 @@
        xp:{ move, sleep, explore, total,                  // 各支柱累計 XP（推導值）；total＝三支柱＋bonus
             bonus,                                        // V2a：Perfect Day +30 與回歸加成 ×1.5 多出來的 XP（d9、d12）
             today },                                      // V2a：今天得到的 XP（今天的支柱 XP＋今天的 bonus）
-       // ---- V2a ----
+       // ---- 正向回饋加強包（js/game/rewards.js）----
+       rewards: null | { streak, perfectStreak, week, prs, celebrations, homeLine, today },
+       //   徽章／文案，不進 xp、不改等級；算不出來時 null，畫面照常
+     // ---- V2a ----
        perfectDay:{ done, xp, need:['move','sleep'], have:[...], date,   // need＝今天已解鎖的支柱；xp＝今天因 Perfect Day 得到的 XP（0 或 reward）
                     reward, count, weekCount, title, label },           // reward＝+30；count＝累計天數；weekCount＝本週（週一起）天數
        freeze:{ tokens, max, usedDates:[...], earnedTotal,              // 由紀錄推導；usedDates＝被補上的日子（遞增）
@@ -42,6 +45,7 @@
 import { asRules, fill } from './rules.js';
 import { toDate, gameDate, weekdayOf, dateOfStamp, dayNumber, dayNumberToStr } from './day.js';
 import { dayFacts, perfectDays, freezeStreak, returnQuest, weekStartNum } from './timeline.js';
+import { rewardsFor } from './rewards.js';
 import { moveDays } from '../habits/move.js';
 import { sleepDays, checkInWindow } from '../habits/sleep.js';
 import { deloadFor } from '../habits/deload.js';
@@ -260,6 +264,9 @@ function summarize(state, d, R) {
   else kindNext = 'done';
 
   const bonusToday = perfectDay.xp + rq.boostToday;
+  /* 正向回饋加強包：徽章／文案，不進 xp，算不出來時回 null、畫面照常（不白屏） */
+  let rewards = null;
+  try { rewards = rewardsFor(state, { date, streak }, R); } catch (e) { rewards = null; }
   return {
     date, weekday, phase,
     level: levelFromXp(totalXp, R),
@@ -271,7 +278,8 @@ function summarize(state, d, R) {
     perfectDay,
     freeze: freezeInfo(R, fz),
     deload: deloadFor(state, date, s, move.done, R),
-    returnQuest: returnQuestInfo(R, rq, todayNum, pillarsOn)
+    returnQuest: returnQuestInfo(R, rq, todayNum, pillarsOn),
+    rewards
   };
 }
 
