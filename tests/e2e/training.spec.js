@@ -38,14 +38,20 @@ function engineAfter(raw, records, now) {
 }
 
 /* 完成畫面：文字＝規則推得的增加量＋engine 連續天數；增加量也等於記錄前後 engine 累計 XP 的差 */
-async function expectDone(page, before, { gain, days, identity = 'normal' }) {
+async function expectDone(page, before, { gain, days, identity = 'normal', bonus = null }) {
   await expect(page.locator('#done')).toHaveClass(/active/);
   const after = await engine(page);
   expect(gain, '規則推得的增加量＝engine 累計 XP 的差（不會是負數）').toBe(Math.max(0, after.xp.total - before.xp.total));
   expect(after.streak.days, '完成畫面的連續天數＝engine').toBe(days);
   await expect(page.locator('#d-xp')).toHaveText(doneText(gain, days));
-  /* V2a：這些訓練都沒有帶來 Perfect Day（沒有早安打卡）或回歸加成 → 完成畫面沒有 #d-bonus */
-  await expect(page.locator('#d-bonus')).toBeHidden();
+  /* V2a：沒有 Perfect Day（沒有早安打卡）或回歸加成時，預設完成畫面沒有 #d-bonus。
+     PR 遊戲化：完成畫面也會顯示當天里程碑／慶祝文案，呼叫端傳 bonus 時改為精確檢查該文案，不放寬為包含檢查。 */
+  if (bonus) {
+    await expect(page.locator('#d-bonus')).toBeVisible();
+    await expect(page.locator('#d-bonus')).toHaveText(bonus);
+  } else {
+    await expect(page.locator('#d-bonus')).toBeHidden();
+  }
   if (identity === 'boss') await expect(page.locator('#d-identity')).toHaveText(BOSS_IDENTITY);
   else expect(IDENTITY).toContain(await page.locator('#d-identity').textContent());
   const all = await page.locator('#done').innerText();
@@ -54,9 +60,9 @@ async function expectDone(page, before, { gain, days, identity = 'normal' }) {
 }
 
 /* 跑完一段一般訓練，回到 HOME 前檢查完成畫面 */
-async function finishWorkout(page, before, { gain, days }) {
+async function finishWorkout(page, before, { gain, days, bonus = null }) {
   await runWorkoutToEnd(page);
-  const after = await expectDone(page, before, { gain, days });
+  const after = await expectDone(page, before, { gain, days, bonus });
   await page.click('#d-ok');
   await expect(page.locator('#done')).not.toHaveClass(/active/);
   await expect(page.locator('#s-home')).toHaveClass(/active/);
@@ -256,7 +262,7 @@ test.describe('訓練流程（假時鐘）', () => {
     const days03 = engineAfter(raw, [rest03], '2026-10-03T07:30:00+09:00').streak.days;
     expect(days03).toBe(before.streak.days + 1);
     await startFromTrainTab(page, '開始恢復序列');
-    await finishWorkout(page, before, { gain: TYPE_XP('rest'), days: days03 });
+    await finishWorkout(page, before, { gain: TYPE_XP('rest'), days: days03, bonus: '連續 21 天了，穩穩地前進。' });
     expectSynced(await storedState(page), {
       xp: 411, streak: { current: 14, best: 14, lastDate: '2026-10-03' },
       lastSession: { date: '2026-10-03', type: 'rest', xp: 5 }

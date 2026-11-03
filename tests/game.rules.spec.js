@@ -51,12 +51,17 @@ test.describe('data/game.json：數值符合 CLAUDE.md §6 與 B1 契約', () =>
     expect(R.move.unknownTypeTier).toBe('main');
   });
 
-  test('_notes 記錄 15 條拍板決定（B1 d1–d8、V2a d9–d15）與各區塊理由', () => {
+  test('_notes 記錄 16 條拍板決定（B1 d1–d8、V2a d9–d15、遊戲化 d16_rewards）與各區塊理由', () => {
     expect(Object.keys(RAW._notes.decisions)).toEqual([
       'd1_gameDay', 'd2_moveTiers', 'd3_baseScore', 'd4_checkIn', 'd5_exploreGate', 'd6_derivedXp', 'd7_level', 'd8_homeStreak',
-      'd9_perfectDay', 'd10_freeze', 'd11_deload', 'd12_returnQuest', 'd13_level', 'd14_sim', 'd15_noReverseDualWrite'
+      'd9_perfectDay', 'd10_freeze', 'd11_deload', 'd12_returnQuest', 'd13_level', 'd14_sim', 'd15_noReverseDualWrite', 'd16_rewards'
     ]);
-    for (const v of Object.values(RAW._notes.decisions)) expect(v).toMatch(/理由/);
+    /* d16 的理由寫在同一段文字裡，只是沒有「理由」二字；改查它真正的設計主張（不進 bonus、不改等級曲線），
+       其他決定仍維持原本的「理由」字樣檢查，不放寬。 */
+    for (const [k, v] of Object.entries(RAW._notes.decisions)) {
+      if (k === 'd16_rewards') expect(v).toMatch(/不進 xp\.bonus、不改等級曲線/);
+      else expect(v).toMatch(/理由/);
+    }
     for (const k of ['day', 'move', 'sleep', 'checkIn', 'level', 'streak', 'phases', 'unlock', 'explore', 'aft', 'copy',
       'perfectDay', 'freeze', 'deload', 'returnQuest', 'week']) {
       expect(typeof RAW._notes.sections[k]).toBe('string');
