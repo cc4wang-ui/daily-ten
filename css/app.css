@@ -539,3 +539,16 @@ a{color:var(--amber);text-decoration:none;font-size:13px}
 }
 body:has(#train.active) .ring-arc.sweep,body:has(#train.active) .toast.in{animation-play-state:paused}
 body:has(#train.active) .cele,body:has(#train.active) .cele *{animation-play-state:paused}
+
+/* Phase 0：upbeat 慶祝與今日新面板（T1：慶祝感強、明亮；不改任何既有數值） */
+#p0 .p0-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#p0 .p0-row .btn-main,#p0 .p0-row .btn-sub{width:auto;flex:1 1 140px}
+#p0 .p0-list{margin:8px 0 8px 18px;line-height:1.7}
+#p0 .p0-list li{margin:4px 0}
+#p0 .p0-held{opacity:.65;text-decoration:line-through}
+#p0 .p0-pain{width:auto;display:inline-block;padding:6px 10px;margin-left:8px;font-size:12px}
+#p0 .p0-task{border:2px solid var(--c-line);border-radius:12px;padding:12px;margin:8px 0}
+#p0 .p0-cele{font-size:18px;font-weight:900;text-align:center;padding:12px;border-radius:12px;background:var(--quest-bg,#fff3c4);margin:8px 0}
+#p0 .p0-pop{animation:p0-pop .45s ease-out}
+@keyframes p0-pop{0%{transform:scale(.92);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#p0 .p0-pop{animation:none}}
