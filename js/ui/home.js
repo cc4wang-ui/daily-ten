@@ -26,6 +26,7 @@ import { renderAft } from './aft.js';
 import { renderTrain, runPlan } from './trainhub.js';
 import { renderKpis } from './stats.js';
 import { renderPhase0Panel } from './phase0.js';
+import { renderPhase1Panel } from './phase1.js';
 
 const KINDS = ['checkin', 'workout', 'boss', 'done'];
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -243,5 +244,6 @@ export function renderHome(){
   renderTrain(sum);
   renderKpis(sum);
   renderPhase0Panel(renderHome);
+  renderPhase1Panel(renderHome);
   queueCelebrations(sum);
 }
