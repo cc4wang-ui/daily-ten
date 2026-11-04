@@ -7,9 +7,8 @@
 <title>Daily Ten</title>
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/app.css">
-<!-- ===== PWA / iOS ===== B1 亮色：狀態列用 default（深色字），theme-color 同畫面背景 -->
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#FAFAF7">
+<meta name="theme-color" content="#F3F4F6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -22,437 +21,104 @@
 
   <!-- ===== 今日 ===== -->
   <section class="screen active" id="s-home" aria-labelledby="h-date">
-    <header class="top">
-      <div class="top-text">
-        <h1 id="h-date" class="date">—</h1>
-        <p id="h-phase" class="phase" hidden></p>
-      </div>
+    <header class="topbar">
+      <div><p class="eyebrow" id="h-greet">今天</p><h1 id="h-date">—</h1></div>
       <div class="top-actions">
-        <p class="chip" id="h-streak-chip"><svg class="ic flame" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"/></svg><span class="sr-only">連續</span><b id="h-streak" class="num">0</b><span class="unit">天</span></p>
-        <!-- V2a Freeze（js/ui/home.js）：張數；點一下展開說明（#h-freeze-note）。0 張且從沒得過時隱藏 -->
-        <button type="button" class="chip-btn" id="h-freeze" aria-expanded="false" aria-controls="h-freeze-note" hidden><span class="chip"><svg class="ic snow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg><b id="h-freeze-n" class="num">0</b></span></button>
-        <button type="button" class="icon-btn" id="h-settings" data-s="s-setup" aria-label="設定"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.14 5.05L10.5 2.52h3l.36 2.53 1.74.71 2.04-1.53 2.13 2.13-1.53 2.04.71 1.74 2.53.36v3l-2.53.36-.71 1.74 1.53 2.04-2.13 2.13-2.04-1.53-1.74.71-.36 2.53h-3l-.36-2.53-1.74-.71-2.04 1.53-2.13-2.13 1.53-2.04-.71-1.74-2.53-.36v-3l2.53-.36.71-1.74-1.53-2.04 2.13-2.13 2.04 1.53z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="chip flame" id="h-streak-btn" aria-label="連續天數"><span id="h-streak-ic"></span><b id="h-streak" class="num big">0</b><span>天</span></button>
+        <button type="button" class="icon-btn" id="h-settings" data-s="s-settings" aria-label="設定"><span id="h-settings-ic"></span></button>
       </div>
     </header>
-    <p id="h-freeze-note" class="freeze-note" hidden></p>
     <div id="upd-note" class="banner" role="status" aria-live="polite"></div>
-    <!-- D24 搬家卡（js/ui/relocate.js）：只在舊網址顯示；D27 起不含備份與匯入。其他網址一律維持 hidden -->
-    <div id="mv-legacy" class="card mv-card" role="region" aria-labelledby="mv-legacy-title" hidden>
-      <h3 id="mv-legacy-title">App 搬到新網址了</h3>
-      <p>新網址更新更快，照下面 2 步換過去。</p>
-      <ol class="mv-steps" role="list">
-        <li><span class="mv-num">1</span><div class="mv-step">
-          <a class="btn-sub mv-link" id="mv-open" target="_blank" rel="noopener">打開新網址</a>
-          <div class="small mv-msg mv-host" id="mv-open-host"></div>
-        </div></li>
-        <li class="mv-text"><span class="mv-num">2</span><div class="mv-step">
-          <p>在 Safari 按「分享」→「加入主畫面」，以後都從新圖示打開。</p>
-          <p>最後長按舊圖示，把它刪除。</p>
-        </div></li>
+    <div id="mv-legacy" class="card" role="region" aria-labelledby="mv-legacy-title" hidden>
+      <h3 id="mv-legacy-title" class="card-title">App 搬到新網址了</h3>
+      <p class="small">新網址更新更快，照下面 2 步換過去。</p>
+      <ol class="small">
+        <li><a class="btn btn-sm" id="mv-open" target="_blank" rel="noopener">打開新網址</a> <span id="mv-open-host"></span></li>
+        <li>在 Safari 按「分享」→「加入主畫面」，以後都從新圖示打開。最後長按舊圖示，把它刪除。</li>
       </ol>
     </div>
     <div id="err-card" class="banner" role="alert">
       <div id="err-text"></div>
-      <button class="btn-sub" id="err-download">下載原始資料</button>
-      <button class="btn-sub" id="err-dismiss">知道了</button>
+      <button type="button" class="btn btn-sm" id="err-download">下載原始資料</button>
+      <button type="button" class="btn btn-sm" id="err-dismiss">知道了</button>
       <div class="small" id="err-note"></div>
     </div>
-    <p class="identity" id="h-identity" hidden><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span id="h-identity-text"></span></p>
-    <!-- 三環＋中央遊戲等級（js/ui/rings.js）：遊戲層未就緒（規則檔讀不到）時整張隱藏 -->
-    <section class="card rings-card" id="h-rings" aria-label="今日三環" hidden>
-      <div class="rings" id="h-rings-svg" role="img" aria-label="今日進度"></div>
-      <div class="legend" id="h-legend"></div>
-      <p class="small" id="h-rewards" hidden></p>
-    </section>
-    <div id="h-banner" class="banner" role="status"></div>
-    <!-- V2a D6 降量卡（js/ui/home.js）：engine 的 deload.label 有值才顯示；「恢復 L{n}」只在降量中出現，10 秒內可復原 -->
-    <section class="deload-card" id="h-deload" aria-labelledby="h-deload-title" hidden>
-      <span class="dl-ic" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span>
-      <div class="dl-text"><p class="dl-title" id="h-deload-title"></p><p class="dl-sub" id="h-deload-sub" hidden></p></div>
-      <button type="button" class="dl-btn" id="h-deload-restore" hidden></button>
-    </section>
-    <div class="next">
-      <button type="button" class="btn-next" id="h-start">—</button>
-      <button type="button" class="link-btn" id="h-minimal">保底版</button>
-    </div>
-    <button type="button" class="levelup" id="h-levelup" hidden></button>
-    <section class="card aft-card" id="h-aft" aria-labelledby="h-aft-title">
-      <div class="aft-head"><h2 id="h-aft-title">AFT 自選目標差距</h2><p class="small" id="h-aft-note"></p></div>
-      <div class="aft-rows" id="h-aft-rows"></div>
-      <p class="small">以歷來最佳成績計算。</p>
-    </section>
-    <!-- Phase 0 今日新面板（js/ui/phase0.js）：健身房自選日、寬容連續、最小課、伸展、提醒、探索洗牌、匯出／刪除 -->
-    <section class="card" id="p0" aria-label="Phase 0 今日新面板" hidden></section>
-    <!-- Phase 1 健身房面板（js/ui/phase1.js）：預填記錄、可暫停計時器、雙重漸進建議、PR 清單、達標率 x/4、Plan 建議日與互換 -->
-    <section class="card" id="p1" aria-label="Phase 1 健身房面板" hidden></section>
+    <div id="home-body"></div>
   </section>
 
-  <!-- ===== 早安打卡（js/ui/checkin.js）：1 次點擊記錄起床＋確認昨晚熄燈；10 秒內可復原 ===== -->
-  <section class="screen" id="s-checkin" aria-labelledby="ci-title">
-    <header class="top sub"><button type="button" class="back" data-back aria-label="回今日"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg><span>今日</span></button></header>
-    <div class="headline">
-      <h1 class="title" id="ci-title">早安打卡</h1>
-      <p class="lead">點一下就記錄，10 秒內可復原</p>
-    </div>
-    <section class="card ci-card" aria-labelledby="ci-sleep-title">
-      <div class="ci-head"><h2 class="pillar-title sleep" id="ci-sleep-title">眠 <span>睡眠</span></h2><p class="ci-xp num"><b id="ci-xp">0</b> / <span id="ci-max">60</span> XP</p></div>
-      <div id="ci-todo">
-        <button type="button" class="wake-btn" id="ci-wake">
-          <span class="wake-lab"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>我起床了</span>
-          <span class="wake-time num" id="ci-now">—</span>
-          <span class="wake-sub" id="ci-lights-sub"></span>
-        </button>
-        <button type="button" class="link-btn sleep" id="ci-edit"></button>
-        <div class="ci-edit-row" id="ci-edit-row" hidden>
-          <label class="ci-field"><span>昨晚熄燈</span><input type="time" id="ci-lights"></label>
-          <label class="ci-field"><span>今天起床</span><input type="time" id="ci-wake-time"></label>
-          <p class="small">起床時間只能往前改，預設是按下的時間。</p>
-          <button type="button" class="link-btn" id="ci-edit-reset">恢復預設</button>
-        </div>
-        <p class="small ci-msg" id="ci-msg" role="status"></p>
-      </div>
-      <div id="ci-done" hidden>
-        <ul class="score" id="ci-lines"></ul>
-        <p class="small" id="ci-note"></p>
-      </div>
-      <div class="ci-closed" id="ci-closed" hidden><p id="ci-closed-text"></p></div>
-    </section>
-    <section class="card ci-card" aria-labelledby="ci-ex-title">
-      <div class="ci-head"><h2 class="pillar-title explore" id="ci-ex-title">探 <span>探索</span></h2></div>
-      <div id="ci-explore"></div>
-    </section>
+  <!-- ===== 健身房 ===== -->
+  <section class="screen" id="s-gym" aria-labelledby="gym-title">
+    <header class="topbar"><div><p class="eyebrow">一週 4 次</p><h1 id="gym-title">健身房</h1></div></header>
+    <div id="gym-body"></div>
   </section>
 
-  <!-- ===== 訓練（js/ui/trainhub.js）：今日課表、其他選項、Boss Day、一週節奏、彈力帶、動作庫 ===== -->
-  <section class="screen" id="s-train" aria-labelledby="tr-title">
-    <header class="top">
-      <h1 class="title" id="tr-title">訓練</h1>
-      <p class="chip">強度 <b id="h-level" class="num">L2</b></p>
+  <!-- ===== 伸展 ===== -->
+  <section class="screen" id="s-stretch" aria-labelledby="stretch-title">
+    <header class="topbar"><div><p class="eyebrow">每天早上</p><h1 id="stretch-title">晨間伸展</h1></div></header>
+    <div id="stretch-body"></div>
+  </section>
+
+  <!-- ===== 探索 ===== -->
+  <section class="screen" id="s-explore" aria-labelledby="explore-title">
+    <header class="topbar"><div><p class="eyebrow">一週一件新事物</p><h1 id="explore-title">探索</h1></div></header>
+    <div id="explore-body"></div>
+  </section>
+
+  <!-- ===== 進度 ===== -->
+  <section class="screen" id="s-progress" aria-labelledby="progress-title">
+    <header class="topbar"><div><p class="eyebrow">紀錄與成就</p><h1 id="progress-title">進度</h1></div></header>
+    <div id="progress-body"></div>
+  </section>
+
+  <!-- ===== 設定 ===== -->
+  <section class="screen" id="s-settings" aria-labelledby="settings-title">
+    <header class="topbar">
+      <div><h1 id="settings-title">設定</h1></div>
+      <button type="button" class="icon-btn" id="settings-back" data-s="s-home" aria-label="返回今日"><span id="settings-back-ic"></span></button>
     </header>
-    <section class="card plan-card" aria-labelledby="tr-plan-title">
-      <p class="card-eyebrow" id="tr-day">今日課表</p>
-      <h2 id="tr-plan-title">—</h2>
-      <p class="plan-desc" id="h-mission">—</p>
-      <p class="plan-meta" id="tr-plan-meta"></p>
-      <button type="button" class="btn-main" id="tr-start">開始今日課表</button>
-    </section>
-    <section class="card practice-card" id="tr-practice" aria-labelledby="tr-practice-title">
-      <div class="card-head"><h2 id="tr-practice-title">加練</h2><span class="card-note">隨時選一項</span></div>
-      <p>直接開始，不受本週測驗輪替限制。請先自行暖身；這裡不會帶十動作暖身。</p>
-      <div class="practice-options">
-        <button type="button" class="btn-sub" id="tr-practice-hrp"><b>HRP 伏地挺身</b><span>2 分鐘倒數 · 自己計數</span></button>
-        <button type="button" class="btn-sub" id="tr-practice-plank"><b>Plank 平板支撐</b><span>正向碼表 · 結束後記錄</span></button>
-        <button type="button" class="btn-sub" id="tr-practice-run2mi"><b>2 英里跑</b><span>自行計時 · 輸入分、秒</span></button>
-      </div>
-      <p class="small">只儲存三項成績（PR），不計入今日課表、XP 或連續天數。</p>
-      <p id="tr-practice-status" role="status" hidden></p>
-    </section>
-    <section class="card" id="tr-prescription" aria-labelledby="tr-prescription-title" hidden>
-      <h2 class="card-title" id="tr-prescription-title">每個動作的本次目標</h2>
-      <ul class="training-prescription" id="tr-prescription-list"></ul>
-      <p class="small">依已儲存的工作組回報調整次數；沒有足夠回報就維持基準。這不代表彈力帶阻力自動增加。</p>
-    </section>
-    <h2 class="sec-title">其他選項</h2>
-    <div class="card opt-list">
-      <button type="button" class="opt" id="h-plus">—</button>
-      <button type="button" class="opt" id="tr-minimal">保底版</button>
-      <button type="button" class="opt" id="h-rain">雨天／出差替代 · 10 分鐘室內有氧</button>
-    </div>
-    <section class="card boss-card" aria-labelledby="tr-boss-title">
-      <div class="card-head"><h2 id="tr-boss-title">週日 Boss Day</h2><span class="card-note">十動作暖身＋測驗</span></div>
-      <p>本週測驗：<b id="tr-boss-item">—</b>。三項輪流，成績記在統計的訓練紀錄。</p>
-    </section>
-    <section class="card" aria-labelledby="tr-week-title">
-      <h2 class="card-title" id="tr-week-title">一週節奏</h2>
-      <div id="week-tbl"></div>
-      <p class="small">時間依你目前強度的劑量算出，會隨升級變長。
-      伸展組 A 髖與後鏈／B 胸肩與上背／C 全身流動，依星期自動輪替 —— 你不需要選。
-      全部早上進行，錨定在刷牙後。預設課表使用瑜珈墊與彈力帶；帶子由雙腳踩穩，不需門錨或牆。關閉彈力帶時改做低阻力上背控制，不能等同負重拉力。</p>
-    </section>
-    <section class="card" aria-labelledby="tr-strength-title">
-      <h2 class="card-title" id="tr-strength-title">近 7 天力量證據</h2>
-      <ul class="strength-evidence" id="tr-strength-evidence"></ul>
-      <p class="small" id="tr-strength-note"></p>
-    </section>
-    <section class="card" aria-labelledby="tr-band-title">
-      <h2 class="card-title" id="tr-band-title">彈力帶怎麼加負荷</h2>
-      <p>先確認帶子完整、雙腳踩穩，再逐步調整阻力；不熟悉動作時先暫停並看教學。</p>
-      <ol class="steps">
-        <li><b>踩穩</b>　帶子繞過腳底，先用輕阻力做幾下，確認不滑動。</li>
-        <li><b>調握距</b>　在腳的位置不變時少量調整握距，仍要能控制全程。</li>
-        <li><b>換阻力</b>　能穩定完成目標次數、並保留約 2 下餘力時，再考慮更強的帶子。</li>
-      </ol>
-      <p class="small">帶子的阻力取決於伸長幅度；如果帶子滑動、姿勢變形或疼痛，就停止該組並降低阻力。徒手上背動作不能替代負重拉力。</p>
-    </section>
-    <section class="card" aria-labelledby="tr-vids-title">
-      <h2 class="card-title" id="tr-vids-title">動作庫</h2>
-      <p>已有 41 套站內動作影格示範（左右側依動作分開；控制深蹲與深蹲、俯臥 T 舉兩種節奏各共用一套）；可看項目會標示。目前課表名稱皆有對應影格；這些是 AI 姿勢影格，並非真人影片。訓練中的說明會暫停計時，返回按鈕會留在視窗底部。</p>
-      <div id="vids"></div>
-    </section>
-  </section>
+    <div id="settings-body"></div>
 
-  <!-- ===== 統計：訓練紀錄（s-hist）／身體指標（s-body）兩段 ===== -->
-  <section class="screen" id="s-stats" aria-labelledby="st-title">
-    <header class="top"><h1 class="title" id="st-title">統計</h1></header>
-    <div class="seg" role="tablist" aria-label="統計內容">
-      <button type="button" role="tab" id="st-tab-hist" data-s="s-hist" aria-controls="s-hist" aria-selected="true">訓練紀錄</button>
-      <button type="button" role="tab" id="st-tab-body" data-s="s-body" aria-controls="s-body" aria-selected="false" tabindex="-1">身體指標</button>
-      <button type="button" role="tab" id="st-tab-progress" data-s="s-progress" aria-controls="s-progress" aria-selected="false" tabindex="-1">進度</button>
-    </div>
-
-    <div class="panel active" id="s-hist" role="tabpanel" aria-labelledby="st-tab-hist">
-      <div class="kpis">
-        <div class="kpi"><span class="kpi-lab">累計 XP</span><b id="h-xp" class="num">0</b></div>
-        <div class="kpi"><span class="kpi-lab">最佳連續</span><p class="kpi-val"><b id="h-best" class="num">0</b><span>天</span></p></div>
-        <div class="kpi"><span class="kpi-lab">訓練天數</span><p class="kpi-val"><b id="st-count" class="num">0</b><span>天</span></p></div>
-      </div>
-      <section class="card feedback-history" id="hist-feedback" aria-labelledby="hist-feedback-title">
-        <div class="card-head"><h2 id="hist-feedback-title" tabindex="-1">每組回報</h2></div>
-        <p class="small">保留達標、未達標與中途停止的回報。完成狀態只對照當日主課表紀錄，不代表這組達標。</p>
-        <button type="button" id="hist-feedback-back" class="btn-sub">回到訓練</button>
-        <div class="feedback-filters">
-          <label for="hist-feedback-movement">動作<select id="hist-feedback-movement"><option value="">全部動作</option></select></label>
-          <label for="hist-feedback-range">期間<select id="hist-feedback-range"><option value="28">近 28 天</option><option value="all">全部</option></select></label>
-        </div>
-        <p id="hist-feedback-count" class="small" role="status" aria-live="polite">顯示 0／0 組回報</p>
-        <p id="hist-feedback-empty" class="feedback-empty">尚無每組回報。</p>
-        <ol id="hist-feedback-list" class="feedback-list" aria-label="每組回報，由新到舊"></ol>
-        <button type="button" id="hist-feedback-more" class="btn-sub" hidden>再看 20 組</button>
-      </section>
-      <section class="card" aria-labelledby="hi-heat-title">
-        <div class="card-head"><h2 id="hi-heat-title">過去 8 週</h2><span class="card-note">右下＝今天</span></div>
-        <div class="heat" id="hist-heat" role="img" aria-label="過去 8 週訓練紀錄"></div>
-        <div class="heat-legend" aria-hidden="true">
-          <span><i class="full"></i>完整</span><span><i class="cycle"></i>加練</span><span><i class="boss"></i>Boss Day</span>
-          <span><i class="rest"></i>恢復</span><span><i class="minimal"></i>保底／雨天</span>
-        </div>
-      </section>
-      <section class="card">
-        <h3>HRP 伏地挺身（2 分鐘）</h3>
-        <p class="passline" id="pass-hrp">自選目標 ≥ 15 下</p>
-        <div id="pr-hrp"></div>
-      </section>
-      <section class="card">
-        <h3>Plank</h3>
-        <p class="passline"><span id="pass-plank">自選目標 ≥ 1:30</span> · 訓練目標 ≥ 2:30</p>
-        <div id="pr-plank"></div>
-      </section>
-      <section class="card">
-        <h3>2 英里跑</h3>
-        <p class="passline" id="pass-run">自選目標 ≤ 19:57</p>
-        <div id="pr-run"></div>
-      </section>
-    </div>
-
-    <div class="panel" id="s-body" role="tabpanel" aria-labelledby="st-tab-body">
-      <div class="card">
-        <h3>每日輸入 · 晨起空腹、上廁所後</h3>
-        <div class="fieldrow"><label for="bd-weight">體重</label><input type="number" step="0.1" id="bd-weight" inputmode="decimal"><span>kg</span></div>
-        <div class="fieldrow"><label for="bd-waist">腰圍（肚臍）</label><input type="number" step="0.1" id="bd-waist" inputmode="decimal"><span>cm</span></div>
-        <div class="fieldrow"><label for="bd-rhr">靜息心率</label><input type="number" id="bd-rhr" inputmode="numeric"><span>bpm</span></div>
-        <div class="fieldrow"><label for="bd-sleep">昨晚睡眠</label><input type="number" step="0.1" id="bd-sleep" inputmode="decimal"><span>hr</span></div>
-        <p class="small">這裡的「昨晚睡眠」是身體指標紀錄，和早安打卡分開記，不計 XP。</p>
-        <button class="btn-sub" id="bd-save">記錄今日</button>
-        <p class="small" id="bd-msg" role="status"></p>
-      </div>
-      <div class="card">
-        <h3>趨勢判讀</h3>
-        <div class="verdict idle" id="bd-verdict">還需要更多資料 — 連續記錄 14 天才能算出週變化率。</div>
-        <div class="tiles" id="bd-tiles"></div>
-        <p class="small">單日體重會因水分波動 ±1.5 kg，看的是 <b>7 日均</b> 與週變化率，不是今天的數字。</p>
-      </div>
-      <div class="card">
-        <h3>圍度 · 每兩週一次，同時段同姿勢</h3>
-        <div class="fieldrow"><label for="bd-arm">上臂（收縮）</label><input type="number" step="0.1" id="bd-arm" inputmode="decimal"><span>cm</span></div>
-        <div class="fieldrow"><label for="bd-shoulder">肩圍（最寬處）</label><input type="number" step="0.1" id="bd-shoulder" inputmode="decimal"><span>cm</span></div>
-        <div class="fieldrow"><label for="bd-thigh">大腿（最粗處）</label><input type="number" step="0.1" id="bd-thigh" inputmode="decimal"><span>cm</span></div>
-        <button class="btn-sub" id="bd-save2">記錄圍度</button>
-        <div id="bd-girth"></div>
-      </div>
-      <div class="card">
-        <h3>肌力檢測 · 每月一次</h3>
-        <p>AFT 三項之外的漸進超負荷證據。做到動作失敗為止，記最大值。</p>
-        <div class="fieldrow"><label for="bd-pushup">伏地挺身</label><input type="number" id="bd-pushup" inputmode="numeric"><span>下</span></div>
-        <div class="fieldrow"><label for="bd-pike">派克伏地挺身</label><input type="number" id="bd-pike" inputmode="numeric"><span>下</span></div>
-        <div class="fieldrow"><label for="bd-sideplank">側平板單邊</label><input type="number" id="bd-sideplank" inputmode="numeric"><span>秒</span></div>
-        <button class="btn-sub" id="bd-save3">記錄檢測</button>
-        <div id="bd-strength"></div>
-      </div>
-      <div class="card">
-        <h3>營養目標 · 精瘦增肌</h3>
-        <div id="bd-macros"></div>
-        <p class="small" id="bd-macro-note"></p>
-      </div>
-      <div class="card">
-        <h3>決策規則 — 指標動了要做什麼</h3>
-        <div class="rules">
-          <div>7 日均體重 <b>3 週沒動</b> → 每日熱量 <b>+150 kcal</b></div>
-          <div>7 日均體重 <b>週增 &gt;0.5%</b> 且腰圍同步變粗 → <b>−150 kcal</b></div>
-          <div>體重上升但腰圍持平 → <b>方向正確，不要改</b></div>
-          <div>近 3 天靜息心率均值高於基線 <b>+5 bpm</b> → 改跑保底版或恢復日</div>
-          <div>睡眠 <b>連 3 天 &lt;6 hr</b> → 該週停掉加練日，先補睡</div>
-          <div>某動作次數 <b>連 3 次檢測沒進步</b> → 換更難的變化式，不是加次數</div>
-          <div>兩英里跑成績退步且體重上升 → 增重太快，回到維持熱量</div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>背景監測</h3>
-        <p><b>每週</b>　血壓（家用血壓計，晨起靜坐 5 分鐘後量）<br>
-        <b>每月</b>　正面／側面／背面照片，同光源同時段<br>
-        <b>每年</b>　血脂（LDL / HDL / 三酸甘油酯）、飯前血糖與 HbA1c、
-        肝腎功能、鐵與鐵蛋白、維生素 D、甲狀腺（若持續疲倦）</p>
-        <p class="small">體脂率若有 InBody 或 DEXA 可每季一次；沒有的話「腰圍＋照片」已經夠用，而且更便宜。</p>
-      </div>
-    </div>
-
-    <div class="panel" id="s-progress" role="tabpanel" aria-labelledby="st-tab-progress">
-      <!-- Phase 2 進度儀表板（js/ui/phase2.js）：28 天活動率、量趨勢、睡眠趨勢、滾動 30 天觀察、Strong／Hevy CSV 匯入；只在統計的進度分段，不在首頁 -->
-      <section class="card" id="p2" aria-label="Phase 2 進度儀表板" hidden></section>
-    </div>
-  </section>
-
-  <!-- ===== Boss Day 成績輸入（測驗計時畫面在 #train，保持 M1） ===== -->
-  <section class="screen" id="s-boss" aria-labelledby="b-title">
-    <p class="card-eyebrow" id="b-context">Boss Day · 成績輸入</p>
-    <h1 class="title" id="b-title">—</h1>
-    <div class="card" id="b-card"></div>
-  </section>
-
-  <!-- ===== 設定（今日右上齒輪）===== -->
-  <section class="screen" id="s-setup" aria-labelledby="set-title">
-    <header class="top sub"><button type="button" class="back" data-back aria-label="回今日"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg><span>今日</span></button></header>
-    <h1 class="title" id="set-title">設定</h1>
-    <section class="card" aria-labelledby="set-train-title">
-      <h3 id="set-train-title">訓練</h3>
-      <label class="toggle"><span>語音導引（中文 TTS）</span><input type="checkbox" role="switch" id="cfg-voice" checked></label>
-      <label class="toggle"><span>提示音</span><input type="checkbox" role="switch" id="cfg-beep" checked></label>
-      <label class="toggle"><span>有彈力帶</span><input type="checkbox" role="switch" id="cfg-band" checked></label>
-      <p class="small">關掉會自動退回徒手版（毛巾划船、俯臥等長）—— 出差沒帶時用。</p>
-    </section>
-    <section class="card" aria-labelledby="set-sleep-title">
-      <h3 id="set-sleep-title">睡眠時間</h3>
-      <label class="field"><span>就寢</span><input type="time" id="cfg-bedtime" value="23:00"></label>
-      <label class="field"><span>起床</span><input type="time" id="cfg-waketime" value="07:00"></label>
-      <p class="small" id="cfg-sleep-note"></p>
-      <p class="small" id="cfg-sleep-msg" role="status"></p>
-    </section>
-    <div class="card data-card">
-      <h3>資料備份</h3>
-      <button class="btn-sub" id="bk-download">下載備份</button>
+    <div class="card" id="backup-card">
+      <div class="card-head"><h3 class="card-title">資料備份</h3></div>
+      <p class="small">所有紀錄只在這台裝置上。換手機或清除 Safari 網站資料前，先下載備份檔。</p>
       <p class="small" id="bk-status"></p>
-      <button class="btn-sub" id="exp-btn">匯出 JSON</button>
-      <textarea id="exp-area" placeholder="匯出結果顯示於此；貼上 JSON 後按匯入可還原"></textarea>
-      <button class="btn-sub" id="imp-btn">匯入（覆蓋現有資料）</button>
-      <button class="btn-sub" id="imp-file-btn">選擇備份檔匯入</button>
-      <input type="file" id="imp-file" accept=".json,application/json,text/plain" hidden>
-      <div id="imp-error" class="banner" role="alert"></div>
+      <button type="button" class="btn btn-secondary" id="bk-download">下載備份檔</button>
+      <h4 class="section-title">匯入備份</h4>
+      <div class="btn-row" style="margin-top:0">
+        <button type="button" class="btn" id="imp-file-btn">選擇檔案</button>
+        <input type="file" id="imp-file" accept=".json,application/json" hidden>
+        <button type="button" class="btn" id="imp-btn">貼上後匯入</button>
+      </div>
+      <div class="field" style="margin-top:12px"><label for="exp-area">貼上備份檔內容</label><textarea id="exp-area" rows="3" placeholder="{ … }"></textarea></div>
+      <div id="imp-error" class="banner"></div>
       <div id="imp-preview" hidden>
+        <p class="small">匯入會覆蓋目前的資料。先看差異，再按兩次確認。</p>
         <div id="imp-rows"></div>
-        <p class="small">橘色的項目匯入後會改變。</p>
         <div id="imp-warnings" class="banner"></div>
-        <button class="btn-main" id="imp-confirm">確認匯入（覆蓋目前資料）</button>
-        <button class="btn-sub" id="imp-cancel">取消</button>
+        <div class="btn-row"><button type="button" class="btn" id="imp-cancel">取消</button><button type="button" class="btn btn-danger" id="imp-confirm">確認匯入（覆蓋目前資料）</button></div>
       </div>
       <p class="small" id="io-msg"></p>
     </div>
-    <p class="small" id="app-version" hidden></p>
+    <p class="version" id="app-version" hidden></p>
+    <p class="version">Daily Ten 是個人習慣遊戲。訓練、伸展與健康文字都是一般性參考，不是醫療建議。</p>
   </section>
-</div>
-
-<!-- 復原 toast（js/ui/toast.js）：浮在分頁列上方；顯示中算「忙碌」，自動更新不會重新載入（D23） -->
-<div id="toast" class="toast" role="status" aria-live="polite" hidden>
-  <span id="toast-text"></span>
-  <button type="button" id="toast-action" class="toast-btn" hidden></button>
-</div>
-
-<!-- V2a Perfect Day 慶祝／升級卡（js/ui/celebrate.js）：只在今日、沒有訓練／完成／示範畫面、復原 toast 收起後出現；
-     按「領取」／「繼續」才記成看過（一天最多一次、每個等級一次）。彩帶是 DOM 小片，只動 transform／opacity，≤1.5 秒 -->
-<div id="cele" class="cele" role="dialog" aria-modal="true" aria-labelledby="cele-title" aria-describedby="cele-vote" hidden>
-  <div class="cele-confetti" id="cele-confetti" aria-hidden="true"></div>
-  <section class="cele-card">
-    <div class="cele-art" id="cele-art" aria-hidden="true"></div>
-    <p class="cele-eyebrow" id="cele-eyebrow"></p>
-    <h2 class="cele-title" id="cele-title"></h2>
-    <p class="cele-xp num" id="cele-xp"></p>
-    <p class="cele-vote" id="cele-vote"></p>
-    <div class="cele-stats" id="cele-stats"></div>
-    <button type="button" class="cele-ok" id="cele-ok">領取</button>
-  </section>
-</div>
-
-<!-- TRAIN -->
-<div id="train">
-  <div id="t-checkpoint" aria-live="polite">準備開始</div>
-  <div id="t-phase">—</div>
-  <div id="t-name">—</div>
-  <div id="t-sub">—</div>
-  <div id="t-set" hidden></div>
-  <div id="t-demo-wrap"><svg id="t-demo" aria-hidden="true"></svg><span id="t-demo-tag"></span></div>
-  <div id="t-cue"></div>
-  <p id="t-demo-safety" hidden>文字提醒不能代替完整動作教學。</p>
-  <button type="button" id="t-show-demo" class="btn-sub" hidden>查看動作說明 · 計時會暫停</button>
-  <p id="t-no-demo" hidden>目前沒有此動作的完整示範；如果不熟悉，請略過這一步。</p>
-  <div id="t-count">—</div>
-  <button type="button" id="t-feedback-open" class="btn-sub" hidden>回報這組 · 計時會暫停</button>
-  <form id="t-feedback" hidden aria-labelledby="t-feedback-title">
-    <h3 id="t-feedback-title">這組做得如何？</h3>
-    <label>實際完成次數 <input id="t-actual" type="number" inputmode="numeric" min="0" max="999" required></label>
-    <div id="t-resistance-fields" hidden>
-      <label>阻力標記（選填） <input id="t-resistance" type="text" placeholder="例如：紅帶／握短一格" aria-describedby="t-resistance-note" autocomplete="off"></label>
-      <p id="t-resistance-note">最多 40 字。標記用來比對同器材，不能換算公斤；更改將在下次遊戲日比對，當堂次數不重算。</p>
-    </div>
-    <label>主觀難度 <select id="t-effort"><option value="okay">剛好</option><option value="easy">輕鬆</option><option value="hard">吃力</option></select></label>
-    <label>動作穩定嗎？ <select id="t-form"><option value="yes">穩定</option><option value="no">姿勢不穩</option></select></label>
-    <label>有疼痛嗎？ <select id="t-pain"><option value="no">沒有</option><option value="yes">有疼痛，停止訓練</option></select></label>
-    <p>有疼痛就停止這次訓練。動作不熟悉或姿勢不穩時，請停止或略過；未達次數及吃力回報都不會讓強度升級。</p>
-    <p id="t-feedback-error" role="status" hidden></p>
-    <button type="submit" class="btn-main">儲存回報</button>
-    <button type="button" id="t-feedback-cancel" class="btn-sub">返回這組</button>
-  </form>
-  <div id="t-next"></div>
-  <div id="t-prog"><i id="t-bar"></i></div>
-  <button type="button" id="t-more-rest" class="btn-sub" hidden>多休息 20 秒</button>
-  <div class="t-ctrl">
-    <button id="t-pause">暫停</button>
-    <button id="t-skip">略過這一步</button>
-    <button id="t-abort">結束</button>
-  </div>
-</div>
-
-<!-- DONE -->
-<div id="done">
-  <div class="eyebrow">MISSION COMPLETE</div>
-  <div id="d-identity">—</div>
-  <div id="d-xp">—</div>
-  <div id="d-bonus" hidden></div>
-  <button class="btn-main" id="d-ok" style="max-width:320px">回報完成</button>
-</div>
-
-<!-- 動作示範 -->
-<div id="demo-modal" role="dialog" aria-modal="true">
-  <div class="box">
-    <div class="dm-body">
-    <div class="eyebrow">動作說明 · 影片狀態</div>
-    <h3 id="dm-name" style="font-size:18px;margin-top:4px">—</h3>
-    <div id="dm-video" class="exercise-video" aria-live="polite"></div>
-    <svg id="dm-svg" aria-hidden="true" hidden></svg>
-    <div id="dm-cue"></div>
-    <p id="dm-safety" class="dm-safety">目前沒有經審核的完整動作影片。線條動畫不能代替動作教學；如果不熟悉，請先暫停訓練。</p>
-    <p id="dm-training-note" hidden>計時已暫停。返回後仍在同一步，按「繼續」才會重新計時。</p>
-    <a id="dm-yt" class="btn-sub" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener">真人示範（YouTube 搜尋，需連網）↗</a>
-    <button type="button" class="btn-sub" id="dm-skip" hidden>不熟悉動作 · 安全略過這一步</button>
-    </div>
-    <div class="dm-footer"><button class="btn-main" id="dm-close">返回訓練</button></div>
-  </div>
 </div>
 
 <nav id="tabs" aria-label="分頁">
-  <button type="button" data-s="s-home" class="on" aria-current="page"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><span>今日</span></button>
-  <button type="button" data-s="s-train"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/></svg><span>訓練</span></button>
-  <button type="button" data-s="s-stats"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>統計</span></button>
+  <button type="button" data-s="s-home" class="on" aria-current="page"><span class="ic" data-ic="home"></span>今日</button>
+  <button type="button" data-s="s-gym"><span class="ic" data-ic="gym"></span>健身房</button>
+  <button type="button" data-s="s-stretch"><span class="ic" data-ic="stretch"></span>伸展</button>
+  <button type="button" data-s="s-explore"><span class="ic" data-ic="explore"></span>探索</button>
+  <button type="button" data-s="s-progress"><span class="ic" data-ic="progress"></span>進度</button>
 </nav>
 
-<script src="demos.js"></script>
+<div id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span><button type="button" id="toast-action" hidden></button></div>
+<div id="sheet" class="sheet" hidden></div>
+<div id="session" class="overlay" hidden></div>
+<div id="guide" class="overlay" hidden></div>
+<div id="cele" class="overlay" hidden></div>
+<canvas id="confetti" hidden></canvas>
+
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -25,33 +25,25 @@ jobs:
       - name: Install dev dependencies
         run: npm ci
 
-      - name: Repo checks（失效網址、SW 版號與預快取、前端掃描）
+      - name: Repo checks（失效網址、SW 版號與預快取、前端掃描、示範影片登錄）
         run: node .github/scripts/check-repo.mjs
 
       - name: 用語表檢查（台灣繁中，新增字串 0 違規）
         run: node tools/jev/check-glossary.js --self-test && node tools/jev/check-glossary.js --ci --no-report
 
-      - name: 離線影片核准表與失敗回退
-        run: npm run test:media && npm run check:media-coverage
-
-      - name: 每組回報與舊備份相容性
-        run: npm run test:feedback && npm run test:progression
+      - name: 引擎單元測試（XP／等級／連續／Perfect／成就／舊資料搬移）
+        run: npm run test:unit
 
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
-
-      # 拆 module 前的 main（ec87e03）作為訓練流程與課表規則的比對基準。V1 起今日／統計／設定畫面刻意改變（D26），畫面層的比對已移除。
-      - name: Prepare parity baseline
-        run: git worktree add "$RUNNER_TEMP/parity-base" ec87e03
 
       # 目前線上版本（origin/main），給「舊版 → 新版」的自動更新測試用；在 main 上與 HEAD 相同時測試會自動略過
       - name: Prepare upgrade baseline
         run: git worktree add "$RUNNER_TEMP/upgrade-base" origin/main
 
-      - name: Playwright（單元＋e2e）
+      - name: Playwright（state 單元＋e2e）
         run: npm test
         env:
-          PARITY_BASE_DIR: ${{ runner.temp }}/parity-base
           UPGRADE_BASE_DIR: ${{ runner.temp }}/upgrade-base
 
       - name: Upload Playwright report

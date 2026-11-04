@@ -1,5 +1,7 @@
 # Daily Ten — 下一個對話接手
 
+2026-11-04 redo-v1 已交付（見 PROJECT_STATE.md 第一段、runs/redo-v1/contract.md）。接手先讀 README 與 CLAUDE.md D29。未在機器上驗證、留給 Cross 真機確認：iPhone 主畫面 App 自動換到 v35、YouTube Short 連結在 iOS 跳 YouTube App、提示音在 iOS 需先點過畫面、離線冷啟動。下一輪可做：伸展每項的語音口令（TTS）、探索任務池擴充、暗色模式、週日週回顧卡。以下為歷史。
+
 2026-10-27 v30開發：使用者需要隨時加練HRP、Plank與2英里跑。分支codex/extra-practice-entry基於已發布4852b2d/v29；新增訓練頁三個直接入口，沿用計時／求助／重載恢復。加練只追加成績PR，不標記今日課表完成、不發課表XP、不改週日輪替。實作與獨立QA19項通過、程式審查PASS；Jev判met／supported／ship_after_gates。PR27待完整CI及正式站驗證後合併；v29交付後live報告已納入本分支。
 
 2026-10-27 已交付v29：PR26合併4852b2d，正式網址與daily-ten-v29驗證PASS。完整CI40359682971：1040通過／8略過；正式375px隔離Chrome41圖解碼、HRP求助與重載保留1:53、跑步草稿18:42保存、離線開新圖、頁面錯誤0。41套AI姿勢影格覆蓋71/71，真人影片0。新無帶拉日刪兩毛巾組與休息、舊checkpoint不變。Jev8原圖4usable／4repair，獨立再審接受但保留異議，五面向partial；不宣稱需求全部完成。交付後證據reports/live-v29-2026-10-27.{md,json}與本段尚未提交，下一輪保留；主程式均已上main，勿重做。剩iPhone系統回收／主畫面離線與背景音訊需真機，後續可依實際使用回饋調整課表與影格流暢度。

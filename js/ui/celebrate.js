@@ -1,218 +1,77 @@
-/* Daily Ten — V2a Perfect Day 慶祝與升級卡（全螢幕卡 index.html #cele；設計見 docs/vnext-mockup/PerfectDay.dc.html）。
-   engine 不判斷「看過沒」：這裡比較 todaySummary 與 data-guardian 的 game.seen（js/ui/game.js 轉接）。
-     慶祝：  summary.perfectDay.done && summary.perfectDay.date > seen.perfectDay → 按「領取」才 markPerfectDaySeen(date)（一天最多一次）
-     升級卡：summary.level.lv > seen.level → 按「繼續」才 markLevelSeen(lv)（每個新等級一次；一次跳好幾級也只出最新的一張）
-     兩個都該出現時先慶祝、再升級卡。seen 還沒初始化（null）時先 ensureSeen（只改記憶體），不補播舊的。
-   什麼時候出現（queueCelebrations 由 renderHome 每次呼叫）：今日在前景，而且沒有訓練（#train）、完成（#done）、
-   示範（#demo-modal）、Boss 成績輸入（#s-boss）；復原 toast 顯示中（打卡、D6 恢復後 10 秒）先等它收起，不擋住復原。
-   擋住的時候不記任何東西：關掉訓練／完成畫面回到今日（renderHome）就會出現。
-   開著的時候條件不再成立（例如按了打卡的復原、跨過 04:00）→ 直接關掉、不記成看過。
-   動態（CLAUDE.md §2.9）：卡片淡入＋微幅上移、彩帶是 DOM 小片（不用 Canvas），只動 transform／opacity，全部 ≤1.5 秒
-   （--confetti-ms＋--confetti-delay）；prefers-reduced-motion 時卡片只淡入、彩帶靜止淡入。開著時 js/app.js 的 isIdle() 視為忙碌（D23）。 */
-import { getState } from '../state/store.js';
-import { $ } from './dom.js';
-import { summary, readSeen, ensureSeen, markPerfectDaySeen, markLevelSeen } from './game.js';
+/* Daily Ten — 慶祝：Perfect Day、升級、Perfect Week、新成就。全螢幕卡 #cele＋Canvas 彩帶（≤1.5 秒），prefers-reduced-motion 時不放彩帶。
+   「看過」記在 state.v4.seen（level／perfectDay／perfectWeek／achievements），按「繼續」才記；條件不再成立就直接關。 */
+import { $, esc, activeScreen } from './dom.js';
+import { summary, v4, commit, achievementsData, rules } from './model.js';
 import { toastVisible, onToastHidden } from './toast.js';
 
-const PILLARS = ['move', 'sleep', 'explore'];
-const RADIUS = { move: 106, sleep: 84, explore: 62 };
-const PIECES = 26;
-
-let open = null;      // 顯示中：{kind:'perfect', date} | {kind:'level', lv}
-let waiting = false;  // 等復原 toast 收起
-
-const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const num = (n) => (Number.isFinite(n) ? Math.round(n) : 0);
-const active = (id) => { const el = $(id); return !!el && el.classList.contains('active'); };
-
-function tokenMs(name, fallback) {
-  try {
-    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    const m = /^(\d+(?:\.\d+)?)(ms|s)$/.exec(v);
-    return m ? Number(m[1]) * (m[2] === 's' ? 1000 : 1) : fallback;
-  } catch (e) { return fallback; }
-}
-function reducedMotion() {
-  try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
-}
-
-/* 今日不在前景，或訓練／完成／示範／Boss 成績輸入開著 → 先不出現 */
-function screenBlocked() {
-  return !active('s-home') || active('train') || active('done') || active('demo-modal') || active('s-boss');
-}
-
-function dueKind(sum, seen) {
-  const pd = sum.perfectDay;
-  if (pd && pd.done === true && typeof pd.date === 'string' && pd.date > seen.perfectDay) return 'perfect';
-  const lv = sum.level;
-  if (lv && Number.isInteger(lv.lv) && lv.lv > seen.level) return 'level';
-  return null;
-}
-function stillDue(cur, sum) {
-  if (!sum) return true; // 遊戲層暫時算不出來：不動它
-  if (cur.kind === 'perfect') return !!(sum.perfectDay && sum.perfectDay.done === true && sum.perfectDay.date === cur.date);
-  return !!(sum.level && Number.isInteger(sum.level.lv) && sum.level.lv >= cur.lv);
-}
-
-/* ---------- 內容 ---------- */
-/* 身分宣言「我是獨立、自律、持續成長的人。」→「獨立、自律、持續成長」；其他句型去掉句尾標點照用 */
-function identityCore() {
-  const g = getState() && getState().goals;
-  const text = String((g && g.identity) || '').trim();
-  if (!text) return '';
-  const m = /^我是(.+?)的人。?$/.exec(text);
-  return m ? m[1] : text.replace(/[。．.！!]+$/, '');
-}
-function voteLine(kind) {
-  const core = identityCore();
-  if (kind === 'perfect') return core ? `又為「${core}」投了一票。` : '又為自己投了一票。';
-  return core ? `每一次出席都算數，繼續為「${core}」投票。` : '每一次出席都算數，繼續加油。';
-}
-
-/* 已解鎖的支柱畫滿環、未解鎖畫虛線環（不隱藏），中間打勾 */
-function perfectArt(pd) {
-  const need = Array.isArray(pd.need) && pd.need.length ? pd.need : ['move', 'sleep'];
-  let svg = '';
-  for (const k of PILLARS) {
-    const r = RADIUS[k];
-    svg += need.includes(k)
-      ? `<circle class="arc ${k}" cx="120" cy="120" r="${r}" fill="none" stroke-width="18"/>`
-      : `<circle class="ring-lock" cx="120" cy="120" r="${r}" fill="none" stroke-width="3" stroke-dasharray="6 7"/>`;
-  }
-  svg += '<path class="cele-check" d="M98 122l15 15 30-32" fill="none" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>';
-  return `<svg class="cele-svg" viewBox="0 0 240 240" focusable="false">${svg}</svg>`;
-}
-/* 升級：三支柱色各一段的環（任何支柱都讓等級成長），中間 Lv N */
-function levelArt(lv) {
-  const r = 100;
-  const len = 2 * Math.PI * r;
-  const seg = len / 3 - 14;
-  let svg = '';
-  PILLARS.forEach((k, i) => {
-    svg += `<circle class="arc ${k}" cx="120" cy="120" r="${r}" fill="none" stroke-width="18" stroke-linecap="round"`
-      + ` stroke-dasharray="${seg.toFixed(2)} ${len.toFixed(2)}" transform="rotate(${-86 + i * 120} 120 120)"/>`;
-  });
-  return `<svg class="cele-svg" viewBox="0 0 240 240" focusable="false">${svg}</svg>`
-    + `<span class="cele-lv num"><small>Lv</small>${num(lv.lv)}</span>`;
-}
-const statsMarkup = (list) => list.map(([v, label]) =>
-  `<div class="cele-stat"><b class="num">${esc(v)}</b><span>${esc(label)}</span></div>`).join('');
-
-/* ---------- 彩帶：DOM 小片，transform／opacity；減少動態時靜止淡入 ---------- */
-function confetti(host) {
-  host.textContent = '';
-  const still = reducedMotion();
-  const dur = tokenMs('--confetti-ms', 1150);
-  const spread = tokenMs('--confetti-delay', 300);
-  let seed = 20261006;
-  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < PIECES; i++) {
-    const el = document.createElement('i');
-    el.className = `cf ${PILLARS[i % 3]}${still ? ' still' : ''}`;
-    el.style.left = `${(3 + rnd() * 92).toFixed(1)}%`;
-    if (still) {
-      el.style.top = `${(4 + rnd() * 22).toFixed(1)}%`;
-      el.style.transform = `rotate(${Math.round(rnd() * 140 - 70)}deg)`;
-    } else {
-      el.style.setProperty('--dx', `${Math.round(rnd() * 90 - 45)}px`);
-      el.style.setProperty('--dy', `${Math.round(40 + rnd() * 55)}vh`);
-      el.style.setProperty('--r0', `${Math.round(rnd() * 120 - 60)}deg`);
-      el.style.setProperty('--r1', `${Math.round(rnd() * 360 + 180)}deg`);
-      el.style.animationDelay = `${Math.round(rnd() * spread)}ms`;
-      el.style.animationDuration = `${Math.round(dur * (0.75 + rnd() * 0.25))}ms`;
-    }
-    frag.appendChild(el);
-  }
-  host.appendChild(frag);
-}
-
-/* ---------- 開／關 ---------- */
-function show(kind, sum) {
-  const el = $('cele');
-  if (!el) return;
-  const pd = sum.perfectDay || {};
-  const lv = sum.level || {};
-  const streak = sum.streak && Number.isFinite(sum.streak.days) ? sum.streak.days : 0;
-  const xp = sum.xp || {};
-  open = kind === 'perfect' ? { kind, date: pd.date } : { kind, lv: lv.lv };
-  el.dataset.kind = kind;
-  if (kind === 'perfect') {
-    $('cele-art').innerHTML = perfectArt(pd);
-    $('cele-eyebrow').textContent = '已解鎖的支柱全完成';
-    $('cele-title').textContent = typeof pd.title === 'string' && pd.title ? pd.title : 'Perfect Day';
-    $('cele-xp').textContent = `+${num(pd.xp || pd.reward)} XP`;
-    $('cele-xp').hidden = false;
-    $('cele-stats').innerHTML = statsMarkup([[streak, '連續天數'], [num(pd.weekCount), '本週 Perfect'], [num(xp.today), '今日 XP']]);
-    $('cele-ok').textContent = '領取';
-  } else {
-    $('cele-art').innerHTML = levelArt(lv);
-    $('cele-eyebrow').textContent = '等級提升';
-    $('cele-title').textContent = `升到 ${typeof lv.label === 'string' && lv.label ? lv.label : `Lv ${num(lv.lv)}`}`;
-    $('cele-xp').textContent = '';
-    $('cele-xp').hidden = true;
-    $('cele-stats').innerHTML = statsMarkup([[num(xp.total), '累計 XP'], [streak, '連續天數'],
-      [Math.max(0, num(lv.xpNeed) - num(lv.xpInto)), '下一級還差 XP']]);
-    $('cele-ok').textContent = '繼續';
-  }
-  $('cele-vote').textContent = voteLine(kind);
-  $('cele-ok').onclick = close;
-  el.hidden = false;
-  el.classList.remove('in');
-  void el.offsetWidth; // 重新播放出現動畫（升級卡緊接在慶祝之後）
-  el.classList.add('in');
-  confetti($('cele-confetti'));
-  try { $('cele-ok').focus({ preventScroll: true }); } catch (e) { /* 舊瀏覽器 */ }
-}
-
-function hideOverlay() {
-  open = null;
-  const el = $('cele');
-  if (!el) return;
-  el.hidden = true;
-  el.classList.remove('in');
-  delete el.dataset.kind;
-  const c = $('cele-confetti');
-  if (c) c.textContent = '';
-}
-
-/* 「領取」／「繼續」：記成看過（data-guardian 寫入並存檔），再看下一張（慶祝之後的升級卡） */
-function close() {
-  const cur = open;
-  hideOverlay();
-  if (!cur) return;
-  const r = cur.kind === 'perfect' ? markPerfectDaySeen(cur.date) : markLevelSeen(cur.lv);
-  if (!r || r.ok !== true) console.warn('看過的紀錄沒有寫入', r);
-  queueCelebrations(summary());
-}
+let open = null;
+const reduced = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 
 export function celebrationOpen() { return !!open; }
 
-export function queueCelebrations(sum) {
-  try {
-    if (open) {
-      if (!stillDue(open, sum)) hideOverlay(); // 例如按了打卡的復原：關掉，不記成看過
-      return;
-    }
-    if (!sum) return;
-    let seen = readSeen();
-    if (!seen) return;
-    if (seen.level === null || seen.perfectDay === null) {
-      ensureSeen(sum);
-      seen = readSeen();
-      if (!seen || seen.level === null || seen.perfectDay === null) return;
-    }
-    const kind = dueKind(sum, seen);
-    if (!kind || screenBlocked()) return;
-    if (toastVisible()) { // 復原時段內不蓋住 toast：收起後再看一次
-      if (!waiting) {
-        waiting = true;
-        onToastHidden(() => { waiting = false; queueCelebrations(summary()); });
-      }
-      return;
-    }
-    show(kind, sum);
-  } catch (e) {
-    console.warn('慶祝畫面失敗', e);
+function due() {
+  const s = summary(), seen = v4().seen;
+  const list = [];
+  if (s.today.perfect && seen.perfectDay !== s.today.date) list.push({ kind: 'perfectDay', em: '🏆', title: 'Perfect Day', text: '健身房＋晨間伸展同一天完成，為「獨立、自律、持續成長的人」投了一票。', xp: rules().bonus.perfectDay, mark: () => { v4().seen.perfectDay = s.today.date; } });
+  if (s.week.perfect && seen.perfectWeek !== s.week.start) list.push({ kind: 'perfectWeek', em: '🎉', title: 'Perfect Week', text: '這週健身房、伸展、探索全部達標。', xp: rules().bonus.perfectWeek, mark: () => { v4().seen.perfectWeek = s.week.start; } });
+  if (Number.isInteger(seen.level) ? s.level.lv > seen.level : s.level.lv > 1) list.push({ kind: 'level', em: '⬆️', title: `升到 Lv ${s.level.lv}`, text: `下一級還需要 ${s.level.need - s.level.into} XP。`, xp: null, mark: () => { v4().seen.level = s.level.lv; } });
+  const seenA = new Set(seen.achievements || []);
+  const fresh = Object.keys(s.achievements.unlocked).filter((id) => !seenA.has(id));
+  if (fresh.length) {
+    const names = fresh.map((id) => (achievementsData().find((a) => a.id === id) || {}).name || id);
+    list.push({ kind: 'achievement', em: '🏅', title: fresh.length === 1 ? names[0] : `${fresh.length} 個新成就`, text: fresh.length === 1 ? (achievementsData().find((a) => a.id === fresh[0]) || {}).desc || '' : names.join('、'), xp: null, mark: () => { v4().seen.achievements = [...seenA, ...fresh]; } });
   }
+  return list;
+}
+
+/* 第一次開啟（seen 全空）：不補播舊的，直接記成看過 */
+export function ensureSeenInitialized() {
+  const s = summary(), seen = v4().seen;
+  if (seen.level === null) seen.level = s.level.lv;
+  if (seen.perfectDay === null && s.perfectDays.length && !s.today.perfect) seen.perfectDay = s.perfectDays[s.perfectDays.length - 1];
+  if (seen.perfectWeek === null && s.perfectWeeks.length && !s.week.perfect) seen.perfectWeek = s.perfectWeeks[s.perfectWeeks.length - 1];
+  /* 搬舊資料進來時已解鎖的成就一次記成看過（不補播一整串） */
+  if ((!seen.achievements || !seen.achievements.length) && seen.level !== null && Object.keys(s.achievements.unlocked).length && v4().gym.sessions.some((x) => x && x.legacy)) seen.achievements = Object.keys(s.achievements.unlocked);
+}
+
+export function queueCelebrations() {
+  if (open) return;
+  if (activeScreen() !== 's-home') return;
+  if (toastVisible()) { onToastHidden(queueCelebrations); return; }
+  const list = due();
+  if (!list.length) return;
+  show(list[0]);
+}
+
+function show(item) {
+  open = item;
+  const el = $('cele');
+  el.innerHTML = `<div class="box" role="dialog" aria-modal="true" aria-labelledby="cele-t"><div class="em" aria-hidden="true">${item.em}</div><h2 id="cele-t">${esc(item.title)}</h2>${item.xp ? `<span class="xp num">+${item.xp} XP</span><br>` : ''}<p>${esc(item.text)}</p><button type="button" class="btn" id="cele-ok">繼續</button></div>`;
+  el.hidden = false;
+  $('cele-ok').onclick = async () => { item.mark(); await commit(); close(); queueCelebrations(); };
+  $('cele-ok').focus();
+  if (!reduced()) confetti();
+}
+function close() { $('cele').hidden = true; $('cele').innerHTML = ''; open = null; }
+
+/* Canvas 彩帶：只畫 1.4 秒；小畫面也不超過 120 片 */
+export function confetti(ms = 1400) {
+  const c = $('confetti');
+  if (!c || typeof c.getContext !== 'function') return;
+  const ctx = c.getContext('2d');
+  if (!ctx) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr; c.hidden = false;
+  ctx.scale(dpr, dpr);
+  const colors = ['#F97316', '#14B8A6', '#8B5CF6', '#F59E0B', '#2563EB', '#FFFFFF'];
+  const P = Array.from({ length: 120 }, () => ({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * .4, vx: (Math.random() - .5) * 2.2, vy: 2.5 + Math.random() * 3.5, s: 5 + Math.random() * 6, r: Math.random() * Math.PI, vr: (Math.random() - .5) * .3, col: colors[(Math.random() * colors.length) | 0] }));
+  const t0 = performance.now();
+  function frame(t) {
+    const k = (t - t0) / ms;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.globalAlpha = k > .75 ? Math.max(0, 1 - (k - .75) / .25) : 1;
+    for (const p of P) { p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.col; ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); ctx.restore(); }
+    if (k < 1) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, innerWidth, innerHeight); c.hidden = true; }
+  }
+  requestAnimationFrame(frame);
 }

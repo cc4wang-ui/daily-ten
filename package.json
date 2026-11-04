@@ -6,15 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:media": "node --test tests/exercise-media.test.mjs tests/demo-modal.test.mjs",
-    "test:feedback": "node --test tests/training-feedback.test.mjs",
-    "test:progression": "node --test tests/training-progression.test.mjs",
-    "report:media": "node tools/report-exercise-media.mjs --write",
-    "check:media-coverage": "node tools/report-exercise-media.mjs --ci",
+    "test:unit": "node --test tests/*.test.mjs",
     "serve": "node tools/serve.mjs . 4173",
     "check:repo": "node .github/scripts/check-repo.mjs",
     "check:glossary": "node tools/jev/check-glossary.js --ci",
-    "test:glossary": "node tools/jev/check-glossary.js --self-test"
+    "test:glossary": "node tools/jev/check-glossary.js --self-test",
+    "dev:flow": "node tools/dev/flow.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1"

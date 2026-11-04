@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "_notes": "健身房課表：reel 模板（Upper 7 動作各 2 組、Lower 6 動作各 2–3 組），順序 Upper A → Lower A → Upper B → Lower B 只在完整課後推進；A＝B。exercise.id 對應 data/videos.json 的示範 Short。模板是草案，未經教練簽核。",
+  "sequence": ["Upper A", "Lower A", "Upper B", "Lower B"],
+  "templates": {
+    "upper": [
+      { "id": "incline-db-press", "name": "上斜臥推", "sets": 2, "reps": "6–10", "kind": "compound", "cue": "椅背 30 度，啞鈴降到胸口上方，推起時手肘微彎。" },
+      { "id": "bench-press", "name": "平板臥推", "sets": 2, "reps": "6–10", "kind": "compound", "cue": "肩胛收緊、腳踩穩，槓鈴碰到胸口再推。" },
+      { "id": "lateral-raise", "name": "側平舉", "sets": 2, "reps": "10–15", "kind": "isolation", "cue": "手肘微彎，舉到與肩同高就停，慢慢放下。" },
+      { "id": "lat-pulldown", "name": "滑輪下拉", "sets": 2, "reps": "6–10", "kind": "compound", "cue": "胸口微挺，把槓拉到鎖骨，手肘往下往後。" },
+      { "id": "upper-back-row", "name": "上背划船（手肘外展）", "sets": 2, "reps": "6–10", "kind": "compound", "cue": "手肘往外張開，擠上背，不要聳肩。" },
+      { "id": "bicep-curl", "name": "二頭彎舉", "sets": 2, "reps": "10–15", "kind": "isolation", "cue": "手肘固定在身側，頂端停一下再慢放。" },
+      { "id": "tricep-extension", "name": "三頭伸展", "sets": 2, "reps": "10–15", "kind": "isolation", "cue": "上臂不動，只動前臂，伸直時夾緊三頭。" }
+    ],
+    "lower": [
+      { "id": "squat", "name": "深蹲或腿推", "sets": "2–3", "reps": "6–10", "kind": "compound", "alt": "leg-press", "cue": "膝蓋順著腳尖方向，蹲到大腿與地面平行或更低。" },
+      { "id": "rdl", "name": "羅馬尼亞硬舉（髖鉸鏈）", "sets": "2–3", "reps": "6–10", "kind": "compound", "cue": "屁股往後推、背打直，槓貼著腿下到小腿中段。" },
+      { "id": "calf-raise", "name": "提踵", "sets": "2–3", "reps": "10–15", "kind": "isolation", "cue": "腳跟壓到最低再踮到最高，頂端停 1 秒。" },
+      { "id": "adductor-machine", "name": "內收肌器械", "sets": "2–3", "reps": "10–15", "kind": "isolation", "cue": "慢慢打開到有拉伸感，再夾緊回來。" },
+      { "id": "leg-curl", "name": "腿後彎舉", "sets": "2–3", "reps": "10–15", "kind": "isolation", "cue": "腳跟往屁股勾，頂端停一下，慢慢放。" },
+      { "id": "leg-extension", "name": "腿前伸展", "sets": "2–3", "reps": "10–15", "kind": "isolation", "cue": "伸直時夾緊大腿前側，放下時不要甩。" }
+    ]
+  },
+  "general": "一般建議（不是影片內容、不是醫療建議）：熱身 5–10 分鐘；多數正式組留 1–2 下餘力；某動作當天會痛就跳過它。"
+}

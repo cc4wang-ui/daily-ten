@@ -139,54 +139,6 @@ test('壞 state → recovered：原字串存在 bak-v2，downloadRawBackup 下�
   expect(await readFile(await download.path(), 'utf8')).toBe(corrupt);
 });
 
-test('早安打卡（habits.js）：寫入 localStorage、重新整理後還在、復原後消失；載入補 startedAt 不寫主 key', async ({ page }) => {
-  const raw = readFixture('v3.json');
-  const ENTRY = { date: '2026-10-05', lightsOut: '2026-10-04T23:00:00+09:00', wake: '2026-10-05T06:58:00+09:00', lightsOutEdited: false };
-  const first = await page.evaluate(async ({ raw, entry }) => {
-    localStorage.setItem('daily-ten-state', raw);
-    const store = await import('/js/state/store.js');
-    const habits = await import('/js/state/habits.js');
-    const boot = new Date('2026-10-05T06:55:00+09:00');
-    const load = await store.loadState({ now: boot });
-    const phase = habits.ensurePhaseStarted(boot);
-    const untouched = localStorage.getItem('daily-ten-state') === raw;
-    const add = habits.addSleepEntry(entry);
-    const saved = await add.saved;
-    const dup = habits.addSleepEntry({ ...entry, wake: '2026-10-05T07:10:00+09:00' });
-    return { load, phase, untouched, add: { ok: add.ok, entry: add.entry }, saved, dup: { ok: dup.ok, code: dup.code, message: dup.message } };
-  }, { raw, entry: ENTRY });
-  expect(first.load).toStrictEqual({ status: 'ok', error: null });
-  expect(first.phase).toStrictEqual({ ok: true, changed: false, startedAt: '2026-10-05T06:55:00+09:00' }); // loadState 已補上
-  expect(first.untouched).toBe(true);
-  expect(first.add).toStrictEqual({ ok: true, entry: ENTRY });
-  expect(first.saved).toBe(true);
-  expect(first.dup).toStrictEqual({ ok: false, code: 'duplicate', message: '2026-10-05 已經有睡眠紀錄，同一天只能記錄一次' });
-
-  await page.reload();
-  const second = await page.evaluate(async () => {
-    const store = await import('/js/state/store.js');
-    const habits = await import('/js/state/habits.js');
-    const load = await store.loadState();
-    const log = JSON.parse(JSON.stringify(store.getState().habits.sleep.log));
-    const startedAt = store.getState().phase.startedAt;
-    const undo = habits.removeSleepEntry('2026-10-05');
-    const saved = await undo.saved;
-    return { load, log, startedAt, removed: undo.removed, saved };
-  });
-  expect(second.load).toStrictEqual({ status: 'ok', error: null });
-  expect(second.log).toStrictEqual([ENTRY]);
-  expect(second.startedAt).toBe('2026-10-05T06:55:00+09:00');
-  expect(second.removed).toBe(1);
-  expect(second.saved).toBe(true);
-
-  await page.reload();
-  const third = await page.evaluate(async () => {
-    const store = await import('/js/state/store.js');
-    const load = await store.loadState();
-    return { load, log: store.getState().habits.sleep.log, startedAt: store.getState().phase.startedAt };
-  });
-  expect(third).toStrictEqual({ load: { status: 'ok', error: null }, log: [], startedAt: '2026-10-05T06:55:00+09:00' });
-});
 
 test('壞打卡紀錄 → repaired：原字串存在 bak-v3、App 資料可用，修補後的備份可再匯入', async ({ page }) => {
   const raw = readFixture('v3-bad-sleep.json');
@@ -234,58 +186,6 @@ test('匯入流程：壞檔不動資料；好檔確認後才覆蓋', async ({ pa
   expect(out.preImport).toBe(true);
 });
 
-test('V2a 遊戲進度標記（game.js）：初始化不寫入；看過升級卡／慶祝、恢復寫入 localStorage，重新整理後還在；復原後變回 null', async ({ page }) => {
-  const raw = readFixture('v3-checkin.json');
-  const first = await page.evaluate(async ({ raw }) => {
-    localStorage.setItem('daily-ten-state', raw);
-    const store = await import('/js/state/store.js');
-    const game = await import('/js/state/game.js');
-    const load = await store.loadState({ now: new Date('2026-10-05T06:40:00+09:00') });
-    const init = game.ensureSeenInitialized(7, '2026-10-05');
-    const untouched = localStorage.getItem('daily-ten-state') === raw;
-    const keys = Object.keys(localStorage);
-    const lv = game.markLevelSeen(8);
-    const lvSaved = await lv.saved;
-    const pd = game.markPerfectDaySeen('2026-10-05');
-    const pdSaved = await pd.saved;
-    const rs = game.setDeloadRestored('2026-10-05');
-    const rsSaved = await rs.saved;
-    return { load, init, untouched, keys, saved: [lvSaved, pdSaved, rsSaved], game: JSON.parse(localStorage.getItem('daily-ten-state')).game };
-  }, { raw });
-  expect(first.load).toStrictEqual({ status: 'ok', error: null });
-  expect(first.init).toStrictEqual({ ok: true, changed: true, seen: { level: 7, perfectDay: '2026-10-04' } });
-  expect(first.untouched).toBe(true); // 開 App＋初始化不寫入
-  expect(first.keys).toEqual(['daily-ten-state']);
-  expect(first.saved).toEqual([true, true, true]);
-  expect(first.game.seen).toStrictEqual({ level: 8, perfectDay: '2026-10-05' });
-  expect(first.game.deload).toStrictEqual({ restoredOn: '2026-10-05' });
-
-  await page.reload();
-  const second = await page.evaluate(async () => {
-    const store = await import('/js/state/store.js');
-    const game = await import('/js/state/game.js');
-    const schema = await import('/js/state/schema.js');
-    const load = await store.loadState({ now: new Date('2026-10-05T07:10:00+09:00') });
-    const init = game.ensureSeenInitialized(3, '2026-10-05');
-    const restored = schema.isDeloadRestored(store.getState(), '2026-10-05');
-    const undo = game.clearDeloadRestored('2026-10-05');
-    const saved = await undo.saved;
-    return { load, init, restored, undo: { ok: undo.ok, changed: undo.changed, deload: undo.deload }, saved };
-  });
-  expect(second.load).toStrictEqual({ status: 'ok', error: null });
-  expect(second.init).toStrictEqual({ ok: true, changed: false, seen: { level: 8, perfectDay: '2026-10-05' } });
-  expect(second.restored).toBe(true);
-  expect(second.undo).toStrictEqual({ ok: true, changed: true, deload: { restoredOn: null } });
-  expect(second.saved).toBe(true);
-
-  await page.reload();
-  const third = await page.evaluate(async () => {
-    const store = await import('/js/state/store.js');
-    const load = await store.loadState();
-    return { load, seen: store.getState().game.seen, deload: store.getState().game.deload };
-  });
-  expect(third).toStrictEqual({ load: { status: 'ok', error: null }, seen: { level: 8, perfectDay: '2026-10-05' }, deload: { restoredOn: null } });
-});
 
 test('V2a 壞欄位 → repaired：原字串存在 bak-v3，修補後的備份可再匯入', async ({ page }) => {
   const raw = readFixture('v3-v2a-bad-fields.json');

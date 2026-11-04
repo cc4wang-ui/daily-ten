@@ -1,0 +1,57 @@
+/* 開發用：實跑三條流程並截圖（不是正式測試）。node tools/dev/flow.mjs */
+import { chromium } from '@playwright/test';
+const port = process.env.PORT || 4190, out = process.env.OUT || '/tmp/claude-0/-home-user-daily-ten/3ac32758-328d-5253-ab17-a4f8e18cf355/scratchpad/shots';
+const b = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || '/opt/pw-browsers/chromium' });
+const ctx = await b.newContext({ viewport: { width: 375, height: 760 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'zh-TW', timezoneId: 'Asia/Tokyo', serviceWorkers: 'block' });
+const p = await ctx.newPage();
+const errs = [];
+p.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
+p.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('404')) errs.push('console: ' + m.text()); });
+await p.addInitScript(() => { window.__dtNow = () => new Date('2026-11-04T08:30:00+09:00'); });
+await p.goto(`http://127.0.0.1:${port}/index.html`);
+await p.waitForSelector('html[data-ready]');
+async function dismissCele(tag) { for (let i = 0; i < 4; i++) { const c = await p.$('#cele:not([hidden])'); if (!c) return; await p.screenshot({ path: `${out}/f-cele-${tag}-${i}.png` }); await p.click('#cele-ok'); await p.waitForTimeout(250); } }
+await p.click('#hero-go');
+await p.waitForSelector('#guide:not([hidden])');
+await p.waitForTimeout(1500);
+await p.screenshot({ path: `${out}/f-guide.png` });
+for (let i = 0; i < 8; i++) { await p.click('#g-skip'); await p.waitForTimeout(150); }
+await p.waitForSelector('#toast.in');
+await p.screenshot({ path: `${out}/f-home-after-stretch.png` });
+await p.evaluate(() => { document.getElementById('toast').hidden = true; });
+await dismissCele('stretch');
+await p.click('#tabs [data-s="s-gym"]');
+await p.click('#gym-start');
+await p.waitForSelector('#session:not([hidden])');
+const rows = await p.$$('#session tr[data-si]');
+for (const r of rows) { await r.$eval('input[data-k=weight]', (e) => { e.value = '20'; e.dispatchEvent(new Event('change')); }); await r.$eval('input[data-k=reps]', (e) => { e.value = '10'; e.dispatchEvent(new Event('change')); }); await (await r.$('.ok')).click(); }
+await p.waitForTimeout(300);
+await p.screenshot({ path: `${out}/f-session.png` });
+await p.click('#rest-skip').catch(() => {});
+await p.click('#ss-finish');
+await p.waitForSelector('#sheet:not([hidden])');
+await p.waitForTimeout(400);
+await p.screenshot({ path: `${out}/f-summary.png` });
+await p.click('#gs-ok');
+await p.waitForSelector('#toast.in');
+await p.evaluate(() => { document.getElementById('toast').hidden = true; });
+await p.waitForTimeout(300);
+await p.screenshot({ path: `${out}/f-home-after-gym.png`, fullPage: true });
+await dismissCele('gym');
+await p.click('#tabs [data-s="s-explore"]');
+await p.click('#ex-shuffle');
+await p.click('#ex-done');
+await p.waitForSelector('#sheet:not([hidden])');
+await p.click('.stars button[data-n="4"]');
+await p.fill('#ex-note', '比想像中好玩');
+await p.screenshot({ path: `${out}/f-explore-sheet.png` });
+await p.click('#ex-save');
+await p.waitForSelector('#toast.in');
+await p.evaluate(() => { document.getElementById('toast').hidden = true; });
+await dismissCele('explore');
+await p.click('#tabs [data-s="s-progress"]');
+await p.screenshot({ path: `${out}/f-progress.png`, fullPage: true });
+const state = await p.evaluate(() => JSON.parse(localStorage.getItem('daily-ten-state')).v4);
+console.log('sessions', state.gym.sessions.length, 'stretch', JSON.stringify(state.stretch.log), 'explore', state.explore.log.length);
+console.log('errors', errs);
+await b.close();

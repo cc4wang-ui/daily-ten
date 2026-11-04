@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "_notes": "晨間伸展：完整版 15 分鐘（900 秒、8 項，含胸椎與肩膀活動度），短版 5 分鐘（300 秒、5 項）。每項對應 data/videos.json 的示範 Short；cue 是離線時的文字口令。sides=true 表示中途換邊（語音與畫面提示）。",
+  "items": [
+    {
+      "id": "cat-cow",
+      "name": "貓牛式",
+      "full": 90,
+      "short": 60,
+      "sides": false,
+      "cue": "四足跪姿，吸氣塌腰抬頭，吐氣拱背低頭，跟著呼吸慢慢做。"
+    },
+    {
+      "id": "thread-the-needle",
+      "name": "穿針式",
+      "full": 120,
+      "short": 60,
+      "sides": true,
+      "cue": "四足跪姿，一手從對側腋下穿過去，肩膀貼地，髖部穩定，換邊。"
+    },
+    {
+      "id": "hip-90-90",
+      "name": "90/90 髖部轉換",
+      "full": 120,
+      "short": 60,
+      "sides": true,
+      "cue": "坐姿，前後腿都彎 90 度，挺胸往前腿方向壓，再轉到另一側。"
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "name": "世界最偉大伸展",
+      "full": 120,
+      "short": 0,
+      "sides": true,
+      "cue": "弓箭步，同側手肘往下碰腳踝內側，再轉體把手舉向天花板，換邊。"
+    },
+    {
+      "id": "pigeon",
+      "name": "鴿式",
+      "full": 120,
+      "short": 0,
+      "sides": true,
+      "cue": "前腿橫放、後腿伸直，骨盆放正，上身慢慢往前趴，換邊。"
+    },
+    {
+      "id": "supine-twist",
+      "name": "仰臥扭轉",
+      "full": 120,
+      "short": 60,
+      "sides": true,
+      "cue": "平躺，一腳跨到對側，肩膀貼地，頭看反方向，不要勉強，換邊。"
+    },
+    {
+      "id": "wall-thoracic-opener",
+      "name": "靠牆胸椎開展",
+      "full": 90,
+      "short": 0,
+      "sides": false,
+      "cue": "雙手放牆上高處，胸口往兩臂之間下沉，感覺背闊與胸口打開。"
+    },
+    {
+      "id": "down-dog-child",
+      "name": "下犬＋兒童式",
+      "full": 120,
+      "short": 60,
+      "sides": false,
+      "cue": "下犬式踩踩腳跟 30 秒，接著坐回腳跟、手往前延伸休息。",
+      "video2": "down-dog"
+    }
+  ]
+}
