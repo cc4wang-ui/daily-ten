@@ -73,6 +73,9 @@ export function assertWatchClean(w, label = '') {
 export const test = base.extend({
   guard: [async ({ context }, use) => {
     const w = watchContext(context);
+    /* 示範 Short 的縮圖是外部 <img>：測試裡一律本機回一張 1×1 PNG（不連網），並列為允許的主機 */
+    w.allowHosts.add('i.ytimg.com');
+    await context.route('https://i.ytimg.com/**', (route) => route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await use(w);
     assertWatchClean(w);
   }, { auto: true }],
@@ -154,147 +157,56 @@ export async function storedState(page) {
   return raw === null ? null : JSON.parse(raw);
 }
 /* 畫面上的四個數字（V1 的位置）：#h-streak＝今日右上連續天數、#h-level＝訓練分頁「強度」、#h-xp／#h-best＝統計的累計 XP／最佳連續 */
-export const homeValues = (page) => page.evaluate(() => {
-  const t = (id) => document.getElementById(id).textContent;
-  return { streak: t('h-streak'), best: t('h-best'), xp: t('h-xp'), level: t('h-level') };
-});
-/* App 目前的 state（與 App 同一個 module 實例）＋ engine 對它算出的今日摘要。
-   rules 直接讀 data/game.json、engine 直接 import，不經過 UI 的轉接層（js/ui/game.js），所以是獨立的預期值。
-   rules 讀不到時 sum = null。 */
-export const appSummary = (page) => page.evaluate(async () => {
-  const u = (p) => new URL(p, document.baseURI).href;
-  const [{ getState }, { todaySummary }] = await Promise.all([import(u('js/state/store.js')), import(u('js/game/engine.js'))]);
-  let rules = null;
-  try { const r = await fetch(u('data/game.json')); rules = r.ok ? await r.json() : null; } catch (e) { rules = null; }
-  const st = getState();
-  return {
-    legacy: { level: st.level, xp: st.xp, current: st.streak.current, best: st.streak.best },
-    sum: rules ? todaySummary(st, new Date(), rules) : null
-  };
-});
-/* V1：
-   - 資料：App 載入（遷移／修補）後的 level、xp、streak.current／best 等於預期（README 的表）——同 M1 的意圖，改讀 App 的 state，
-     因為 #h-xp／#h-best 在 V1 改顯示 engine 推導值。
-   - 畫面：今日在前景；#h-level＝L＋level（強度）；#h-streak＝engine 的連續天數（train）；
-     #h-xp＝engine 累計 XP、#h-best＝engine 最佳連續（engine 沒載入時退回 legacy 值）。 */
-export async function expectHome(page, { level, xp, current, best }) {
-  await expect(page.locator('#s-home')).toBeVisible();
-  const { legacy, sum } = await appSummary(page);
-  expect(legacy, 'App 載入後的 level／xp／連續天數').toEqual({ level, xp, current, best });
-  const want = {
-    streak: String(sum ? sum.streak.days : current),
-    best: String(sum ? sum.streak.best : best),
-    xp: String(sum ? sum.xp.total : xp),
-    level: `L${level}`
-  };
-  expect(await homeValues(page), '畫面上的數字（強度、連續天數、累計 XP、最佳連續）').toEqual(want);
+/* ---------- 分頁（redo-v1）：今日／健身房／伸展／探索／進度；設定＝今日右上齒輪（#h-settings） ---------- */
+const TAB_SCREENS = new Set(['s-home', 's-gym', 's-stretch', 's-explore', 's-progress']);
+export async function dismissCelebrations(page) {
+  for (let i = 0; i < 6; i++) {
+    if (!(await page.locator('#cele:not([hidden])').count())) return;
+    await page.click('#cele-ok');
+  }
 }
-/* 舊版（M1 首頁）：四個數字都在 HOME，#h-streak＝streak.current（只用在 V1 以前的版本，例如 upgrade／relocate 的舊版頁面） */
-export async function expectHomeM1(page, { level, xp, current, best }) {
-  await expect(page.locator('#s-home')).toBeVisible();
-  expect(await homeValues(page)).toEqual({ streak: String(current), best: String(best), xp: String(xp), level: `L${level}` });
+/* 用 App 自己的 hideToast 收掉復原 toast（會觸發「toast 收起後」的慶祝排程，與真人等 10 秒相同） */
+export async function hideToast(page) {
+  await page.evaluate(async () => (await import(new URL('js/ui/toast.js', document.baseURI).href)).hideToast());
+  try { await page.clock.runFor(100); } catch (e) { /* 沒裝假時鐘的測試：真實 setTimeout 自己會跑 */ }
 }
-/* 舊版的分頁列：HOME／RECORDS／BODY／SETUP 四顆 */
-export async function gotoTabM1(page, screenId) {
-  await page.click(`#tabs button[data-s="${screenId}"]`);
-  await expect(page.locator(`#${screenId}`)).toHaveClass(/active/);
-}
-/* App 記憶體中的 phase.startedAt（loadState 在缺少時以載入當下補上；只改記憶體，下次存檔才寫入） */
-export const liveStartedAt = (page) => page.evaluate(async () => {
-  const { getState } = await import(new URL('js/state/store.js', document.baseURI).href);
-  return getState().phase.startedAt;
-});
-/* fixture（字串或物件）加上 phase.startedAt 後的物件：存檔或匯入前另存（pre-import）的內容會帶著 loadState 補上的起點 */
-export function withStartedAt(raw, startedAt) {
-  const o = typeof raw === 'string' ? JSON.parse(raw) : JSON.parse(JSON.stringify(raw));
-  o.phase = { ...(o.phase || {}), startedAt };
-  return o;
-}
-
-/* engine 在 Node 執行（子行程、TZ=Asia/Tokyo＝瀏覽器 context 的時區）：預期值由 engine 算，不寫死。
-   code：async 函式本體，可用 rules（data/game.json 原文解析）、eng（js/game/engine.js）、sleep（js/habits/sleep.js）、
-   day（js/game/day.js）、args；回傳值要能 JSON 化。 */
-export function nodeEngine(code, args = null) {
-  const root = JSON.stringify(ROOT.href);
-  const script = `
-    const u = (p) => new URL(p, ${root}).href;
-    const [eng, sleep, day, fs] = await Promise.all([import(u('js/game/engine.js')), import(u('js/habits/sleep.js')),
-      import(u('js/game/day.js')), import('node:fs')]);
-    const rules = JSON.parse(fs.readFileSync(new URL('data/game.json', ${root}), 'utf8'));
-    const args = JSON.parse(process.argv[1]);
-    const out = await (async () => { ${code} })();
-    process.stdout.write(JSON.stringify(out === undefined ? null : out));`;
-  const out = execFileSync(process.execPath, ['--input-type=module', '-e', script, JSON.stringify(args)],
-    { env: { ...process.env, TZ: 'Asia/Tokyo' }, encoding: 'utf8' });
-  return JSON.parse(out);
-}
-
-/* ---------- V2a：開 App 時只在記憶體補上的 game.seen（data-guardian ensureSeenInitialized，js/state/game.js 檔頭） ----------
-   開 App 不寫入；下一次存檔（或匯入前另存 pre-import）才連同 phase.startedAt 一起寫出。
-   level＝開啟當下的中央等級（總 XP 含 bonus）；perfectDay＝開啟當下今天已是 Perfect Day → 今天，否則前一天（不補播舊的）。
-   已有值不覆寫。預期值由 engine 在 Node 算（不經過 UI 轉接層與 data-guardian 的程式）。 */
-export function seenAtOpen(state, now) {
-  const st = typeof state === 'string' ? JSON.parse(state) : state;
-  return nodeEngine(`
-    const s = eng.todaySummary(args.state, new Date(args.now), rules);
-    const prev = day.dayNumberToStr(day.dayNumber(s.date) - 1);
-    return { level: s.level.lv, perfectDay: s.perfectDay.done ? s.date : prev };`, { state: st, now });
-}
-/* state（字串或物件）加上開 App 時補上的 game.seen（已有的子欄位保留） */
-export function withSeenAtOpen(raw, now) {
-  const o = typeof raw === 'string' ? JSON.parse(raw) : JSON.parse(JSON.stringify(raw));
-  const want = seenAtOpen(o, now);
-  const cur = (o.game && o.game.seen) || {};
-  o.game = { ...(o.game || {}), seen: { ...cur, level: cur.level ?? want.level, perfectDay: cur.perfectDay ?? want.perfectDay } };
-  return o;
-}
-/* App 記憶體中的 game.seen（還沒存檔也看得到） */
-export const liveSeen = (page) => page.evaluate(async () => {
-  const { getState } = await import(new URL('js/state/store.js', document.baseURI).href);
-  const g = getState().game;
-  return g && g.seen !== undefined ? JSON.parse(JSON.stringify(g.seen)) : null;
-});
-/* 今日的 Perfect Day 慶祝／升級卡（#cele）目前顯示的內容 */
-export const celeState = (page) => page.evaluate(() => {
-  const el = document.getElementById('cele');
-  const t = (id) => document.getElementById(id).textContent;
-  return {
-    open: !el.hidden && el.getClientRects().length > 0,
-    kind: el.dataset.kind || null,
-    eyebrow: t('cele-eyebrow'), title: t('cele-title'), xp: t('cele-xp'), xpHidden: document.getElementById('cele-xp').hidden,
-    vote: t('cele-vote'),
-    stats: [...document.querySelectorAll('#cele-stats .cele-stat')].map((x) => [x.querySelector('b').textContent, x.querySelector('span').textContent]),
-    ok: t('cele-ok')
-  };
-});
-
-/* 分頁列只有今日／訓練／統計；設定＝今日右上齒輪（#h-settings）；訓練紀錄／身體指標＝統計裡的兩段；早安打卡＝今日圖例的「眠」 */
-const TAB_SCREENS = new Set(['s-home', 's-train', 's-stats']);
-const STATS_PANELS = { 's-hist': '#st-tab-hist', 's-body': '#st-tab-body' };
 export async function gotoTab(page, screenId) {
+  await dismissCelebrations(page);
   if (TAB_SCREENS.has(screenId)) {
     await page.click(`#tabs button[data-s="${screenId}"]`);
-  } else if (STATS_PANELS[screenId]) {
-    await page.click('#tabs button[data-s="s-stats"]');
-    await expect(page.locator('#s-stats')).toHaveClass(/active/);
-    await page.click(STATS_PANELS[screenId]);
-  } else if (screenId === 's-setup' || screenId === 's-checkin') {
+  } else if (screenId === 's-settings') {
     await page.click('#tabs button[data-s="s-home"]');
     await expect(page.locator('#s-home')).toHaveClass(/active/);
-    await page.click(screenId === 's-setup' ? '#h-settings' : '#h-legend [data-go="s-checkin"] >> nth=0');
+    await dismissCelebrations(page);
+    await page.click('#h-settings');
   } else {
     throw new Error(`gotoTab：不認得的畫面 ${screenId}`);
   }
   await expect(page.locator(`#${screenId}`)).toHaveClass(/active/);
 }
-/* 觸發一次存檔但不改資料：SETUP 的「語音導引」切換兩次（每次 onchange 都會 saveState） */
-export async function triggerSave(page) {
-  await gotoTab(page, 's-setup');
-  const before = await page.isChecked('#cfg-voice');
-  await page.click('#cfg-voice');
-  await page.click('#cfg-voice');
-  expect(await page.isChecked('#cfg-voice')).toBe(before);
+/* App 記憶體中的 state.v4（與 App 同一個 module 實例） */
+export const liveV4 = (page) => page.evaluate(async () => {
+  const { getState } = await import(new URL('js/state/store.js', document.baseURI).href);
+  return JSON.parse(JSON.stringify(getState().v4 || null));
+});
+/* 所有可點的東西都 ≥ 44px（看得到的 button／a／input） */
+export async function expectTouchTargets(page, scope = 'body') {
+  const bad = await page.evaluate((sel) => {
+    const out = [];
+    for (const el of document.querySelectorAll(`${sel} button, ${sel} a[href], ${sel} input:not([type=hidden])`)) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (r.height < 44 && r.width < 44) out.push(`${el.tagName}#${el.id || ''}.${el.className} ${Math.round(r.width)}×${Math.round(r.height)}`);
+    }
+    return out;
+  }, scope);
+  expect(bad, '觸控目標 < 44px').toEqual([]);
 }
+export const noHorizontalScroll = async (page) => {
+  const w = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+  expect(w[0], '不可橫向捲動').toBeLessThanOrEqual(w[1]);
+};
+export const isActive = (id) => document.getElementById(id).classList.contains('active');
 
 /* ---------- 推進假時間 ----------
    fastForward 每次最多觸發一次到期的 timer：以 1 秒為一步＝訓練計時器的節拍（每秒一次 setInterval），
@@ -309,13 +221,6 @@ export async function tickUntil(page, fn, { arg, maxSeconds = 3600, every = 5, l
   }
   throw new Error(`tickUntil：${maxSeconds} 秒內沒有達成 ${label}`);
 }
-export const isActive = (id) => document.getElementById(id).classList.contains('active');
-/* 跑完一段訓練直到完成畫面（或 #train 關閉） */
-export async function runWorkoutToEnd(page, maxSeconds = 3600) {
-  return tickUntil(page, () => !document.getElementById('train').classList.contains('active'),
-    { maxSeconds, every: 5, label: '訓練結束' });
-}
-
 /* ---------- 匯入的二次確認 ----------
    第一次按「確認匯入」進入待確認；js/ui/backup.js 在進入待確認後 1 秒內的點擊一律忽略（連點保護），
    10 秒內再按才套用。時鐘是暫停的，兩次 click 之間的假時間是 0 ms，所以第二下之前要推進時間：

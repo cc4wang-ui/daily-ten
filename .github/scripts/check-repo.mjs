@@ -1,12 +1,12 @@
 /* Daily Ten — CI repo 檢查（Orchestrator 維護；零依賴，Node 22）
    1. 失效網址：舊帳號網址出現 0 次（CLAUDE.md、PLAN.md 描述舊網址的說明文字除外）
    2. Service Worker：預快取清單涵蓋所有 App 檔且檔案都存在；本分支相對 main 改了 App 檔時，CACHE 版號必須大於 main 的版號
-   3. 前端掃描：App 檔不含 API key 樣式與 AI 端點；外部網址只允許 YouTube 搜尋連結（SVG 命名空間除外）
+   3. 前端掃描：App 檔不含 API key 樣式與 AI 端點；外部網址只允許 YouTube Shorts 連結與其縮圖（data/videos.json 登錄的影片；SVG 命名空間除外）
+   4. 示範影片登錄：data/videos.json 每筆 youtubeId 格式正確、不重複；data/gym.json 與 data/stretch.json 的每個動作都有示範
    用法：node .github/scripts/check-repo.mjs　　失敗時 exit 1 並列出位置。 */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { execSync } from 'node:child_process';
-import { EXERCISE_MEDIA, EXERCISE_STORYBOARDS, isApprovedExerciseMedia, isValidStoryboardPlayback } from '../../js/ui/exercise-media.js';
 
 const ROOT = process.cwd();
 const BASE_REF = process.env.CHECK_BASE_REF || 'origin/main'; // 比對 CACHE 版號的基準（CI 需 fetch-depth: 0）
@@ -44,9 +44,8 @@ for (const rel of files) {
 
 /* 2. Service Worker 版號與預快取 */
 const appFiles = files.filter((f) =>
-  ['index.html', 'demos.js', 'mockup.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].includes(f) ||
-  /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f) ||
-  /^media\/exercises\/[a-z0-9][a-z0-9-]*\.(mp4|webm|png)$/.test(f));
+  ['index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'].includes(f) ||
+  /^(css|js)\/.+\.(css|js)$/.test(f) || /^data\/[^/]+\.json$/.test(f));
 const sw = existsSync(join(ROOT, 'sw.js')) ? read('sw.js') : '';
 const cache = (sw.match(/const\s+CACHE\s*=\s*'([^']+)'/) || [])[1];
 const cacheNum = Number(((cache || '').match(/^daily-ten-v(\d+)$/) || [])[1]);
@@ -57,7 +56,7 @@ const baseNum = baseSw ? Number((baseSw.match(/const\s+CACHE\s*=\s*'daily-ten-v(
 const mergeBase = baseSw ? git(`merge-base ${BASE_REF} HEAD`) : null;
 // 分支自 merge-base 以來的變更（含尚未 commit 的修改），不含 main 之後的新 commit
 const changed = mergeBase ? (git(`diff --name-only ${mergeBase}`) || '').split('\n').filter(Boolean) : [];
-const isAppPath = (f) => /^(index\.html|demos\.js|mockup\.html|manifest\.webmanifest|icon-\d+\.png)$/.test(f) || /^(css|js)\//.test(f) || /^data\/[^/]+\.json$/.test(f) || /^media\/exercises\//.test(f);
+const isAppPath = (f) => /^(index\.html|manifest\.webmanifest|icon-\d+\.png|sw\.js)$/.test(f) || /^(css|js)\//.test(f) || /^data\/[^/]+\.json$/.test(f);
 const appChanged = changed.filter(isAppPath);
 if (baseNum && appChanged.length && !(cacheNum > baseNum)) {
   fail('sw', `App 檔有變更（${appChanged.slice(0, 3).join('、')}${appChanged.length > 3 ? '…' : ''}），CACHE 須大於 ${BASE_REF} 的 v${baseNum}（目前 v${cacheNum || '?'}）`);
@@ -72,52 +71,6 @@ for (const a of assets) {
   const rel = a.replace(/^\.\//, '');
   if (!existsSync(join(ROOT, rel))) fail('sw', `預快取清單的 ${a} 不存在`);
   else if (!appFiles.includes(rel)) fail('sw', `預快取清單的 ${a} 不是 App 檔（測試／工具檔不應快取）`);
-}
-const approvedPaths = new Set();
-const approvedNames = new Set();
-for (const entry of EXERCISE_MEDIA) {
-  if (!isApprovedExerciseMedia(entry)) { fail('media', '影片核准表有無效或未審核項目'); continue; }
-  if (approvedPaths.has(entry.src)) fail('media', `影片重複登錄：${entry.src}`);
-  approvedPaths.add(entry.src);
-  if (!existsSync(join(ROOT, entry.src))) fail('media', `影片檔案不存在：${entry.src}`);
-  if (!assets.includes(entry.src)) fail('media', `影片未加入離線預快取：${entry.src}`);
-  for (const name of entry.names) {
-    if (approvedNames.has(name)) fail('media', `動作名稱重複對應影片：${name}`);
-    approvedNames.add(name);
-  }
-}
-for (const file of files.filter(f => /^media\/exercises\/.*\.(mp4|webm)$/.test(f))) {
-  if (!approvedPaths.has(`./${file}`)) fail('media', `未核准的影片不應進入正式 App：${file}`);
-}
-const storyboardPaths = new Set();
-const storyboardEntries = new Map();
-const storyboardNames = new Set();
-for (const entry of EXERCISE_STORYBOARDS) {
-  if (!/^\.\/media\/exercises\/[a-z0-9][a-z0-9-]*\.png$/.test(entry.src) ||
-      !isValidStoryboardPlayback(entry) ||
-      !Array.isArray(entry.names) || !entry.names.length) {
-    fail('media', '連續影格登錄資料無效');
-    continue;
-  }
-  const shared = entry.sameMotionAs && storyboardEntries.get(entry.sameMotionAs);
-  const explicitTempoVariant = shared && shared.src === entry.src &&
-    shared.columns === entry.columns && shared.frames === entry.frames &&
-    JSON.stringify(shared.playbackOrder || null) === JSON.stringify(entry.playbackOrder || null) &&
-    Array.isArray(shared.frameMs) && Array.isArray(entry.frameMs) &&
-    JSON.stringify(shared.frameMs) !== JSON.stringify(entry.frameMs);
-  if (entry.sameMotionAs && !explicitTempoVariant) fail('media', `連續影格共用節奏登錄無效：${entry.sameMotionAs}`);
-  if (storyboardPaths.has(entry.src) && !explicitTempoVariant) fail('media', `連續影格重複登錄：${entry.src}`);
-  storyboardPaths.add(entry.src);
-  if (!existsSync(join(ROOT, entry.src))) fail('media', `連續影格檔案不存在：${entry.src}`);
-  if (!assets.includes(entry.src)) fail('media', `連續影格未加入離線預快取：${entry.src}`);
-  for (const name of entry.names) {
-    if (storyboardNames.has(name)) fail('media', `動作名稱重複對應連續影格：${name}`);
-    storyboardNames.add(name);
-    storyboardEntries.set(name, entry);
-  }
-}
-for (const file of files.filter(f => /^media\/exercises\/.*\.png$/.test(f))) {
-  if (!storyboardPaths.has(`./${file}`)) fail('media', `未登錄的連續影格不應進入正式 App：${file}`);
 }
 
 /* 2b. Vercel 只上線 App 檔（D24）：.vercelignore 不得排除任何預快取的檔案，否則新網址離線冷啟動會缺檔 */
@@ -159,12 +112,27 @@ for (const rel of frontFiles) {
   }
   for (const m of text.matchAll(/https?:\/\/[^\s"'`)<>]+/g)) {
     const url = m[0];
-    if (url.startsWith('https://www.youtube.com/results?search_query=')) continue;
+    if (url === 'https://www.youtube.com/shorts/' || url === 'https://i.ytimg.com/vi/') continue; // js/ui/videos.js 的前綴常數（連結只在使用者點了才開；縮圖是 <img>）
     if (url.startsWith('http://www.w3.org/')) continue; // SVG／XML 命名空間，不是網路請求
     if (rel === MOVE_FILE && moveUrl && url === moveUrl) continue;
     fail('frontend', `${rel}:${lineOf(text, m.index)} 外部網址 ${url}`);
   }
 }
+
+/* 4. 示範影片登錄（data/videos.json）：ID 格式、不重複；健身房與伸展的每個動作都有 */
+try {
+  const videos = JSON.parse(read('data/videos.json'));
+  const seen = new Set(), ids = new Set();
+  for (const v of videos.items || []) {
+    if (!/^[A-Za-z0-9_-]{11}$/.test(String(v.youtubeId))) fail('videos', `${v.id}：youtubeId 格式不對`);
+    if (seen.has(v.youtubeId)) fail('videos', `${v.id}：youtubeId 重複`);
+    seen.add(v.youtubeId); ids.add(v.id);
+    if (!Number.isInteger(v.views) || v.views <= 0) fail('videos', `${v.id}：缺觀看數`);
+  }
+  const gym = JSON.parse(read('data/gym.json')), st = JSON.parse(read('data/stretch.json'));
+  for (const e of [...gym.templates.upper, ...gym.templates.lower]) if (!ids.has(e.id)) fail('videos', `健身房動作缺示範：${e.id}`);
+  for (const e of st.items) { if (!ids.has(e.id)) fail('videos', `伸展項目缺示範：${e.id}`); if (e.video2 && !ids.has(e.video2)) fail('videos', `伸展第二支示範不存在：${e.video2}`); }
+} catch (e) { fail('videos', `data/videos.json、gym.json 或 stretch.json 讀取失敗：${e.message}`); }
 
 if (failures.length) {
   console.error(`check-repo：${failures.length} 項未通過`);

@@ -7,7 +7,6 @@ import {
   BACKUP_REMINDER_DAYS, IMPORT_MAX_CHARS, PRE_IMPORT_KEY, isoLocal, localDateStr, backupFilename, buildBackup,
   needsBackupReminder, parseImport, diffSummary, applyImport, downloadBackup, downloadRawBackup
 } from '../js/state/backup.js';
-import { ensurePhaseStarted } from '../js/state/habits.js';
 import { validateImport } from '../js/state/schema.js';
 import { readFixture, loadFixture, NOW, DAY_MS, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords, CHECKIN_LOG, CHECKIN_STARTED_AT } from './state.helpers.js';
 
@@ -312,14 +311,6 @@ test.describe('parseImport：好檔 → 差異摘要', () => {
     for (const w of back.summary.warnings) expect(findBannedWords(w)).toEqual([]);
   });
 
-  test('applyImport 之後呼叫 ensurePhaseStarted：匯入檔有 startedAt 就沿用；沒有（M1 備份）才寫入', async () => {
-    await loadCurrent('v3.json');
-    expect(await applyImport(parseImport(readFixture('v3-checkin.json'), { now: NOW }).incoming)).toBe(true);
-    expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: false, startedAt: CHECKIN_STARTED_AT });
-    expect(await applyImport(parseImport(readFixture('v2-real.json'), { now: NOW }).incoming)).toBe(true);
-    expect(getState().phase.startedAt).toBe(null);
-    expect(ensurePhaseStarted(NOW)).toStrictEqual({ ok: true, changed: true, startedAt: '2026-10-02T15:30:00+09:00' });
-  });
 
   test('每個好 fixture 都能匯入（含 v1、被改回 v2、空陣列、帶 BOM）', async () => {
     await loadCurrent();

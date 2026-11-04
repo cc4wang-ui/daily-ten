@@ -1,0 +1,680 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-03T23:47:48+00:00",
+  "method": "YouTube 搜尋頁 shortsLockupViewModel 與 videoRenderer 解析；/shorts/<id> 回 200 才算 Short；取相關候選中觀看數最高者。views 為 /shorts/<id> 頁面 ytInitialData 內的精確觀看數（查核時點），viewsText 為該頁顯示字串。",
+  "items": [
+    {
+      "id": "incline-db-press",
+      "zh": "上斜臥推",
+      "youtubeId": "8fXfwG4ftaQ",
+      "title": "The PERFECT Incline Dumbbell Chest Press",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 12611992,
+      "viewsText": "12,611,992 views",
+      "lengthText": null,
+      "queries": [
+        "incline dumbbell press",
+        "incline dumbbell press form shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "f7XwzvAhR8Y",
+          "title": "explode your chest gains with this cue!",
+          "views": 9042864
+        },
+        {
+          "youtubeId": "Gruq177Psnk",
+          "title": "Incline Chest Press Mistake (STOP DOING THIS!)",
+          "views": 8083889
+        }
+      ]
+    },
+    {
+      "id": "bench-press",
+      "zh": "平板臥推",
+      "youtubeId": "_FkbD0FhgVE",
+      "title": "Perfect Bench Press Form (DO THIS!)",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 59730890,
+      "viewsText": "59,730,890 views",
+      "lengthText": null,
+      "queries": [
+        "bench press form",
+        "barbell bench press how to",
+        "bench press form shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "PTzUJkPrrDw",
+          "title": "Bench Press Form Guide",
+          "views": 21606837
+        },
+        {
+          "youtubeId": "hWbUlkb5Ms4",
+          "title": "How To Bench Press With Perfect Technique (5 Steps)",
+          "views": 13622157
+        }
+      ]
+    },
+    {
+      "id": "lateral-raise",
+      "zh": "側平舉",
+      "youtubeId": "Kl3LEzQ5Zqs",
+      "title": "The Perfect Lateral Raise (DO THIS!)",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 18782365,
+      "viewsText": "18,782,365 views",
+      "lengthText": null,
+      "queries": [
+        "dumbbell lateral raise form",
+        "lateral raise shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "HeovYNoZDRg",
+          "title": "A Better Way To Do Lateral Raises",
+          "views": 17951374
+        },
+        {
+          "youtubeId": "S0_u3LvWeaU",
+          "title": "How to Lateral Raise w/ Perfect Form!",
+          "views": 13560397
+        }
+      ]
+    },
+    {
+      "id": "lat-pulldown",
+      "zh": "滑輪下拉",
+      "youtubeId": "hnSqbBk15tw",
+      "title": "Stop Messing Up Your Lat Pulldowns",
+      "channel": "Jeff Nippard",
+      "views": 15783006,
+      "viewsText": "15,783,006 views",
+      "lengthText": null,
+      "queries": [
+        "lat pulldown form",
+        "lat pulldown shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "bNmvKpJSWKM",
+          "title": "✅ The PERFECT Lat Pulldown (DO THIS!)",
+          "views": 15087378
+        },
+        {
+          "youtubeId": "nkak8_LLQiU",
+          "title": "Charles Glass Teach how to target Your Lats on lat-Pull down!",
+          "views": 9729172
+        }
+      ]
+    },
+    {
+      "id": "upper-back-row",
+      "zh": "上背划船（手肘外展）",
+      "youtubeId": "mSMJ3rwYMu0",
+      "title": "A great rear delt exercise!",
+      "channel": "Brandon Flihan",
+      "views": 3887667,
+      "viewsText": "3,887,667 views",
+      "lengthText": null,
+      "queries": [
+        "rear delt row elbows out shorts",
+        "rear delt row"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "0QN8jx2nEQc",
+          "title": "HIGH ROW MACHINE | BACK DAY",
+          "views": 4476499
+        },
+        {
+          "youtubeId": "2ByilQ4NaAs",
+          "title": "The PERFECT Chest-Supported Dumbbell Rows",
+          "views": 1709033
+        }
+      ]
+    },
+    {
+      "id": "bicep-curl",
+      "zh": "二頭彎舉",
+      "youtubeId": "803JIAWBj_c",
+      "title": "Don't Do Biceps Curls Like This ❌",
+      "channel": "Sean Nalewanyj Shorts",
+      "views": 13451638,
+      "viewsText": "13,451,638 views",
+      "lengthText": null,
+      "queries": [
+        "dumbbell bicep curl form",
+        "bicep curl shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "0fioI6ed8Eg",
+          "title": "\"Perfect Your Bicep Curls for Maximum Gains! 🔥\"",
+          "views": 12658682
+        },
+        {
+          "youtubeId": "MKWBV29S6c0",
+          "title": "PERFECT Bicep Curl Form Tips",
+          "views": 10093696
+        }
+      ]
+    },
+    {
+      "id": "tricep-extension",
+      "zh": "三頭伸展",
+      "youtubeId": "b_r_LW4HEcM",
+      "title": "✅ The PERFECT Overhead DB Tricep Extension",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 14375967,
+      "viewsText": "14,375,967 views",
+      "lengthText": null,
+      "queries": [
+        "overhead tricep extension form",
+        "tricep extension shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "9Ark9S11uXw",
+          "title": "The PERFECT Low Pulley Overhead Extensions",
+          "views": 8974912
+        },
+        {
+          "youtubeId": "Rc7-euA8FDI",
+          "title": "STOP DOING These Tricep Pushdown Mistakes!",
+          "views": 7453434
+        }
+      ]
+    },
+    {
+      "id": "squat",
+      "zh": "深蹲",
+      "youtubeId": "PPmvh7gBTi0",
+      "title": "Do You Have A Perfect Squat? (Find Out)",
+      "channel": "Jeff Nippard",
+      "views": 15178458,
+      "viewsText": "15,178,458 views",
+      "lengthText": null,
+      "queries": [
+        "barbell squat form",
+        "squat form shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "CspRAoM6ZKA",
+          "title": "3 Tweaks To Improve Your Squat Form At The Gym #workouttips",
+          "views": 12757370
+        },
+        {
+          "youtubeId": "MLoZuAkIyZI",
+          "title": "Best Squat Tutorial Ever Made",
+          "views": 10538549
+        }
+      ]
+    },
+    {
+      "id": "leg-press",
+      "zh": "腿推",
+      "youtubeId": "EotSw18oR9w",
+      "title": "✅ The PERFECT Leg Press",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 9863260,
+      "viewsText": "9,863,260 views",
+      "lengthText": null,
+      "queries": [
+        "leg press form",
+        "leg press shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "nDh_BlnLCGc",
+          "title": "How To Leg Press With Perfect Technique",
+          "views": 7758525
+        },
+        {
+          "youtubeId": "wa9UCsNWVo0",
+          "title": "You're doing leg press WRONG",
+          "views": 6969911
+        }
+      ]
+    },
+    {
+      "id": "rdl",
+      "zh": "羅馬尼亞硬舉（髖鉸鏈）",
+      "youtubeId": "5rIqP63yWFg",
+      "title": "RDL Tutorial: 3 Simple Steps",
+      "channel": "Davis Diley",
+      "views": 11287298,
+      "viewsText": "11,287,298 views",
+      "lengthText": null,
+      "queries": [
+        "romanian deadlift form",
+        "rdl form shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "oQwnGfZFfzw",
+          "title": "Romanian Deadlift mistakes! Right✅ vs Wrong❌ | GAZI FITNESS #gym #shorts",
+          "views": 7011216
+        },
+        {
+          "youtubeId": "CBOhr6H7BEY",
+          "title": "RDL Tips",
+          "views": 6112889
+        }
+      ]
+    },
+    {
+      "id": "calf-raise",
+      "zh": "提踵",
+      "youtubeId": "baEXLy09Ncc",
+      "title": "Get NOTICEABLY BIGGER Calves With This Technique",
+      "channel": "Jeff Nippard",
+      "views": 10265337,
+      "viewsText": "10,265,337 views",
+      "lengthText": null,
+      "queries": [
+        "standing calf raise form"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "wdOkFomQNp8",
+          "title": "Build BIGGER Calves (DO THIS!)",
+          "views": 3610251
+        },
+        {
+          "youtubeId": "fOfPwmb5FXU",
+          "title": "STOP doing your CALF RAISES like this!",
+          "views": 3247218
+        }
+      ]
+    },
+    {
+      "id": "adductor-machine",
+      "zh": "內收肌器械",
+      "youtubeId": "uFWuVSxsT0Y",
+      "title": "Hip Abductor/Adductor Machine Exerciss Mistake ❌👎#shorts #shortvideo #fitness #gym #viral",
+      "channel": "RB Fitness ",
+      "views": 1460227,
+      "viewsText": "1,460,227 views",
+      "lengthText": null,
+      "queries": [
+        "hip adductor machine form",
+        "adductor machine shorts",
+        "hip adduction machine how to"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "ktLkqP1upq0",
+          "title": "How to do Hip Adductors Correctly",
+          "views": 1064552
+        },
+        {
+          "youtubeId": "BmMmt-c9aNM",
+          "title": "Seated Hip Adductors Machine",
+          "views": 508953
+        }
+      ]
+    },
+    {
+      "id": "leg-curl",
+      "zh": "腿後彎舉",
+      "youtubeId": "xdbEG3xGLI8",
+      "title": "✅ The PERFECT Seated Leg Curl Tips",
+      "channel": "Andrew Kwong (DeltaBolic)",
+      "views": 7298028,
+      "viewsText": "7,298,028 views",
+      "lengthText": null,
+      "queries": [
+        "seated leg curl form",
+        "leg curl machine shorts",
+        "lying leg curl form"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "_lgE0gPvbik",
+          "title": "Leg Curl Form Tips (DO THIS!)",
+          "views": 3473299
+        },
+        {
+          "youtubeId": "FMCq0hT3KRU",
+          "title": "1 Leg Curl Mistake To Avoid ❌",
+          "views": 2466838
+        }
+      ]
+    },
+    {
+      "id": "leg-extension",
+      "zh": "腿前伸展",
+      "youtubeId": "ztNBgrGy6FQ",
+      "title": "A Better Way To Do Leg Extensions",
+      "channel": "Jeff Nippard",
+      "views": 10046647,
+      "viewsText": "10,046,647 views",
+      "lengthText": null,
+      "queries": [
+        "leg extension form",
+        "leg extension machine shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "iQ92TuvBqRo",
+          "title": "✅ The Perfect Leg Extension",
+          "views": 9064981
+        },
+        {
+          "youtubeId": "VtUtFD5PuDE",
+          "title": "Leg extensions hurting knees? DO THIS",
+          "views": 5069507
+        }
+      ]
+    },
+    {
+      "id": "cat-cow",
+      "zh": "貓牛式",
+      "youtubeId": "2of247Kt0tU",
+      "title": "CAT-COW POSE (Marjaryasana-Bitilasana)🐮 😺",
+      "channel": "Muscle & Motion",
+      "views": 13773772,
+      "viewsText": "13,773,772 views",
+      "lengthText": null,
+      "queries": [
+        "cat cow stretch",
+        "cat cow shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "oMDrs7dPtxI",
+          "title": "How to do Cat-Cow Pose #catcowpose #marjariasana",
+          "views": 3724811
+        },
+        {
+          "youtubeId": "FyCuSE3mDcc",
+          "title": "Cat Cow Pose: Enhance Your Spine Mobility and Posture",
+          "views": 1381153
+        }
+      ]
+    },
+    {
+      "id": "thread-the-needle",
+      "zh": "穿針式",
+      "youtubeId": "gyew25Vaqj8",
+      "title": "Thread the Needle",
+      "channel": "Strength & Sport",
+      "views": 280702,
+      "viewsText": "280,702 views",
+      "lengthText": "0:28",
+      "queries": [
+        "thread the needle stretch",
+        "thread the needle thoracic mobility",
+        "thread the needle shorts",
+        "thread the needle yoga pose",
+        "thread the needle stretch upper back",
+        "thread the needle pose tutorial shorts",
+        "thread the needle shoulder stretch",
+        "thread the needle yoga shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "h6_v-dZGLjY",
+          "title": "Thread The Needle Stretch",
+          "views": 250660
+        },
+        {
+          "youtubeId": "ds3umIYJDrE",
+          "title": "Thread The Needle",
+          "views": 138680
+        }
+      ]
+    },
+    {
+      "id": "hip-90-90",
+      "zh": "90/90 髖部轉換",
+      "youtubeId": "FM7-7-a0FLg",
+      "title": "How to 90-90 Hip Mobility Exercise",
+      "channel": "RehabFix",
+      "views": 653862,
+      "viewsText": "653,862 views",
+      "lengthText": "0:21",
+      "queries": [
+        "90 90 hip stretch",
+        "90/90 hip switch mobility",
+        "90 90 hip shorts",
+        "90 90 hip switch",
+        "90/90 hip stretch tutorial shorts",
+        "90 90 hip rotation shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "vur9ps_EM6E",
+          "title": "Hip Rotation = Deeper Squats",
+          "views": 679204
+        },
+        {
+          "youtubeId": "6dfkYZm9tpE",
+          "title": "90/90 Hip Rotation Done Right | Hip Mobility and Pain-Free Movement",
+          "views": 408830
+        }
+      ]
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "zh": "世界最偉大伸展",
+      "youtubeId": "RmwNO39FRcY",
+      "title": "THE WORLD’S GREATEST STRETCH. 🔥💪🏾💯 #MOBILITY #CALISTHENICS #BODYBUILDING",
+      "channel": "Stacey Ervin Jr.",
+      "views": 2203446,
+      "viewsText": "2,203,446 views",
+      "lengthText": null,
+      "queries": [
+        "world's greatest stretch",
+        "worlds greatest stretch shorts",
+        "world's greatest stretch how to"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "kSPS_HIQv8E",
+          "title": "The World's Greatest Stretch - Full Body Mobility",
+          "views": 2144480
+        },
+        {
+          "youtubeId": "7XheaZERvBQ",
+          "title": "World’s greatest stretch | do this every morning",
+          "views": 1232088
+        }
+      ]
+    },
+    {
+      "id": "pigeon",
+      "zh": "鴿式",
+      "youtubeId": "KUclDkITsS8",
+      "title": "PIGEON POSE (Pada Kapotasana)📣",
+      "channel": "Muscle & Motion",
+      "views": 1816745,
+      "viewsText": "1,816,745 views",
+      "lengthText": null,
+      "queries": [
+        "pigeon pose stretch",
+        "pigeon stretch hip shorts",
+        "pigeon pose how to"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "fpXMwDokkDM",
+          "title": "Easy Pigeon Pose For Beginners!",
+          "views": 1400115
+        },
+        {
+          "youtubeId": "zE9Gis9vYcg",
+          "title": "5 need to know Pigeon pose tips",
+          "views": 517533
+        }
+      ]
+    },
+    {
+      "id": "supine-twist",
+      "zh": "仰臥扭轉",
+      "youtubeId": "EBMrPbWJIKA",
+      "title": "Low Back Stretch - Lower Trunk Rotations",
+      "channel": "Gulf Coast Spine & Sport, LLC",
+      "views": 1132039,
+      "viewsText": "1,132,039 views",
+      "lengthText": null,
+      "queries": [
+        "lying twist stretch lower back shorts"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "LJMpSjJlP9g",
+          "title": "Supine Spinal Twist | Gentle Mobility Practice for Sciatica Support | YogArt",
+          "views": 546963
+        },
+        {
+          "youtubeId": "ElKoMMaTPCM",
+          "title": "Supine Spinal Twist",
+          "views": 260000
+        }
+      ]
+    },
+    {
+      "id": "wall-thoracic-opener",
+      "zh": "靠牆胸椎開展",
+      "youtubeId": "7mlnguqvrsA",
+      "title": "One Move For Instant Middle Back Pain Relief #Shorts",
+      "channel": "SpineCare Decompression and Chiropractic Center",
+      "views": 1567266,
+      "viewsText": "1,567,266 views",
+      "lengthText": "0:51",
+      "queries": [
+        "hands on wall back stretch thoracic"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "NuDipJO6uck",
+          "title": "1/2 Kneeling Wall T-Spine Rotations (2-way)",
+          "views": 295957
+        },
+        {
+          "youtubeId": "5HLQAVOvxNE",
+          "title": "Doorway Lat Stretch",
+          "views": 236425
+        }
+      ]
+    },
+    {
+      "id": "down-dog-child",
+      "zh": "下犬＋兒童式",
+      "youtubeId": "YAmAET3Uomk",
+      "title": "How to do: CHILD'S POSE (BALASANA) #yoga #yogapose #yogatutorials #yogatutorial #yogaforbeginners",
+      "channel": "Karina Fit",
+      "views": 1104137,
+      "viewsText": "1,104,137 views",
+      "lengthText": "0:07",
+      "queries": [
+        "downward dog to child's pose",
+        "downward dog to childs pose stretch",
+        "child's pose to downward dog",
+        "child's pose downward dog flow",
+        "down dog to child's pose",
+        "downward dog child's pose beginner yoga"
+      ],
+      "checkedAt": "2026-11-03T23:47:48+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [
+        {
+          "youtubeId": "T9ZA30LL-kY",
+          "title": "Tip for an easier downward dog 📌 #yoga",
+          "views": 415819
+        },
+        {
+          "youtubeId": "WhbfS-GR32U",
+          "title": "Quick tips of downward facing dog pose | adho mukha swanasana | downward dog alignment | correction",
+          "views": 380561
+        }
+      ],
+      "reason": "無同時含下犬式＋兒童式的 Short；此為兒童式教學，備選為下犬式教學。"
+    },
+    {
+      "id": "down-dog",
+      "zh": "下犬式",
+      "youtubeId": "T9ZA30LL-kY",
+      "title": "Tip for an easier downward dog 📌 #yoga",
+      "channel": null,
+      "views": 415819,
+      "viewsText": "415,819 views",
+      "lengthText": null,
+      "queries": [
+        "downward dog to child's pose"
+      ],
+      "checkedAt": "2026-11-04T00:10:00+00:00",
+      "shortsStatus": 200,
+      "thumbnailStatus": 200,
+      "alternates": [],
+      "reason": "下犬＋兒童式沒有合一的 Short：主片是兒童式（down-dog-child），這支是下犬式備選，由 orchestrator 於 /shorts/ 實測 200 後加入。"
+    }
+  ]
+}
