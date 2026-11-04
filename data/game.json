@@ -9,33 +9,90 @@
       "d4_stretchXp": "伸展完整版（15 分）40 XP、短版（5 分）20 XP；一天只算一次，取較高者。",
       "d5_exploreXp": "探索完成 60 XP；一週多做也照算 XP，但週目標只需 1 件。",
       "d6_perfectDay": "Perfect Day＝同一遊戲日健身房＋伸展都完成，+30 XP。探索不要求（每週才 1 次）。",
-      "d7_perfectWeek": "Perfect Week＝該週健身房 ≥4、伸展 ≥6（允許漏 1 天）、探索 ≥1，+200 XP；週日結算後才算。",
-      "d8_weeklyGoal": "每週各習慣達標各 +50 XP（週結算時計入該週日）。",
+      "d7_perfectWeek": "Perfect Week＝該週健身房 ≥4、伸展 ≥6（允許漏 1 天）、探索 ≥1，+200 XP；三個條件都達到的那一天計入。",
+      "d8_weeklyGoal": "每週各習慣達標各 +50 XP：健身房 4、伸展 7、探索 1；達標當天計入。",
       "d9_level": "等級：下一級需 200 + 50 × (level − 1) XP，只有一個總等級。",
       "d10_streak": "連續天數＝連續的『活動日』（當天任一習慣完成）。每連續 7 天得 1 張 Freeze，最多 2 張，漏一天自動用掉 1 張、連續不斷。沒 Freeze 時連續歸零，但不扣 XP、不羞辱；中斷後第一次回來的活動日 +20 XP（回歸）。",
       "d11_pr": "健身房每個動作的最佳重量（同次數 ≥ 之前）或最佳估計 1RM 創新高＝PR，+10 XP（一次課每個動作最多 1 次）。",
       "d12_pause": "暫停（休息／生病／旅行）的日子不算漏掉：不耗 Freeze、不斷連續、不計週目標分母。"
     }
   },
-  "day": { "boundaryHour": 4, "weekStartsOn": 1 },
+  "day": {
+    "boundaryHour": 4,
+    "weekStartsOn": 1
+  },
   "habits": {
-    "gym": { "label": "健身房", "weeklyTarget": 4, "xp": { "complete": 100, "partial": 50 }, "partialMinRatio": 0.5 },
-    "stretch": { "label": "晨間伸展", "weeklyTarget": 7, "xp": { "full": 40, "short": 20 } },
-    "explore": { "label": "探索", "weeklyTarget": 1, "xp": { "complete": 60 } }
+    "gym": {
+      "label": "健身房",
+      "weeklyTarget": 4,
+      "xp": {
+        "complete": 100,
+        "partial": 50
+      },
+      "partialMinRatio": 0.5
+    },
+    "stretch": {
+      "label": "晨間伸展",
+      "weeklyTarget": 7,
+      "xp": {
+        "full": 40,
+        "short": 20
+      }
+    },
+    "explore": {
+      "label": "探索",
+      "weeklyTarget": 1,
+      "xp": {
+        "complete": 60
+      }
+    }
   },
   "bonus": {
     "perfectDay": 30,
     "perfectWeek": 200,
-    "weeklyGoal": { "gym": 50, "stretch": 50, "explore": 50 },
+    "weeklyGoal": {
+      "gym": 50,
+      "stretch": 50,
+      "explore": 50
+    },
     "pr": 10,
     "comeback": 20
   },
-  "perfectDay": { "requires": ["gym", "stretch"] },
-  "perfectWeek": { "gym": 4, "stretch": 6, "explore": 1 },
-  "level": { "base": 200, "step": 50, "max": 100 },
-  "streak": { "freeze": { "earnEvery": 7, "max": 2 } },
-  "rest": { "compoundSec": 150, "isolationSec": 75 },
-  "progression": { "upperIncrementKg": 2.5, "lowerIncrementKg": 5, "rule": "全部正式組都做到次數範圍頂端才加最小增量；否則先加次數。" },
-  "stretch": { "fullMinutes": 15, "shortMinutes": 5, "earlyHour": 9 },
+  "perfectDay": {
+    "requires": [
+      "gym",
+      "stretch"
+    ]
+  },
+  "perfectWeek": {
+    "gym": 4,
+    "stretch": 6,
+    "explore": 1
+  },
+  "level": {
+    "base": 200,
+    "step": 50,
+    "max": 100
+  },
+  "streak": {
+    "freeze": {
+      "earnEvery": 7,
+      "max": 2
+    }
+  },
+  "rest": {
+    "compoundSec": 150,
+    "isolationSec": 75
+  },
+  "progression": {
+    "upperIncrementKg": 2.5,
+    "lowerIncrementKg": 5,
+    "rule": "全部正式組都做到次數範圍頂端才加最小增量；否則先加次數。"
+  },
+  "stretch": {
+    "fullMinutes": 15,
+    "shortMinutes": 5,
+    "earlyHour": 9
+  },
   "heatmapWeeks": 12
 }

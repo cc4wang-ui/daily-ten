@@ -35,8 +35,8 @@ export function renderStretch() {
   if ($('st-mark-full')) $('st-mark-full').onclick = () => finish('full', 0, true);
 }
 function rowHtml(it, i) {
-  const v = videoFor(videosData(), it.id);
-  return `<div class="row">${thumbHtml(v, { label: `看 ${it.name} 示範` })}<div class="body"><p class="t">${i + 1}. ${esc(it.name)}${it.sides ? ' <span class="tag">左右</span>' : ''}</p><p class="s">${esc(it.cue)}</p>${v ? `<p class="s" style="margin-top:6px">${linkHtml(v)}</p>` : ''}</div><div class="r num">${fmt(it.seconds)}</div></div>`;
+  const v = videoFor(videosData(), it.id), v2 = it.video2 ? videoFor(videosData(), it.video2) : null;
+  return `<div class="row">${thumbHtml(v, { label: `看 ${it.name} 示範` })}<div class="body"><p class="t">${i + 1}. ${esc(it.name)}${it.sides ? ' <span class="tag">左右</span>' : ''}</p><p class="s">${esc(it.cue)}</p>${v ? `<p class="s" style="margin-top:6px">${linkHtml(v, v2 ? '兒童式示範' : '看示範 Short')}${v2 ? ` ${linkHtml(v2, '下犬式示範')}` : ''}</p>` : ''}</div><div class="r num">${fmt(it.seconds)}</div></div>`;
 }
 
 /* ---------- 引導 ---------- */

@@ -52,7 +52,7 @@ export function buildDraft(label, gymData, sessions, rules, { id, date, startedA
       const prev = last ? last[Math.min(i, last.length - 1)] : null;
       return { weight: prev ? prev.weight : 0, reps: prev ? prev.reps : 0, done: false };
     });
-    return { id: tpl.id, name: tpl.name, kind: tpl.kind, reps: tpl.reps, cue: tpl.cue, suggestion: sug.text, last: last || null, sets };
+    return { id: tpl.id, name: tpl.name, kind: tpl.kind, reps: tpl.reps, cue: tpl.cue, alt: tpl.alt || null, suggestion: sug.text, last: last || null, sets };
   });
   return { id, date, label: t.label, type: t.type, startedAt, finishedAt: null, exercises };
 }

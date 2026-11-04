@@ -1,7 +1,7 @@
 /* Daily Ten — 慶祝：Perfect Day、升級、Perfect Week、新成就。全螢幕卡 #cele＋Canvas 彩帶（≤1.5 秒），prefers-reduced-motion 時不放彩帶。
    「看過」記在 state.v4.seen（level／perfectDay／perfectWeek／achievements），按「繼續」才記；條件不再成立就直接關。 */
 import { $, esc, activeScreen } from './dom.js';
-import { summary, v4, commit, achievementsData } from './model.js';
+import { summary, v4, commit, achievementsData, rules } from './model.js';
 import { toastVisible, onToastHidden } from './toast.js';
 
 let open = null;
@@ -12,8 +12,8 @@ export function celebrationOpen() { return !!open; }
 function due() {
   const s = summary(), seen = v4().seen;
   const list = [];
-  if (s.today.perfect && seen.perfectDay !== s.today.date) list.push({ kind: 'perfectDay', em: '🏆', title: 'Perfect Day', text: '健身房＋晨間伸展同一天完成，為「獨立、自律、持續成長的人」投了一票。', xp: 30, mark: () => { v4().seen.perfectDay = s.today.date; } });
-  if (s.week.perfect && seen.perfectWeek !== s.week.start) list.push({ kind: 'perfectWeek', em: '🎉', title: 'Perfect Week', text: '這週健身房、伸展、探索全部達標。', xp: 200, mark: () => { v4().seen.perfectWeek = s.week.start; } });
+  if (s.today.perfect && seen.perfectDay !== s.today.date) list.push({ kind: 'perfectDay', em: '🏆', title: 'Perfect Day', text: '健身房＋晨間伸展同一天完成，為「獨立、自律、持續成長的人」投了一票。', xp: rules().bonus.perfectDay, mark: () => { v4().seen.perfectDay = s.today.date; } });
+  if (s.week.perfect && seen.perfectWeek !== s.week.start) list.push({ kind: 'perfectWeek', em: '🎉', title: 'Perfect Week', text: '這週健身房、伸展、探索全部達標。', xp: rules().bonus.perfectWeek, mark: () => { v4().seen.perfectWeek = s.week.start; } });
   if (Number.isInteger(seen.level) ? s.level.lv > seen.level : s.level.lv > 1) list.push({ kind: 'level', em: '⬆️', title: `升到 Lv ${s.level.lv}`, text: `下一級還需要 ${s.level.need - s.level.into} XP。`, xp: null, mark: () => { v4().seen.level = s.level.lv; } });
   const seenA = new Set(seen.achievements || []);
   const fresh = Object.keys(s.achievements.unlocked).filter((id) => !seenA.has(id));

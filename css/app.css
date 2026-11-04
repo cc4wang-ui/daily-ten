@@ -49,7 +49,8 @@ a{color:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn-primary{background:var(--ink);color:var(--on-ink);width:100%;min-height:54px;font-size:var(--fs-md);border-radius:var(--r-md)}
 .btn-primary .sub{font-size:var(--fs-xs);font-weight:600;color:var(--on-ink-2)}
-.btn-primary.gym{background:var(--gym)} .btn-primary.stretch{background:var(--stretch)} .btn-primary.explore{background:var(--explore)}
+.btn-primary.gym{background:var(--gym-ink)} .btn-primary.stretch{background:var(--stretch-ink)} .btn-primary.explore{background:var(--explore-ink)}
+.btn-primary.gym .sub,.btn-primary.stretch .sub,.btn-primary.explore .sub{color:#fff}
 .btn-secondary{background:var(--fill);width:100%}
 .btn-ghost{background:none;color:var(--ink-2);padding:0 var(--sp-3)}
 .btn-sm{min-height:36px;padding:0 var(--sp-3);font-size:var(--fs-sm);border-radius:var(--r-sm);white-space:nowrap}
@@ -63,7 +64,7 @@ a{color:inherit}
 .hero .label{font-size:var(--fs-sm);color:var(--on-ink-2);font-weight:600;margin:0 0 4px}
 .hero h2{margin:0 0 var(--sp-3);font-size:var(--fs-lg);font-weight:800;line-height:1.25}
 .hero .btn{background:var(--card);color:var(--ink);width:100%;min-height:50px}
-.hero.done{background:linear-gradient(135deg,#0F766E,#14B8A6)}
+.hero.done{background:var(--stretch-ink)}
 .hero .xp-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:var(--r-pill);font-size:var(--fs-sm);font-weight:700}
 
 /* 習慣列（Streaks 風格：左大圓打勾、中文字、右狀態） */
