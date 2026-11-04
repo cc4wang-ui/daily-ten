@@ -65,6 +65,8 @@ a{color:inherit}
 .hero h2{margin:0 0 var(--sp-3);font-size:var(--fs-lg);font-weight:800;line-height:1.25}
 .hero .btn{background:var(--card);color:var(--ink);width:100%;min-height:50px}
 .hero.done{background:var(--stretch-ink)}
+.hero.done .label{color:#fff}
+.hero.done .xp-pill{background:rgba(0,0,0,.28);color:#fff}
 .hero .xp-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:var(--r-pill);font-size:var(--fs-sm);font-weight:700}
 
 /* 習慣列（Streaks 風格：左大圓打勾、中文字、右狀態） */

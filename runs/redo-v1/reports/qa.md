@@ -1,4 +1,32 @@
-# 獨立把關報告｜redo-v1（分支 redo/v1-habits @ 8893d80）
+# 獨立把關報告｜redo-v1
+
+## 第 2 輪判決（分支 redo/v1-habits @ 94083d6，2026-11-04）
+
+- **成品：FAIL（殘留 1 項，僅在「今天都完成了」狀態）**——`.hero.done` 的次要文字仍用 `--on-ink-2 #CBD5E1`：「今天」`.label`（13px/600）在 `#0F766E` 上 **3.69:1**；`.xp-pill`「今日 +N XP」（13px/700）在 14% 白疊 `#0F766E`（合成 `rgb(49,137,130)`）上 **2.81:1**，即使改白字也只有 4.17:1。AA 需 4.5。其餘第 1 輪阻擋項已修、無回歸。建議 **ui-engineer** 修 `css/app.css:63/67`（只影響 1 個狀態的 2 個小字）。
+- 契約忠實度：PASS（不變）。
+
+### S7 對比實測（Chromium 實際渲染值，`r2-btn-*.png`、`r2-hero-done.png`）
+
+| 元素 | 前景 | 背景 | 字級 | 比值 | AA |
+|---|---|---|---|---|---|
+| `#gym-start` | #FFF | rgb(194,65,12) | 17px/700 | **5.18** | ✓（第 1 輪 2.80） |
+| `#st-start-full` | #FFF | rgb(15,118,110) | 17px/700 | **5.47** | ✓（第 1 輪 2.49） |
+| `#st-start-full .sub` | #FFF | 同上 | 12px/600 | **5.47** | ✓（第 1 輪 1.68） |
+| `#ex-done` | #FFF | rgb(109,40,217) | 17px/700 | **7.10** | ✓（第 1 輪 4.23） |
+| `#ex-done .sub` | #FFF | 同上 | 12px/600 | **7.10** | ✓ |
+| `.hero.done h2` | #FFF | rgb(15,118,110) | 20px/800 | **5.47** | ✓ |
+| `.hero.done .label`（「今天」） | #CBD5E1 | rgb(15,118,110) | 13px/600 | **3.69** | ✗ |
+| `.hero.done .xp-pill` | #CBD5E1 | 合成 rgb(49,137,130) | 13px/700 | **2.81** | ✗ |
+
+### 回歸（第 2 輪）
+- `npm run test:unit`：16/16。`node .github/scripts/check-repo.mjs`：通過（App 檔 39、預快取 40、CACHE v35 > main v34）。
+- `PORT=4400 … playwright test --workers=4`：**353 passed (20.5s)**。
+- 已確認修正落地：`css/app.css:52-53,67`；`js/ui/celebrate.js:15-16` 改讀 `rules().bonus`；`js/ui/stretch.js:38` 讀 `video2`、`js/ui/gym.js:31` 讀 `alt`；`data/game.json` d7/d8 註解已對齊引擎。
+- 未再驗的非阻擋項（第 1 輪 2、4、7）：總結加成明細與週目標提示未重新實測。
+
+---
+
+# 第 1 輪（@ 8893d80）
 
 把關時間：2026-11-04（Asia/Tokyo）。只讀 repo、只跑指令與 Playwright；未修改任何產品檔。
 截圖與腳本：`/tmp/claude-0/-home-user-daily-ten/3ac32758-328d-5253-ab17-a4f8e18cf355/scratchpad/qa/`（`walk.mjs`、`walk2.mjs`、`swcheck.mjs`、`01-…15-*.png`）。
