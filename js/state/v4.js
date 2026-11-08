@@ -4,8 +4,10 @@
      version: 1,
      settings: { identity, gymDays: [1,2,4,5]（0=日…6=六，Cross 自選一週 4 天）, sound: true },
      gym: { sessions: [ { id, date, label, startedAt, finishedAt, exercises: [ { id, name, kind, sets: [ { weight, reps, done } ] } ] } ],
-            draft: null | 進行中的課（同 session 形狀，finishedAt null） },
-     stretch: { log: [ { date, variant: 'full'|'short', at: ISO, seconds } ] },
+            draft: null | 進行中的課（同 session 形狀，finishedAt null）,
+            swaps: { 原動作 id: 備用 id }（換動作，2026-11-08；刪掉一項＝換回原動作） },
+     stretch: { log: [ { date, variant: 'full'|'short', at: ISO, seconds } ],
+                swaps: { 原項目 id: 備用 id }（換動作，2026-11-08；備用沿用原項目的秒數） },
      explore: { current: null | { taskId, weekStart, pickedAt }, log: [ { date, taskId, title, category, interest: 1–5|null, note, at } ], skipped: [taskId] },
      pauses: [ { from, to, kind } ],
      seen: { level, perfectDay, perfectWeek, achievements: [ids] }
@@ -26,8 +28,8 @@ export function defaultV4() {
   return {
     version: V4_VERSION,
     settings: { identity: DEFAULT_IDENTITY, gymDays: [1, 2, 4, 5], sound: true },
-    gym: { sessions: [], draft: null },
-    stretch: { log: [] },
+    gym: { sessions: [], draft: null, swaps: {} },
+    stretch: { log: [], swaps: {} },
     explore: { current: null, log: [], skipped: [] },
     pauses: [],
     seen: { level: null, perfectDay: null, perfectWeek: null, achievements: [] }
@@ -89,7 +91,9 @@ function fillMissing(v4) {
   if (typeof v4.settings.identity !== 'string') v4.settings.identity = d.settings.identity;
   if (!Array.isArray(v4.gym.sessions)) v4.gym.sessions = [];
   if (!('draft' in v4.gym)) v4.gym.draft = null;
+  if (!isObj(v4.gym.swaps)) v4.gym.swaps = {};
   if (!Array.isArray(v4.stretch.log)) v4.stretch.log = [];
+  if (!isObj(v4.stretch.swaps)) v4.stretch.swaps = {};
   if (!Array.isArray(v4.explore.log)) v4.explore.log = [];
   if (!Array.isArray(v4.explore.skipped)) v4.explore.skipped = [];
   if (!('current' in v4.explore)) v4.explore.current = null;

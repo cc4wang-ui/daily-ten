@@ -1,5 +1,9 @@
 /* Daily Ten — 健身房規則（純函式）：課表模板、下一次課、上次數字預填、雙重漸進建議、休息秒數。
-   模板在 data/gym.json；A＝B（不發明差異）。進階規則：全部正式組都做到次數範圍頂端才加最小增量，否則先加次數。 */
+   模板在 data/gym.json；A＝B（不發明差異）。進階規則：全部正式組都做到次數範圍頂端才加最小增量，否則先加次數。
+   換動作（2026-11-08）：data/swaps.json 是備用表；v4.gym.swaps 是 {原動作 id: 備用 id}。
+   buildDraft 會先把課表動作換成備用（js/game/swap.js 的 resolveGymTemplate），再依備用動作查上次紀錄與漸進建議；
+   課表進行中換動作時，畫面層用 buildExercise 重建單一動作（同樣的邏輯）。 */
+import { resolveGymTemplate } from './swap.js';
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 export function setCount(tplSets) {
@@ -41,19 +45,20 @@ export function progression(tpl, lastSets, type, rules) {
   const minReps = Math.min(...lastSets.map((s) => s.reps));
   return { kind: 'reps', text: `重量不變（${w} kg），每組比上次多 1 下（目標 ${Math.min(minReps + 1, r.max)}）。`, weight: w, reps: Math.min(minReps + 1, r.max) };
 }
-/* 開新課：每個動作預填上次的重量與次數（未勾選） */
-export function buildDraft(label, gymData, sessions, rules, { id, date, startedAt }) {
-  const t = templateFor(label, gymData);
-  const exercises = t.exercises.map((tpl) => {
-    const last = lastSetsFor(sessions, tpl.id);
-    const n = Math.max(setCount(tpl.sets), last ? last.length : 0);
-    const sug = progression(tpl, last, t.type, rules);
-    const sets = Array.from({ length: Math.min(n, 10) }, (_, i) => {
-      const prev = last ? last[Math.min(i, last.length - 1)] : null;
-      return { weight: prev ? prev.weight : 0, reps: prev ? prev.reps : 0, done: false };
-    });
-    return { id: tpl.id, name: tpl.name, kind: tpl.kind, reps: tpl.reps, cue: tpl.cue, alt: tpl.alt || null, suggestion: sug.text, last: last || null, sets };
+/* 開新課：每個動作預填上次的重量與次數（未勾選）。opts.swaps／opts.swapsData 有給時，先換成備用動作再建。 */
+export function buildExercise(tpl, sessions, type, rules) {
+  const last = lastSetsFor(sessions, tpl.id);
+  const n = Math.max(setCount(tpl.sets), last ? last.length : 0);
+  const sug = progression(tpl, last, type, rules);
+  const sets = Array.from({ length: Math.min(n, 10) }, (_, i) => {
+    const prev = last ? last[Math.min(i, last.length - 1)] : null;
+    return { weight: prev ? prev.weight : 0, reps: prev ? prev.reps : 0, done: false };
   });
+  return { id: tpl.id, name: tpl.name, kind: tpl.kind, reps: tpl.reps, cue: tpl.cue, alt: tpl.alt || null, swappedFrom: tpl.swappedFrom || null, suggestion: sug.text, last: last || null, sets };
+}
+export function buildDraft(label, gymData, sessions, rules, { id, date, startedAt, swaps = null, swapsData = null }) {
+  const t = templateFor(label, gymData);
+  const exercises = t.exercises.map((tpl) => buildExercise(resolveGymTemplate(tpl, swaps, swapsData) || tpl, sessions, t.type, rules));
   return { id, date, label: t.label, type: t.type, startedAt, finishedAt: null, exercises };
 }
 export function restSeconds(kind, rules) { return kind === 'isolation' ? rules.rest.isolationSec : rules.rest.compoundSec; }

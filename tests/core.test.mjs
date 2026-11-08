@@ -5,11 +5,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gameDay, weekStartOf, levelFromXp, sessionResult, summarize, estimate1RM, pickCoachLine } from '../js/game/core.js';
 import { defaultV4, parseV4, ensureV4, logStretch, migrateLegacy } from '../js/state/v4.js';
-import { buildDraft, progression, templateFor, setCount } from '../js/game/gym.js';
+import { buildDraft, buildExercise, progression, templateFor, setCount } from '../js/game/gym.js';
+import { gymAlternatives, stretchAlternatives, resolveGymTemplate, resolveStretchItem, applyGymSwaps, applyStretchSwaps, validateSwaps, cleanSwapMap } from '../js/game/swap.js';
 import { pickTask, candidates } from '../js/game/explore.js';
 
 const read = (f) => JSON.parse(readFileSync(new URL(`../data/${f}.json`, import.meta.url), 'utf8'));
-const rules = read('game'), ach = read('achievements').items, gymData = read('gym'), stretchData = read('stretch'), explore = read('explore').items, coach = read('coach'), videos = read('videos');
+const rules = read('game'), ach = read('achievements').items, gymData = read('gym'), stretchData = read('stretch'), explore = read('explore').items, coach = read('coach'), videos = read('videos'), swaps = read('swaps');
 const NOW = new Date('2026-11-04T20:00:00+09:00');
 const sum = (v4, now = NOW) => summarize(parseV4({ v4 }), { rules, achievements: ach, now });
 const fullSession = (id, date, label = 'Upper A', weight = 20, reps = 8) => {
@@ -245,4 +246,108 @@ test('教練一句話：同一天固定、依狀態桶', () => {
   const b = pickCoachLine(coach, s, new Date('2026-11-04T09:30:00+09:00'));
   assert.equal(a, b);
   assert.ok(coach.buckets.morning.includes(a));
+});
+
+/* ---------- 換動作（2026-11-08） ---------- */
+test('換動作：備用表自我檢查全過（每項 ≥3 個備用、id 不重複不衝突）', () => {
+  assert.deepEqual(validateSwaps(swaps, gymData, stretchData), []);
+  for (const e of [...gymData.templates.upper, ...gymData.templates.lower]) {
+    assert.ok(gymAlternatives(swaps, e.id).length >= 3, `${e.id} 備用不到 3 個`);
+  }
+  for (const it of stretchData.items) {
+    assert.ok(stretchAlternatives(swaps, it.id).length >= 3, `${it.id} 備用不到 3 個`);
+  }
+});
+
+test('換動作：備用與原動作同一量級（組數相同、次數 6–15 下、kind 合法）', () => {
+  for (const e of [...gymData.templates.upper, ...gymData.templates.lower]) {
+    for (const a of gymAlternatives(swaps, e.id)) {
+      assert.equal(setCount(a.sets), setCount(e.sets), `${e.id} → ${a.id} 組數不同`);
+      const m = /^(\d{1,3})\s*[–-]\s*(\d{1,3})$/.exec(a.reps);
+      assert.ok(m, `${a.id} reps 格式不對`);
+      assert.ok(Number(m[1]) >= 6 && Number(m[2]) <= 15, `${a.id} 次數範圍超出 6–15`);
+      assert.ok(a.kind === 'compound' || a.kind === 'isolation');
+    }
+  }
+});
+
+test('換動作：resolve（原動作、備用、不存在的對應、伸展沿用秒數）', () => {
+  const orig = gymData.templates.upper[0]; // 上斜臥推
+  assert.deepEqual(resolveGymTemplate(orig, null, swaps).swappedFrom, null);
+  assert.equal(resolveGymTemplate(orig, {}, swaps).id, 'incline-db-press');
+  const alt = resolveGymTemplate(orig, { 'incline-db-press': 'incline-machine-press' }, swaps);
+  assert.equal(alt.id, 'incline-machine-press');
+  assert.equal(alt.swappedFrom, 'incline-db-press');
+  assert.equal(alt.kind, 'compound');
+  assert.equal(resolveGymTemplate(orig, { 'incline-db-press': '不存在的動作' }, swaps).id, 'incline-db-press');
+  assert.equal(resolveGymTemplate(orig, { 'bench-press': 'incline-machine-press' }, swaps).id, 'incline-db-press', '別人的對應不影響這個動作');
+  const st = stretchData.items[0]; // 貓牛式 90／60
+  const rst = resolveStretchItem(st, { 'cat-cow': 'seated-cat-cow' }, swaps);
+  assert.equal(rst.id, 'seated-cat-cow');
+  assert.equal(rst.swappedFrom, 'cat-cow');
+  assert.equal(rst.full, 90); assert.equal(rst.short, 60);
+  assert.equal(resolveStretchItem(st, { 'cat-cow': '不存在的項目' }, swaps).id, 'cat-cow');
+});
+
+test('換動作：伸展備用沿用原項目秒數（完整版 900 秒、短版 300 秒不變）', () => {
+  const map = { 'cat-cow': 'standing-cat-cow', 'hip-90-90': 'butterfly', 'down-dog-child': 'child-pose' };
+  const full = applyStretchSwaps(stretchData.items, map, swaps);
+  assert.equal(full.reduce((a, b) => a + b.full, 0), 900);
+  assert.equal(full.reduce((a, b) => a + b.short, 0), 300);
+  assert.equal(full[0].id, 'standing-cat-cow');
+  assert.equal(full[0].swappedFrom, 'cat-cow');
+  assert.equal(applyStretchSwaps(stretchData.items, {}, swaps)[0].id, 'cat-cow');
+});
+
+test('換動作：buildDraft 套用對應，備用動作查自己的上次紀錄', () => {
+  // 上次做過腿推 100kg × 10 下兩組；深蹲換成腿推後，預填應是腿推的紀錄、建議加 5kg
+  const prev = fullSession('g0', '2026-11-02', 'Lower A', 100, 10);
+  prev.exercises[0].id = 'leg-press'; prev.exercises[0].name = '腿推';
+  const d = buildDraft('Lower A', gymData, [prev], rules, { id: 'g1', date: '2026-11-04', startedAt: '2026-11-04T18:00:00+09:00', swaps: { squat: 'leg-press' }, swapsData: swaps });
+  assert.equal(d.exercises[0].id, 'leg-press');
+  assert.equal(d.exercises[0].swappedFrom, 'squat');
+  assert.equal(d.exercises[0].sets[0].weight, 100);
+  assert.match(d.exercises[0].suggestion, /加 5 kg/);
+  const d2 = buildDraft('Lower A', gymData, [prev], rules, { id: 'g2', date: '2026-11-04', startedAt: '2026-11-04T18:00:00+09:00' });
+  assert.equal(d2.exercises[0].id, 'squat');
+  assert.equal(d2.exercises[0].swappedFrom, null);
+});
+
+test('換動作：buildExercise 重建單一動作（課表進行中換動作共用）', () => {
+  const prev = fullSession('g0', '2026-11-02', 'Upper A', 12, 12);
+  prev.exercises[2].id = 'machine-lateral-raise'; prev.exercises[2].name = '器械側平舉';
+  const tpl = resolveGymTemplate(gymData.templates.upper[2], { 'lateral-raise': 'machine-lateral-raise' }, swaps);
+  const ex = buildExercise(tpl, [prev], 'upper', rules);
+  assert.equal(ex.id, 'machine-lateral-raise');
+  assert.equal(ex.swappedFrom, 'lateral-raise');
+  assert.equal(ex.sets[0].weight, 12);
+  assert.equal(ex.sets.every((s) => s.done === false), true);
+});
+
+test('換動作：對應表清理（不存在的備用 id 會被清掉）', () => {
+  assert.deepEqual(cleanSwapMap({ squat: 'leg-press', 'bench-press': '不存在的動作', 'rdl': 5 }, 'gym', swaps), { squat: 'leg-press' });
+  assert.deepEqual(cleanSwapMap(null, 'gym', swaps), {});
+  assert.deepEqual(cleanSwapMap({ 'cat-cow': 'cobra' }, 'stretch', swaps), {}, '健身房備用不能當伸展備用');
+});
+
+test('換動作：defaultV4 與 fillMissing 有 swaps 欄位；舊資料不丟', () => {
+  const v4 = defaultV4();
+  assert.deepEqual(v4.gym.swaps, {});
+  assert.deepEqual(v4.stretch.swaps, {});
+  const old = defaultV4();
+  delete old.gym.swaps; delete old.stretch.swaps;
+  old.gym.swaps = undefined;
+  const { v4: fixed } = ensureV4({ v4: old });
+  assert.deepEqual(fixed.gym.swaps, {});
+  assert.deepEqual(fixed.stretch.swaps, {});
+});
+
+test('換動作：換過的課照常計分（sessionResult 不認動作 id）', () => {
+  const d = buildDraft('Upper A', gymData, [], rules, { id: 'g9', date: '2026-11-04', startedAt: '2026-11-04T18:00:00+09:00', swaps: { 'bench-press': 'dumbbell-bench-press' }, swapsData: swaps });
+  d.exercises.forEach((e) => e.sets.forEach((s) => { s.done = true; s.weight = 20; s.reps = 8; }));
+  d.finishedAt = '2026-11-04T19:00:00+09:00';
+  assert.equal(sessionResult(d, rules).result, 'complete');
+  const cleaned = parseV4({ v4: { ...defaultV4(), gym: { sessions: [d], draft: null } } });
+  assert.equal(cleaned.gym.sessions[0].exercises[1].id, 'dumbbell-bench-press');
+  assert.equal(sum({ ...defaultV4(), gym: { sessions: [d], draft: null } }).xp.by.gym, 100);
 });

@@ -3,7 +3,7 @@
    自動更新（D23）：新版啟用後通知每個開著的頁面。新版頁面回覆 DT_UPDATE_ACK，等閒置（不在訓練中）時自己重新載入；
    舊版頁面不認得通知，3 秒後由這裡直接重新導向同一網址，讓舊程式也能換成新版（瀏覽器不支援時就等下次開啟）。 */
 'use strict';
-const CACHE = 'daily-ten-v35';
+const CACHE = 'daily-ten-v36';
 const ACK_TIMEOUT_MS = 3000;
 const ASSETS = [
   './',
@@ -19,11 +19,13 @@ const ASSETS = [
   './data/game.json',
   './data/gym.json',
   './data/stretch.json',
+  './data/swaps.json',
   './data/videos.json',
   './js/app.js',
   './js/game/core.js',
   './js/game/explore.js',
   './js/game/gym.js',
+  './js/game/swap.js',
   './js/state/backup.js',
   './js/state/migrate.js',
   './js/state/schema.js',

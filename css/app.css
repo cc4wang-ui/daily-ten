@@ -202,6 +202,19 @@ a{color:inherit}
 .sets .ok[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:#fff}
 .sets tr.done input{background:var(--ok-soft);border-color:var(--ok-soft)}
 .add-set{width:100%;margin-top:4px}
+
+/* 換動作（2026-11-08）：備用清單是卡片／列內的展開區塊，不是浮層——
+   #rest 底部 bar（z-index 55）蓋住分頁列，換動作 UI 放在正常捲動流程裡就不會被它蓋住；
+   進行中的課打開清單時，.inner 底部多留 84px，讓清單能捲到 #rest 上方。 */
+.swap-btn{flex:none;min-height:var(--touch);min-width:var(--touch)}
+.swap-panel{margin:0 0 var(--sp-2);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-2);background:var(--fill);text-align:left}
+.swap-panel .swap-title{font-size:var(--fs-sm);font-weight:700;color:var(--ink-2);margin:2px 4px 8px}
+.swap-opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:var(--touch);text-align:left;padding:10px 12px;margin-bottom:6px;background:var(--card)}
+.swap-opt:last-child{margin-bottom:0}
+.swap-opt .swap-name{font-weight:800;font-size:var(--fs-base)}
+.swap-opt .swap-meta{font-size:var(--fs-sm);color:var(--ink-2);font-weight:700}
+.swap-opt .swap-cue{font-size:var(--fs-sm);color:var(--ink-3);font-weight:400}
+#session .inner.swap-open{padding-bottom:calc(var(--sp-8) + 84px)}
 .rest{position:fixed;left:0;right:0;bottom:0;z-index:55;background:var(--ink);color:var(--on-ink);padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);transform:translateY(0);animation:up var(--fade-ms) ease-out}
 .rest .t{font-size:var(--fs-2xl);font-weight:900;line-height:1}
 .rest .l{font-size:var(--fs-xs);color:var(--on-ink-2);font-weight:700}
