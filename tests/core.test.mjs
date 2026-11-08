@@ -168,6 +168,21 @@ test('parseV4 丟掉壞資料、不丟例外；ensureV4 冪等', () => {
   assert.doesNotThrow(() => summarize(parseV4({ v4: { gym: 1, stretch: null, explore: 'x' } }), { rules, achievements: ach, now: NOW }));
 });
 
+test('parseV4：draft 的進行中休息只保留給未完成的草稿，且須是合法數字', () => {
+  const draft = (rest, finishedAt = null) => ({ id: 'd', date: '2026-11-04', label: 'Upper A', startedAt: '2026-11-04T15:00:00+09:00', finishedAt, exercises: [], rest });
+  // 合法：未完成草稿保留 deadline／total（2026-11-08 休息倒數修復：draft.rest）
+  let p = parseV4({ v4: { gym: { draft: draft({ deadline: 1790000000000, total: 150 }) } } });
+  assert.deepEqual(p.gym.draft.rest, { deadline: 1790000000000, total: 150 });
+  // 已完成的課不帶 rest
+  p = parseV4({ v4: { gym: { draft: draft({ deadline: 1790000000000, total: 150 }, '2026-11-04T16:00:00+09:00') } } });
+  assert.equal(p.gym.draft.rest, undefined);
+  // 壞資料：deadline 不是數字、total 不是正整數、rest 不是物件 → 全部丟掉
+  for (const bad of [{ deadline: 'x', total: 150 }, { deadline: 1790000000000, total: 0 }, { deadline: 1790000000000, total: 1.5 }, { deadline: 1790000000000 }, 'x', null]) {
+    p = parseV4({ v4: { gym: { draft: draft(bad) } } });
+    assert.equal(p.gym.draft.rest, undefined);
+  }
+});
+
 test('舊 Phase 0／1 資料搬進 v4：健身房組數、伸展、探索', () => {
   const st = { version: 3, phase1: { gymSets: [
     { date: '2026-10-30', label: 'Upper A', exercise: '上斜臥推', sets: [{ weight: 20, reps: 8 }, { weight: 20, reps: 8 }] },

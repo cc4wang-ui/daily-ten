@@ -21,7 +21,7 @@ function showFatal(err) {
   try { console.error('Daily Ten 啟動失敗', err); } catch (e) { /* */ }
   try {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 's-home'));
-    ['session', 'guide', 'sheet', 'cele'].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = true; });
+    ['session', 'guide', 'sheet', 'cele', 'rest'].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = true; });
     if (document.getElementById('boot-error')) return;
     const card = document.createElement('div');
     card.id = 'boot-error'; card.className = 'banner danger'; card.setAttribute('role', 'alert');

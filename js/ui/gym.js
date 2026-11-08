@@ -35,7 +35,7 @@ export function renderGym() {
   $('gym-body').innerHTML = top + list + plan + hist;
   if ($('gym-start')) $('gym-start').onclick = () => start(tpl.label);
   if ($('gym-resume')) $('gym-resume').onclick = () => openSession();
-  if ($('gym-discard')) $('gym-discard').onclick = async () => { if (!confirm('放棄這次訓練？已填的數字會清掉。')) return; v4().gym.draft = null; await commit(); renderGym(); };
+  if ($('gym-discard')) $('gym-discard').onclick = async () => { if (!confirm('放棄這次訓練？已填的數字會清掉。')) return; stopRest(); v4().gym.draft = null; await commit(); renderGym(); };
   $('gym-body').querySelectorAll('.days button').forEach((b) => { b.onclick = async () => { const d = Number(b.dataset.d); const set = new Set(v4().settings.gymDays || []); if (set.has(d)) set.delete(d); else set.add(d); v4().settings.gymDays = [...set].sort(); await commit(); renderGym(); }; });
 }
 
@@ -54,9 +54,10 @@ function openSession() {
   paintSession();
   clearInterval(clockTimer);
   clockTimer = setInterval(() => { const el = $('ss-clock'); if (el && draft()) el.textContent = elapsed(); }, 1000);
+  resumeRest();
 }
 function elapsed() { const d = draft(); const ms = now().getTime() - Date.parse(d.startedAt); const m = Math.max(0, Math.floor(ms / 60000)); return `${m} 分`; }
-function closeSession() { clearInterval(clockTimer); stopRest(); $('session').hidden = true; $('session').innerHTML = ''; }
+function closeSession() { clearInterval(clockTimer); suspendRest(); $('session').hidden = true; $('session').innerHTML = ''; }
 
 function paintSession() {
   const d = draft();
@@ -89,27 +90,95 @@ function paintSession() {
         tr.classList.toggle('done', s.done);
         tr.querySelector('.ok').setAttribute('aria-pressed', String(s.done));
         await commit();
-        if (s.done) startRest(restSeconds(d.exercises[ei].kind, rules()));
+        if (s.done) await startRest(restSeconds(d.exercises[ei].kind, rules()));
       };
     });
     card.querySelector('[data-add]').onclick = async () => { const sets = d.exercises[ei].sets; if (sets.length >= 10) return; const last = sets[sets.length - 1]; sets.push({ weight: last ? last.weight : 0, reps: last ? last.reps : 0, done: false }); await commit(); paintSession(); };
   });
 }
 
-/* ---------- 休息計時 ---------- */
+/* ---------- 休息計時 ----------
+   2026-11-08 修復（組間休息倒數消失）：兩個根因。
+   (1) #rest 原本是 #session 的子元素，paintSession() 整頁 innerHTML 重繪
+       （「加一組」按鈕）會直接摧毀它，但 module 層的 rest.timer 還活著、
+       paintRest() 對著不存在的元素空轉——倒數顯示消失，計時卻在背景跑。
+       解法：#rest 是 position:fixed 的底部 bar，改掛在 document.body 下，
+       課表重繪再也碰不到它。
+   (2) closeSession()（「先離開」）直接 stopRest()，回來開課時休息狀態已死。
+       解法：休息狀態以絕對期限（deadline）存在 draft.rest，離開只收起顯示、
+       回來（openSession）按期限重建；期限到了才視為休息結束。
+   倒數一律由 deadline 換算，不靠每秒 -1 累加：分頁隱藏時瀏覽器節流
+   interval 也不會讓顯示落後真實時間。 */
+function restLeft() { return rest ? Math.max(0, Math.ceil((rest.deadline - Date.now()) / 1000)) : 0; }
+function persistRest() {
+  const d = draft();
+  if (!d || !rest) return Promise.resolve(false);
+  d.rest = { deadline: rest.deadline, total: rest.total };
+  return commit();
+}
+function clearPersistedRest() {
+  const d = draft();
+  if (d && d.rest) { delete d.rest; commit(); }
+}
+function renderRest() {
+  if (!rest) return;
+  let el = $('rest');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'rest'; el.id = 'rest'; el.setAttribute('role', 'timer');
+    el.innerHTML = `<i class="prog"></i><div><div class="l">休息</div><div class="t num" id="rest-t">${fmt(rest.left)}</div></div><div style="display:flex;gap:8px"><button type="button" class="btn" id="rest-add">+30 秒</button><button type="button" class="btn" id="rest-skip">略過</button></div>`;
+    document.body.appendChild(el);
+    $('rest-add').onclick = () => {
+      if (!rest) return;
+      rest.deadline += 30000; rest.total += 30; rest.left = restLeft(); paintRest(); persistRest();
+    };
+    $('rest-skip').onclick = () => stopRest();
+  }
+  paintRest();
+}
+function tickRest() {
+  if (!rest) return;
+  rest.left = restLeft();
+  if (rest.left <= 0) { stopRest(); beep(); return; }
+  paintRest();
+}
 function startRest(sec) {
   stopRest();
-  rest = { left: sec, total: sec, timer: null };
-  const el = document.createElement('div');
-  el.className = 'rest'; el.id = 'rest'; el.setAttribute('role', 'timer');
-  el.innerHTML = `<i class="prog"></i><div><div class="l">休息</div><div class="t num" id="rest-t">${fmt(sec)}</div></div><div style="display:flex;gap:8px"><button type="button" class="btn" id="rest-add">+30 秒</button><button type="button" class="btn" id="rest-skip">略過</button></div>`;
-  $('session').appendChild(el);
-  $('rest-add').onclick = () => { rest.left += 30; rest.total += 30; paintRest(); };
-  $('rest-skip').onclick = stopRest;
-  rest.timer = setInterval(() => { rest.left -= 1; if (rest.left <= 0) { stopRest(); beep(); return; } paintRest(); }, 1000);
+  rest = { left: sec, total: sec, deadline: Date.now() + sec * 1000, timer: null };
+  renderRest();
+  const saved = persistRest();
+  rest.timer = setInterval(tickRest, 1000);
+  return saved;
 }
-function paintRest() { const t = $('rest-t'); if (t) t.textContent = fmt(rest.left); const p = $('rest') && $('rest').querySelector('.prog'); if (p) p.style.setProperty('--p', (rest.left / rest.total).toFixed(3)); }
-function stopRest() { if (rest && rest.timer) clearInterval(rest.timer); rest = null; const el = $('rest'); if (el) el.remove(); }
+/* 休息真正結束（略過／時間到／完成／放棄）：清掉顯示、計時與 draft 紀錄。 */
+function stopRest() {
+  if (rest && rest.timer) clearInterval(rest.timer);
+  rest = null;
+  const el = $('rest'); if (el) el.remove();
+  clearPersistedRest();
+}
+/* 暫時離開課表（「先離開」）：只收起顯示與計時，draft.rest 留著，回來再續。 */
+function suspendRest() {
+  if (rest && rest.timer) clearInterval(rest.timer);
+  rest = null;
+  const el = $('rest'); if (el) el.remove();
+}
+/* 回到課表：draft.rest 期限還在就重建倒數；期限已過視為休息結束，不顯示。 */
+function resumeRest() {
+  const d = draft();
+  const saved = d && d.rest;
+  if (!saved || !Number.isFinite(saved.deadline) || saved.deadline <= Date.now()) {
+    if (saved) clearPersistedRest();
+    return false;
+  }
+  rest = { left: 0, total: saved.total, deadline: saved.deadline, timer: null };
+  rest.left = restLeft();
+  if (rest.left <= 0) { rest = null; clearPersistedRest(); return false; }
+  renderRest();
+  rest.timer = setInterval(tickRest, 1000);
+  return true;
+}
+function paintRest() { if (!rest) return; const t = $('rest-t'); if (t) t.textContent = fmt(rest.left); const p = $('rest') && $('rest').querySelector('.prog'); if (p) p.style.setProperty('--p', (rest.left / rest.total).toFixed(3)); }
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 function beep() {
   if (v4().settings.sound === false) return;
@@ -124,6 +193,7 @@ async function finish() {
   const before = summary();
   const session = { ...d, finishedAt: isoLocal(now()), exercises: d.exercises.map((ex) => ({ id: ex.id, name: ex.name, kind: ex.kind, sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, done: s.done })) })) };
   delete session.type;
+  delete session.rest; // 休息是進行中的草稿狀態，完成的課不帶它
   addGymSession(v4(), session);
   await commit();
   const after = summary();

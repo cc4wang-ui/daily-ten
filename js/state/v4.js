@@ -106,7 +106,11 @@ export function cleanSession(s) {
     const sets = (Array.isArray(ex.sets) ? ex.sets : []).map((st) => (isObj(st) ? { weight: fin(st.weight) && st.weight >= 0 ? st.weight : 0, reps: Number.isInteger(st.reps) && st.reps >= 0 ? st.reps : 0, done: st.done === true } : null)).filter(Boolean).slice(0, 10);
     return { id: ex.id, name: str(ex.name, 40) || ex.id, kind: ex.kind === 'isolation' ? 'isolation' : 'compound', sets };
   }).filter(Boolean).slice(0, 20);
-  return { id: str(s.id, 80) || `${s.date}-${str(s.label, 20)}`, date: s.date, label: str(s.label, 20) || 'Upper A', startedAt: isIsoWithOffset(s.startedAt) ? s.startedAt : null, finishedAt: isIsoWithOffset(s.finishedAt) ? s.finishedAt : null, exercises };
+  const finishedAt = isIsoWithOffset(s.finishedAt) ? s.finishedAt : null;
+  // draft 的進行中休息（2026-11-08 修復）：只保留給未完成的草稿，期限與總秒數
+  // 須為合法數字；完成的課不帶 rest（finish() 也會先刪掉）。
+  const rest = !finishedAt && isObj(s.rest) && Number.isFinite(s.rest.deadline) && Number.isInteger(s.rest.total) && s.rest.total > 0 ? { deadline: s.rest.deadline, total: s.rest.total } : null;
+  return { id: str(s.id, 80) || `${s.date}-${str(s.label, 20)}`, date: s.date, label: str(s.label, 20) || 'Upper A', startedAt: isIsoWithOffset(s.startedAt) ? s.startedAt : null, finishedAt, exercises, ...(rest ? { rest } : {}) };
 }
 export function parseV4(state) {
   const raw = isObj(state?.v4) ? state.v4 : defaultV4();
