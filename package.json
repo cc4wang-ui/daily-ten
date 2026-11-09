@@ -11,9 +11,25 @@
     "check:repo": "node .github/scripts/check-repo.mjs",
     "check:glossary": "node tools/jev/check-glossary.js --ci",
     "test:glossary": "node tools/jev/check-glossary.js --self-test",
-    "dev:flow": "node tools/dev/flow.mjs"
+    "dev:flow": "node tools/dev/flow.mjs",
+    "lint": "eslint js tests",
+    "lint:fix": "eslint js tests --fix",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1"
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.56.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0"
+  },
+  "lint-staged": {
+    "js/**/*.js": [
+      "eslint --fix"
+    ],
+    "tests/**/*.{js,mjs}": [
+      "eslint --fix"
+    ]
   }
 }
