@@ -19,7 +19,7 @@ function fadeMs() {
     const v = getComputedStyle(document.documentElement).getPropertyValue('--fade-ms').trim();
     const m = /^(\d+(?:\.\d+)?)(ms|s)$/.exec(v);
     return m ? Number(m[1]) * (m[2] === 's' ? 1000 : 1) : 0;
-  } catch (e) { return 0; }
+  } catch { return 0; }
 }
 /* 元素真的看得到（HOME 在前景）、而且沒有被訓練畫面蓋住才播淡入淡出 */
 function canFade(el) {
@@ -73,7 +73,7 @@ export async function renderAppVersion() {
       const m = CACHE_RE.exec(k);
       if (m) n = Math.max(n, Number(m[1]));
     }
-  } catch (e) { n = 0; }
+  } catch { n = 0; }
   el.textContent = n ? `App 版本 v${n}` : '';
   el.hidden = !n;
 }

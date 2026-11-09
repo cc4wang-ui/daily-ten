@@ -37,8 +37,10 @@ test('downloadBackup：Blob 下載，檔名與內容 = 儲存後的 state', asyn
   expect(file.game.xp).toStrictEqual({ move: 361, sleep: 0, explore: 0, total: 361 });
   expect(JSON.parse(out.stored)).toStrictEqual(file);     // 備份檔內容 = 儲存後的 state
   expect(JSON.parse(out.inMemory)).toStrictEqual(file);
-  const { meta: _a, ...restFile } = file;
-  const { meta: _b, ...restBefore } = JSON.parse(out.before);
+  const restFile = { ...file };
+  delete restFile.meta;
+  const restBefore = JSON.parse(out.before);
+  delete restBefore.meta;
   expect(restFile).toStrictEqual(restBefore);             // 除了 lastBackupAt 之外完全相同
 });
 

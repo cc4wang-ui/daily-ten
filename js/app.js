@@ -15,10 +15,10 @@ function rawFallback() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
     return { ok: true, filename };
-  } catch (e) { return { ok: false, message: '原始資料下載失敗，請再試一次' }; }
+  } catch { return { ok: false, message: '原始資料下載失敗，請再試一次' }; }
 }
 function showFatal(err) {
-  try { console.error('Daily Ten 啟動失敗', err); } catch (e) { /* */ }
+  try { console.error('Daily Ten 啟動失敗', err); } catch { /* */ }
   try {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === 's-home'));
     ['session', 'guide', 'sheet', 'cele', 'rest'].forEach((id) => { const el = document.getElementById(id); if (el) el.hidden = true; });
@@ -28,11 +28,11 @@ function showFatal(err) {
     const msg = document.createElement('div'); msg.textContent = 'App 啟動時發生問題。資料仍在這台裝置上，請先下載保存。';
     const btn = document.createElement('button'); btn.id = 'boot-error-download'; btn.className = 'btn btn-sm'; btn.textContent = '下載原始資料';
     const note = document.createElement('div'); note.className = 'small';
-    btn.onclick = async () => { let r; try { const m = await import('./state/backup.js'); r = m.downloadRawBackup(RAW_KEY); } catch (e) { r = rawFallback(); } note.textContent = r.ok ? `已下載 ${r.filename}` : r.message; };
+    btn.onclick = async () => { let r; try { const m = await import('./state/backup.js'); r = m.downloadRawBackup(RAW_KEY); } catch { r = rawFallback(); } note.textContent = r.ok ? `已下載 ${r.filename}` : r.message; };
     card.append(msg, btn, note);
     const host = document.getElementById('s-home') || document.body;
     host.insertBefore(card, host.firstChild);
-  } catch (e) { /* 靜態 markup 仍可見 */ }
+  } catch { /* 靜態 markup 仍可見 */ }
 }
 
 /* ===== 自動更新（D23） ===== */
@@ -56,20 +56,20 @@ function typing() {
 }
 const shown = (id) => { const el = document.getElementById(id); return !!el && !el.hidden; };
 function isIdle() {
-  try { if (busyNow()) return false; } catch (e) { return false; }
+  try { if (busyNow()) return false; } catch { return false; }
   if (shown('session') || shown('guide') || shown('sheet') || shown('cele') || shown('toast') || shown('imp-preview')) return false;
   return !typing();
 }
 function reloadWhenIdle() {
-  try { if (!isIdle()) return; } catch (e) { return; }
+  try { if (!isIdle()) return; } catch { return; }
   clearInterval(idleTimer); idleTimer = null;
-  try { sessionStorage.setItem(UPDATED_KEY, pendingVersion || ''); } catch (e) { /* */ }
+  try { sessionStorage.setItem(UPDATED_KEY, pendingVersion || ''); } catch { /* */ }
   location.reload();
 }
 function onSwMessage(ev) {
   const d = ev && ev.data;
   if (!d || d.type !== 'DT_UPDATE_READY') return;
-  try { if (ev.ports && ev.ports[0]) ev.ports[0].postMessage({ type: 'DT_UPDATE_ACK' }); } catch (e) { /* */ }
+  try { if (ev.ports && ev.ports[0]) ev.ports[0].postMessage({ type: 'DT_UPDATE_ACK' }); } catch { /* */ }
   pendingVersion = typeof d.version === 'string' ? d.version : '';
   if (!idleTimer) idleTimer = setInterval(reloadWhenIdle, IDLE_POLL_MS);
   reloadWhenIdle();
@@ -78,10 +78,10 @@ function checkForUpdate() {
   const t = Date.now();
   if (lastUpdateCheck !== null && t >= lastUpdateCheck && t - lastUpdateCheck < UPDATE_CHECK_MS) return;
   lastUpdateCheck = t;
-  try { navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); } catch (e) { /* */ }
+  try { navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); } catch { /* */ }
 }
 let updatedTo = null;
-try { updatedTo = sessionStorage.getItem(UPDATED_KEY); if (updatedTo !== null) sessionStorage.removeItem(UPDATED_KEY); } catch (e) { /* */ }
+try { updatedTo = sessionStorage.getItem(UPDATED_KEY); if (updatedTo !== null) sessionStorage.removeItem(UPDATED_KEY); } catch { /* */ }
 try {
   if ('serviceWorker' in navigator) {
     const swc = navigator.serviceWorker;
@@ -90,7 +90,7 @@ try {
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
     window.addEventListener('online', checkForUpdate);
   }
-} catch (e) { /* */ }
+} catch { /* */ }
 
 /* ===== 開機 ===== */
 async function boot() {

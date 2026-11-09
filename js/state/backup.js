@@ -42,7 +42,7 @@ const JSON_MIME = 'application/json';
 const TEXT_MIME = 'text/plain;charset=utf-8';
 
 function local() {
-  try { return typeof localStorage !== 'undefined' && localStorage ? localStorage : null; } catch (e) { return null; }
+  try { return typeof localStorage !== 'undefined' && localStorage ? localStorage : null; } catch { return null; }
 }
 function toTime(now) {
   const t = now instanceof Date ? now.getTime() : new Date(now ?? Date.now()).getTime();
@@ -83,12 +83,12 @@ function triggerDownload(text, filename, mime) {
 async function deliver(text, filename, mime) {
   const nav = typeof navigator !== 'undefined' ? navigator : null;
   let file = null;
-  let share = false;
+  let share;
   try {
     file = typeof File === 'function' ? new File([text], filename, { type: mime }) : null;
     share = !!(file && nav && typeof nav.share === 'function' && typeof nav.canShare === 'function'
       && nav.canShare({ files: [file] }) && nav.maxTouchPoints > 0);
-  } catch (e) {
+  } catch {
     share = false;
   }
   if (share) {
@@ -114,7 +114,7 @@ export async function downloadBackup({ now = new Date() } = {}) {
     setState(stamped);
     await saveState();
     return { ok: true, method, filename };
-  } catch (e) {
+  } catch {
     return { ok: false, reason: 'error', message: '備份檔產生失敗，請再試一次' };
   }
 }
@@ -127,7 +127,7 @@ export function downloadRawBackup(backupKey, { now = new Date() } = {}) {
     const filename = `daily-ten-raw-${localDateStr(now)}.txt`;
     triggerDownload(raw, filename, TEXT_MIME);
     return { ok: true, filename };
-  } catch (e) {
+  } catch {
     return { ok: false, message: '原始資料下載失敗，請再試一次' };
   }
 }
@@ -163,14 +163,14 @@ export function parseImport(text, { now = new Date() } = {}) {
     let obj;
     try {
       obj = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
-    } catch (e) {
+    } catch {
       return importError('not_json', '檔案不是有效的 JSON 格式，可能已損壞或不是 Daily Ten 的備份檔');
     }
     const checked = validateImport(obj);
     if (!checked.ok) return { ok: false, errors: checked.errors.slice(0, MAX_IMPORT_ERRORS) };
     const { state: incoming, fromVersion } = migrate(obj, { now });
     return { ok: true, incoming, summary: diffSummary(getState(), incoming, { fromVersion }) };
-  } catch (e) {
+  } catch {
     return importError('migrate', '無法轉換這份資料的格式，目前的資料沒有任何變更');
   }
 }
@@ -254,12 +254,12 @@ export async function applyImport(incoming) {
     try {
       const ls = local();
       if (ls && isPlainObject(prev)) ls.setItem(PRE_IMPORT_KEY, JSON.stringify(prev));
-    } catch (e) { /* 盡力而為：空間不足時仍照常匯入 */ }
+    } catch { /* 盡力而為：空間不足時仍照常匯入 */ }
     setState(next);
     const ok = await saveState();
     if (!ok) setState(prev);
     return ok;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

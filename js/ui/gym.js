@@ -4,7 +4,7 @@ import { $, esc } from './dom.js';
 import { icon } from './icons.js';
 import { goTo } from './nav.js';
 import { summary, rules, gymData, videosData, swapsData, v4, commit, now } from './model.js';
-import { buildDraft, buildExercise, restSeconds, volumeOf, fmtDuration, templateFor } from '../game/gym.js';
+import { buildDraft, buildExercise, restSeconds, fmtDuration, templateFor } from '../game/gym.js';
 import { gymAlternatives, resolveGymTemplate } from '../game/swap.js';
 import { sessionResult, gameDay } from '../game/core.js';
 import { addGymSession, removeGymSession, newId } from '../state/v4.js';
@@ -265,7 +265,7 @@ function paintRest() { if (!rest) return; const t = $('rest-t'); if (t) t.textCo
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 function beep() {
   if (v4().settings.sound === false) return;
-  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; const ac = beep.ac || (beep.ac = new AC()); const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 660; g.gain.value = .1; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + .25); } catch (e) { /* 沒聲音也沒關係 */ }
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; const ac = beep.ac || (beep.ac = new AC()); const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 660; g.gain.value = .1; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + .25); } catch { /* 沒聲音也沒關係 */ }
 }
 
 /* ---------- 完成 ---------- */

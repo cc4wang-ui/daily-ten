@@ -6,7 +6,6 @@
 import { dayNumber, dayNumberToStr } from '../state/time.js';
 
 const pad = (n) => String(n).padStart(2, '0');
-const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
 /* 遊戲日：04:00 換日（凌晨 0–4 點算前一天）。now 可以是 Date 或毫秒。 */
@@ -228,7 +227,7 @@ export function summarize(v4, { rules, achievements = [], now = new Date() }) {
   };
   const unlocked = {}, locked = [];
   for (const a of achievements) {
-    let ok = false, date = today, progress = 0;
+    let ok, date = today, progress = 0;
     switch (a.type) {
       case 'count': progress = counts[a.habit] || 0; ok = progress >= a.n; if (ok) date = nthDate(a.habit, a.n); break;
       case 'streak': progress = bestStreak; ok = bestStreak >= a.n; if (ok) date = streakReached.get(a.n) || today; break;

@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { gameDay, weekStartOf, levelFromXp, sessionResult, summarize, estimate1RM, pickCoachLine } from '../js/game/core.js';
 import { defaultV4, parseV4, ensureV4, logStretch, migrateLegacy } from '../js/state/v4.js';
 import { buildDraft, buildExercise, progression, templateFor, setCount } from '../js/game/gym.js';
-import { gymAlternatives, stretchAlternatives, resolveGymTemplate, resolveStretchItem, applyGymSwaps, applyStretchSwaps, validateSwaps, cleanSwapMap } from '../js/game/swap.js';
+import { gymAlternatives, stretchAlternatives, resolveGymTemplate, resolveStretchItem, applyStretchSwaps, validateSwaps, cleanSwapMap } from '../js/game/swap.js';
 import { pickTask, candidates } from '../js/game/explore.js';
 
 const read = (f) => JSON.parse(readFileSync(new URL(`../data/${f}.json`, import.meta.url), 'utf8'));

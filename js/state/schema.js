@@ -284,9 +284,7 @@ export function numInRange(spec, n) {
 
 /* 以「字」（code point）計算長度，中文、emoji 都算 1 字 */
 export function textLength(s) {
-  let n = 0;
-  for (const _ of s) n++;
-  return n;
+  return Array.from(s).length;
 }
 export function isTooLong(spec, s) {
   return spec.maxLen !== undefined && s.length > spec.maxLen && textLength(s) > spec.maxLen;
@@ -450,7 +448,7 @@ export function readSeen(state) {
       level: isSeenLevel(seen.level) ? seen.level : null,
       perfectDay: isValidDateStr(seen.perfectDay) ? seen.perfectDay : null
     };
-  } catch (e) {
+  } catch {
     return { level: null, perfectDay: null };
   }
 }
@@ -459,7 +457,7 @@ export function readDeload(state) {
   try {
     const deload = gameField(state, 'deload');
     return { restoredOn: deload && isValidDateStr(deload.restoredOn) ? deload.restoredOn : null };
-  } catch (e) {
+  } catch {
     return { restoredOn: null };
   }
 }

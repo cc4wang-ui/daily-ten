@@ -311,7 +311,7 @@ export function migrate(raw, { now = new Date() } = {}) {
   let s;
   try {
     s = deepClone(raw);
-  } catch (e) {
+  } catch {
     throw new MigrationError('資料無法複製，無法遷移');
   }
   const log = issueLog();

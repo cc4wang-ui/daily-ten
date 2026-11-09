@@ -64,11 +64,10 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      # 沒有 tsc、沒有 lint —— 誠實說明，不是漏寫。
-      # package.json 描述寫明「App 本身沒有 build」；這是純 JS PWA，
-      # 沒有 TypeScript、沒有 lint script、沒有 eslint 相依套件。
-      # 所以本 workflow 不編造 tsc 或 lint 指令；check job = 上面三步。
-      # 若將來導入 TS 或 ESLint（計畫 step 3），再把對應指令加回這個 job。
+      # 4. ESLint（計畫 step 3 導入；package.json："lint": "eslint js tests"）。
+      #    沒有 tsc —— 這是純 JS PWA，沒有 TypeScript，所以本 job 不跑 tsc。
+      - name: Lint
+        run: npm run lint
 
   e2e:
     name: e2e (Playwright)

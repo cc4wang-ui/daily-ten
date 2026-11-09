@@ -8,7 +8,7 @@ import {
   needsBackupReminder, parseImport, diffSummary, applyImport, downloadBackup, downloadRawBackup
 } from '../js/state/backup.js';
 import { validateImport } from '../js/state/schema.js';
-import { readFixture, loadFixture, NOW, DAY_MS, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords, CHECKIN_LOG, CHECKIN_STARTED_AT } from './state.helpers.js';
+import { readFixture, loadFixture, NOW, DAY_MS, MemoryStorage, installGlobals, clearGlobals, useTokyoTime, findBannedWords, CHECKIN_LOG } from './state.helpers.js';
 
 useTokyoTime(test);
 test.afterEach(() => clearGlobals());
