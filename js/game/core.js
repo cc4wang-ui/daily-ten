@@ -274,3 +274,4 @@ export function pickCoachLine(coach, sum, now = new Date()) {
   const seed = [...t.date].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
   return list[seed % list.length];
 }
+// branch-protection verification (step 4): test PR comment
