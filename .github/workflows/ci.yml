@@ -1,23 +1,87 @@
+# daily-ten — GitHub Actions CI（草稿，step 2 準備用，未推送）
+#
+# 來源：IMPROVEMENT-PLAN.md §1 第 4 層（CI 門檻）＋ ci-gates/REPORT.md §5。
+# 本檔所有指令都取自本 repo 真實的 package.json 與現有 CI
+# （2026-11-09 於 ~/workspace/daily-ten-fix/repo-swap/ 讀取），沒有憑空編造的 script。
+#
+# 與現有 CI 的關係：repo 裡已有一份 .github/workflows/ci.yml（單一 test job、
+# 只在 push 觸發、無彙總 job）。本草稿取代它：拆成 check / e2e 兩個 job、
+# 加上 pull_request 觸發與 required 彙總 job；原有的檢查步驟
+# （check-repo、glossary、test:unit、upgrade baseline、npm test）全部原樣保留，
+# 只是分到對應的 job。推送時用本檔覆蓋舊檔，不要兩個並存。
 name: CI
 
+# 觸發：PR 全跑；push 只跑 main。不要寫裸 on: [push, pull_request]，
+# 那會讓同一個 PR commit 觸發兩次 run（ci-gates/REPORT.md §5）。
+# 注意：舊 CI 是裸 push（所有分支都跑）；改為 push main + pull_request 後，
+# 功能分支的 push 不再單獨跑 CI，改由 PR 事件覆蓋。
 on:
+  pull_request:
   push:
-  workflow_dispatch:
+    branches: [main]
 
+# 同分支新 push 取消舊 run，避免舊綠燈覆蓋新紅燈（REPORT.md §5）。
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  check:
+    name: check (repo checks + glossary + unit)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      # fetch-depth: 0 是 check-repo.mjs 需要的：它拿 origin/main 比對
+      # Service Worker CACHE 版號（本分支改了 App 檔時版號必須大於 main）。
+      # 淺 clone 沒有 origin/main，這步會誤判。
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
+        with:
+          # 與舊 CI 相同（node 22）；check-repo.mjs 檔頭亦註明「零依賴，Node 22」。
+          node-version: 22
+          cache: npm
+
+      - name: Install dev dependencies
+        run: npm ci
+
+      # 以下三步與舊 CI 完全相同（指令逐字照抄）：
+      # 1. Repo 檢查：失效網址、SW 版號與預快取、前端掃描、示範影片登錄。
+      - name: Repo checks
+        run: node .github/scripts/check-repo.mjs
+
+      # 2. 用語表檢查（台灣繁中，新增字串 0 違規）。
+      - name: Glossary check
+        run: node tools/jev/check-glossary.js --self-test && node tools/jev/check-glossary.js --ci --no-report
+
+      # 3. 引擎單元測試（XP／等級／連續／Perfect／成就／舊資料搬移），
+      #    package.json："test:unit": "node --test tests/*.test.mjs"。
+      - name: Unit tests
+        run: npm run test:unit
+
+      # 沒有 tsc、沒有 lint —— 誠實說明，不是漏寫。
+      # package.json 描述寫明「App 本身沒有 build」；這是純 JS PWA，
+      # 沒有 TypeScript、沒有 lint script、沒有 eslint 相依套件。
+      # 所以本 workflow 不編造 tsc 或 lint 指令；check job = 上面三步。
+      # 若將來導入 TS 或 ESLint（計畫 step 3），再把對應指令加回這個 job。
+
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # fetch-depth: 0 是 upgrade-baseline 步驟需要的：
+      # git worktree add "$RUNNER_TEMP/upgrade-base" origin/main。
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -25,30 +89,52 @@ jobs:
       - name: Install dev dependencies
         run: npm ci
 
-      - name: Repo checks（失效網址、SW 版號與預快取、前端掃描、示範影片登錄）
-        run: node .github/scripts/check-repo.mjs
-
-      - name: 用語表檢查（台灣繁中，新增字串 0 違規）
-        run: node tools/jev/check-glossary.js --self-test && node tools/jev/check-glossary.js --ci --no-report
-
-      - name: 引擎單元測試（XP／等級／連續／Perfect／成就／舊資料搬移）
-        run: npm run test:unit
-
-      - name: Install Chromium for Playwright
+      # 瀏覽器版本釘選：不要裝「最新版 Chromium」，要裝 lockfile 決定的版本。
+      # 教訓：Chromium 1194 全敗／1243 全過是環境漂移，不是 flaky ——
+      # 版本一變，e2e 結果就跟著變，重跑沒有用。所以版本必須可重現、可追溯。
+      # 釘選機制就是 npm ci：package-lock.json 鎖住 @playwright/test 的確切版本。
+      # 現況（2026-11-09）：daily-ten 鎖 Playwright 1.56.1，內建 Chromium
+      # revision 是 1194（browserVersion 141.0.7390.37）—— 也就是 general-decision
+      # 那次全敗事件裡的同一個 revision。這不代表 1194 在 daily-ten 上是壞的
+      # （舊 CI 一直用它跑），但代表：升級 Playwright = 換瀏覽器版本，
+      # 必須是有意的 commit，且升級後要先看這裡的 run log 確認 revision 再判讀結果。
+      # --with-deps 同時裝系統依賴（本機 VM 換機後缺系統庫的教訓，見 AGENTS.md）。
+      - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      # 目前線上版本（origin/main），給「舊版 → 新版」的自動更新測試用；在 main 上與 HEAD 相同時測試會自動略過
+      # 版本寫進 run log：門檻的一部分。將來 e2e 全敗時，第一件事是對照
+      # 這裡的 revision，而不是先猜 flaky。
+      - name: Log browser version
+        run: |
+          npx playwright --version
+          node -e "const b = require('./node_modules/playwright-core/browsers.json'); const c = b.browsers.find(x => x.name === 'chromium'); console.log('chromium revision:', c.revision, '| browserVersion:', c.browserVersion)"
+          ls ~/.cache/ms-playwright/
+
+      # 目前線上版本（origin/main），給「舊版 → 新版」的自動更新測試用；
+      # 在 main 上與 HEAD 相同時測試會自動略過（舊 CI 原註解，照抄）。
       - name: Prepare upgrade baseline
         run: git worktree add "$RUNNER_TEMP/upgrade-base" origin/main
 
-      - name: Playwright（state 單元＋e2e）
+      # Port、browserName、server 重用 —— daily-ten 的設定檔已符合設計，不需前置修補：
+      # - playwright.config.js 已寫 projects: [{ name: 'chromium',
+      #   use: { browserName: 'chromium' } }]，且 PORT 可由環境變數指定（預設 4173）。
+      # - webServer 的 reuseExistingServer: false（寫死），不會接到舊 server。
+      # - CI 裡每個 job 都是全新的 runner，不存在其他 agent 共用同台機器、
+      #   也不存在另一個 server 佔住 4173 的可能，所以 port 在 CI 內就是專用的。
+      #   （教訓 round-13 F5 是本機多工共用 port 的問題；CI 的隔離正是解法。）
+      # - 設定檔在 CI 下 workers: 2、forbidOnly: true、serviceWorkers: 'block'。
+      # 指令取自 package.json："test": "playwright test"（state 單元＋e2e 全跑）。
+      - name: Playwright (state + e2e)
         run: npm test
         env:
+          PORT: 4173
           UPGRADE_BASE_DIR: ${{ runner.temp }}/upgrade-base
 
+      # 失敗時也要上傳報告：舊 CI 用 if: always()，等效於 !cancelled()；
+      # 這裡沿用 REPORT.md §5 的寫法（!cancelled()）。
       - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: |
@@ -56,3 +142,32 @@ jobs:
             test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  # TypeScript 式 required 彙總 job（REPORT.md §2 關鍵發現 2）：
+  # 狀態來自 job 結果本身，不是人工填寫 —— 這是讓「報告寫 PASS、實際 FAIL」
+  # 變成不可能的結構。分支保護的 required checks 要勾 check、e2e、required 三個。
+  required:
+    name: required
+    if: always()
+    needs: [check, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check all jobs
+        run: |
+          set -euo pipefail
+          echo "needs: ${{ toJSON(needs) }}"
+          echo '${{ toJSON(needs) }}' | jq -e '
+            to_entries
+            | map(select(.value.result != "success"))
+            | if length > 0
+              then (map(.key + ": " + .value.result) | join(", ") | "FAILING JOBS: " + . | error)
+              else "all jobs succeeded"
+              end
+          '
+        # 已知的 skipped 洞（REPORT.md §1），以及本彙總 job 堵洞的方式：
+        # GitHub 自己的 required-check 判定把 skipped 當成 Success —— 依賴失敗
+        # job 的 job 會被跳過、可能不擋合併。所以這裡不用「沒有 failure 就算過」，
+        # 而是要求每個 needs 的 result 嚴格等於 "success"；任何 skipped / failure /
+        # cancelled 都讓 required 失敗。if: always() 保證即使 check 或 e2e 失敗，
+        # required 仍會跑起來判定，而不是跟著被跳過。
