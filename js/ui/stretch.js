@@ -192,7 +192,7 @@ function beep(times) {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     const ac = beep.ac || (beep.ac = new AC());
     for (let i = 0; i < times; i++) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 880; g.gain.value = .08; o.connect(g); g.connect(ac.destination); const t = ac.currentTime + i * .18; o.start(t); o.stop(t + .12); }
-  } catch (e) { /* 沒聲音也沒關係 */ }
+  } catch { /* 沒聲音也沒關係 */ }
 }
 async function finish(variant, seconds, direct) {
   const R = rules();

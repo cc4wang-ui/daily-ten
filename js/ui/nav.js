@@ -10,7 +10,7 @@ export function setNavGuard(fn) { busy = typeof fn === 'function' ? fn : () => f
 export function onScreen(id, render) { renders.set(id, render); }
 
 export function goTo(id) {
-  try { if (busy()) return false; } catch (e) { return false; }
+  try { if (busy()) return false; } catch { return false; }
   showScreen(id);
   const render = renders.get(id);
   if (render) render();

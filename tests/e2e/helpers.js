@@ -80,6 +80,7 @@ export const test = base.extend({
     assertWatchClean(w);
   }, { auto: true }],
   /* 可切換根目錄的靜態伺服器（模擬 GitHub Pages 部署新版）。只有用到的測試才會啟動；測試結束（含逾時）一定關掉 */
+  // eslint-disable-next-line no-empty-pattern -- Playwright fixture 函式第一參數必須是物件解構，({}) 是框架要求的寫法
   deploy: async ({}, use, testInfo) => {
     const srv = await switchableServer(upgradePort(testInfo));
     await use(srv);
@@ -89,6 +90,7 @@ export const test = base.extend({
      Service Worker 自己發的請求（sw.js 本身、install 的 addAll、快取未命中的 fetch），模擬網址的 SW 會去連真的網路（註冊失敗）。
      PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 時 context.route 與 request 事件也涵蓋 SW 的請求（在 SW 連上時讀取）。
      只在這個測試期間設定（同一個 worker 的測試依序執行），結束後還原，不影響其他 spec。 */
+  // eslint-disable-next-line no-empty-pattern -- Playwright fixture 函式第一參數必須是物件解構，({}) 是框架要求的寫法
   swRouting: async ({}, use) => {
     const KEY = 'PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS';
     const prev = process.env[KEY];
@@ -106,7 +108,7 @@ export async function seedOnce(page, entries) {
       if (sessionStorage.getItem('__qa_seeded') === '1') return;
       for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
       sessionStorage.setItem('__qa_seeded', '1');
-    } catch (e) { /* about:blank 等沒有 storage 的文件 */ }
+    } catch { /* about:blank 等沒有 storage 的文件 */ }
   }, entries);
 }
 
@@ -168,7 +170,7 @@ export async function dismissCelebrations(page) {
 /* 用 App 自己的 hideToast 收掉復原 toast（會觸發「toast 收起後」的慶祝排程，與真人等 10 秒相同） */
 export async function hideToast(page) {
   await page.evaluate(async () => (await import(new URL('js/ui/toast.js', document.baseURI).href)).hideToast());
-  try { await page.clock.runFor(100); } catch (e) { /* 沒裝假時鐘的測試：真實 setTimeout 自己會跑 */ }
+  try { await page.clock.runFor(100); } catch { /* 沒裝假時鐘的測試：真實 setTimeout 自己會跑 */ }
 }
 export async function gotoTab(page, screenId) {
   await dismissCelebrations(page);
@@ -375,7 +377,7 @@ export async function recordSwMessages(page) {
         const d = e.data || {};
         window.__qaSwMsgs.push({ type: d.type, version: d.version, ports: e.ports ? e.ports.length : 0 });
       });
-    } catch (e) { /* 沒有 SW */ }
+    } catch { /* 沒有 SW */ }
   });
 }
 export const swMessages = (page) => page.evaluate(() => window.__qaSwMsgs || []);

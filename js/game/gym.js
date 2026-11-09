@@ -4,7 +4,6 @@
    buildDraft 會先把課表動作換成備用（js/game/swap.js 的 resolveGymTemplate），再依備用動作查上次紀錄與漸進建議；
    課表進行中換動作時，畫面層用 buildExercise 重建單一動作（同樣的邏輯）。 */
 import { resolveGymTemplate } from './swap.js';
-const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 export function setCount(tplSets) {
   if (Number.isInteger(tplSets)) return Math.max(1, Math.min(10, tplSets));

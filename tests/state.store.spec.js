@@ -139,7 +139,7 @@ test.describe('loadState：狀態', () => {
     let local = withLocal(truncated);
     expect((await loadState({ now: NOW })).error.backupKey).toBe('daily-ten-state.bak-v3');
     expect(local.getItem('daily-ten-state.bak-v3')).toBe(truncated);
-    local = withLocal('}}}garbage');
+    withLocal('}}}garbage');
     expect((await loadState({ now: NOW })).error.backupKey).toBe(BAK2);
   });
 

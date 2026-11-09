@@ -5,7 +5,7 @@ import { summary, v4, commit, achievementsData, rules } from './model.js';
 import { toastVisible, onToastHidden } from './toast.js';
 
 let open = null;
-const reduced = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+const reduced = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
 
 export function celebrationOpen() { return !!open; }
 

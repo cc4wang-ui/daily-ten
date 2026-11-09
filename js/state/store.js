@@ -33,10 +33,10 @@ const MSG = {
 let state = null;
 
 function windowStorage() {
-  try { return typeof window !== 'undefined' && window && window.storage ? window.storage : null; } catch (e) { return null; }
+  try { return typeof window !== 'undefined' && window && window.storage ? window.storage : null; } catch { return null; }
 }
 function local() {
-  try { return typeof localStorage !== 'undefined' && localStorage ? localStorage : null; } catch (e) { return null; }
+  try { return typeof localStorage !== 'undefined' && localStorage ? localStorage : null; } catch { return null; }
 }
 
 /* 讀取順序與原本相同：window.storage 有值先用，否則（或讀不出來時）用 localStorage */
@@ -47,14 +47,14 @@ async function readCandidates() {
     try {
       const r = await ws.get(STORAGE_KEY);
       if (r && r.value) out.push({ raw: String(r.value), source: 'window.storage' });
-    } catch (e) { /* 讀不到就換下一個來源 */ }
+    } catch { /* 讀不到就換下一個來源 */ }
   }
   const ls = local();
   if (ls) {
     try {
       const s = ls.getItem(STORAGE_KEY);
       if (s && !(out.length && out[0].raw === s)) out.push({ raw: s, source: 'localStorage' });
-    } catch (e) { /* 同上 */ }
+    } catch { /* 同上 */ }
   }
   return out;
 }
@@ -73,13 +73,13 @@ function tryLoad(raw, now) {
   let parsed;
   try {
     parsed = JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return { ok: false, code: 'parse', version: sniffVersion(raw) };
   }
   if (!isPlainObject(parsed)) return { ok: false, code: 'migrate', version: null };
   try {
     return { ok: true, result: migrate(parsed, { now }) };
-  } catch (e) {
+  } catch {
     return { ok: false, code: 'migrate', version: versionOf(parsed) };
   }
 }
@@ -115,7 +115,7 @@ function writeBackup(raw, version, now) {
         return key;
       }
     }
-  } catch (e) { /* 容量不足等 */ }
+  } catch { /* 容量不足等 */ }
   return null;
 }
 
@@ -127,7 +127,7 @@ function backupError(code, kind, candidate, key) {
 
 export async function loadState({ now = new Date() } = {}) {
   const result = await loadInto(now);
-  try { fillPhaseStartedAt(state, now); } catch (e) { /* 補不上就維持 null：engine 會改用第一次打卡當第 1 天 */ }
+  try { fillPhaseStartedAt(state, now); } catch { /* 補不上就維持 null：engine 會改用第一次打卡當第 1 天 */ }
   return result;
 }
 
@@ -175,19 +175,19 @@ export async function saveState() {
   try {
     mirrorLegacyToGame(state);
     s = JSON.stringify(state);
-  } catch (e) {
+  } catch {
     console.error('儲存失敗：資料僅存在記憶體中');
     return false;
   }
   let ok = false;
   const ws = windowStorage();
-  try { if (ws) { await ws.set(STORAGE_KEY, s); ok = true; } } catch (e) {}
+  try { if (ws) { await ws.set(STORAGE_KEY, s); ok = true; } } catch { /* 寫入失敗就跳過：改試 localStorage */ }
   const ls = local();
-  try { if (ls) { ls.setItem(STORAGE_KEY, s); ok = true; } } catch (e) {}
+  try { if (ls) { ls.setItem(STORAGE_KEY, s); ok = true; } } catch { /* 寫入失敗就跳過：資料仍在記憶體，下方會報錯 */ }
   if (!ok) console.error('儲存失敗：資料僅存在記憶體中');
   return ok;
 }
 
 export function migrateState(raw) {
-  try { return migrate(raw).state; } catch (e) { return null; }
+  try { return migrate(raw).state; } catch { return null; }
 }

@@ -3,7 +3,7 @@ import { $, esc } from './dom.js';
 import { icon } from './icons.js';
 import { goTo } from './nav.js';
 import { rules, v4, commit, now, summary } from './model.js';
-import { getState, setState, saveState } from '../state/store.js';
+import { setState } from '../state/store.js';
 import { defaultState } from '../state/schema.js';
 import { gameDay } from '../game/core.js';
 import { wireBackupCard } from './backup.js';

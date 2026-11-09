@@ -8,17 +8,17 @@ export const LEGACY_HOSTS = ['cc4wang-ui.github.io'];
 
 /* 畫面是 index.html 的 #mv-legacy（預設 hidden）。renderHome() 每次都呼叫 renderMoveCard() 重新判斷：
    - 舊網址（hostname 在 LEGACY_HOSTS）：搬家卡，不能關閉，其他功能照常。
-     ① 打開新網址（新分頁）　② 加入主畫面、以後從新圖示打開、刪除舊圖示的說明。
+     ① 打開新網址（新分頁） ② 加入主畫面、以後從新圖示打開、刪除舊圖示的說明。
    - 其他網址（新網址、localhost、127.0.0.1、Vercel 預覽網址…）：維持 hidden。
    不新增 localStorage key、不讀也不改 state。 */
 
 const NEW_HOST = hostOf(NEW_APP_URL);
 
 function hostOf(url) {
-  try { return new URL(url).hostname; } catch (e) { return ''; }
+  try { return new URL(url).hostname; } catch { return ''; }
 }
 function currentHost() {
-  try { return location.hostname; } catch (e) { return ''; }
+  try { return location.hostname; } catch { return ''; }
 }
 
 /* ---------- renderHome() 每次呼叫 ---------- */
