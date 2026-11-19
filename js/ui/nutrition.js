@@ -1,7 +1,8 @@
 /* Daily Ten — 營養（工具卡，不是第四個習慣：不計 XP、不算連續、不進成就）。
    今日頁入口卡 nutritionCard() → 畫面 s-nutrition：每日目標、5 餐逐餐打勾（1 次點擊，再點一次取消）、已打勾 kcal 合計、
    早上體重 1 欄、7 天平均與每週調整建議。數字全部來自 data/nutrition.json；計算在 js/game/nutrition.js。
-   打勾以遊戲日（04:00 換日）為 key，換日後自然是空的，不需要另外重置。語氣中性：沒打勾就只是沒打勾。 */
+   打勾以遊戲日（04:00 換日）為 key，換日後自然是空的，不需要另外重置。語氣中性：沒打勾就只是沒打勾。
+   畫面開著跨過 04:00：體重以「點記錄當下」的遊戲日存；打勾若發現日期已換，第一次點擊只重畫成新的一天，不寫入。 */
 import { $, esc } from './dom.js';
 import { icon } from './icons.js';
 import { goTo } from './nav.js';
@@ -63,13 +64,13 @@ export function renderNutrition() {
     <p class="small" style="margin:6px 0 0">${esc(C.rule)}</p></section>`;
 
   $('nutrition-body').innerHTML = target + meals + weight + `<p class="version" id="nut-disclaimer">${esc(C.disclaimer)}</p>`;
-  $('nutrition-body').querySelectorAll('[data-meal]').forEach((b) => { b.onclick = async () => { toggleMeal(v4(), date, b.dataset.meal); await commit(); renderNutrition(); }; });
+  $('nutrition-body').querySelectorAll('[data-meal]').forEach((b) => { b.onclick = async () => { if (today() !== date) { renderNutrition(); return; } toggleMeal(v4(), date, b.dataset.meal); await commit(); renderNutrition(); }; });
   $('nut-weight-form').onsubmit = async (ev) => {
     ev.preventDefault();
     const raw = $('nut-weight').value.trim();
     const kg = Math.round(Number(raw) * 10) / 10;
     if (raw === '' || !Number.isFinite(kg) || kg < W.minKg || kg > W.maxKg) { $('nut-weight-msg').textContent = `請輸入 ${W.minKg}–${W.maxKg} 之間的數字。`; return; }
-    setWeight(v4(), { date, kg, now: now() });
+    setWeight(v4(), { date: today(), kg, now: now() });
     await commit();
     renderNutrition();
     $('nut-weight-msg').textContent = `已記錄 ${kg1(kg)} kg。`;

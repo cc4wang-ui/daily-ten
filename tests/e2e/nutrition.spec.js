@@ -107,6 +107,31 @@ test('隔天自動重置：03:59 還算當天，04:00 之後是新的一天；�
   expect((await liveV4(page)).nutrition.meals).toEqual({ '2026-11-19': ['breakfast', 'lunch'] });
 });
 
+test('畫面開著跨過 04:00：打勾第一次點擊只重畫成新的一天，不寫進前一天', async ({ page }) => {
+  await openApp(page, { now: '2026-11-19T23:00:00+09:00' });
+  await openNutrition(page);
+  await page.click('.meal[data-meal="breakfast"]');
+  await page.clock.pauseAt(new Date('2026-11-20T07:00:00+09:00'));
+  await page.click('.meal[data-meal="lunch"]');
+  expect((await liveV4(page)).nutrition.meals).toEqual({ '2026-11-19': ['breakfast'] });
+  await expect(page.locator('.meal.done')).toHaveCount(0);
+  await expect(page.locator('#nut-sum')).toHaveText('0 / 3,400 kcal');
+  await page.click('.meal[data-meal="lunch"]');
+  expect((await liveV4(page)).nutrition.meals).toEqual({ '2026-11-19': ['breakfast'], '2026-11-20': ['lunch'] });
+});
+
+test('畫面開著跨過 04:00：早上體重存到新的一天，前一天的體重不被蓋掉', async ({ page }) => {
+  await openApp(page, { now: '2026-11-19T23:00:00+09:00' });
+  await openNutrition(page);
+  await page.fill('#nut-weight', '78.5');
+  await page.click('#nut-weight-save');
+  await page.clock.pauseAt(new Date('2026-11-20T07:00:00+09:00'));
+  await page.fill('#nut-weight', '79.0');
+  await page.click('#nut-weight-save');
+  const n = (await liveV4(page)).nutrition;
+  expect(n.weights.map((w) => [w.date, w.kg])).toEqual([['2026-11-19', 78.5], ['2026-11-20', 79]]);
+});
+
 test('體重：1 欄輸入、同一天重記覆蓋、範圍外不存；資料不足只說再記幾天', async ({ page }) => {
   await openApp(page, { now: NOW });
   await openNutrition(page);
