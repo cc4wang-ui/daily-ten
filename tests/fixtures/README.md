@@ -98,3 +98,4 @@ e2e 時間點：2026-10-05T20:00+09:00（已恢復、已慶祝、無升級卡）
 
 ## 4. 其他檔案
 - `harness.html`：`tests/state.browser.spec.js` 用的同源空白頁（在頁面內 `import('/js/state/*.js')`），不是 App 畫面，也不是 fixture。
+- `v4-no-nutrition.json`：`v3.json` 加上營養工具卡（2026-11-19）之前的 `state.v4`（沒有 `nutrition` 欄；伸展 2 筆、健身房日 一三五六、提示音關）。預期：開啟正常、沒有錯誤卡、`v4.nutrition = { meals: {}, weights: [] }`、原有 v4 欄位不變（`tests/e2e/nutrition.spec.js`、`tests/nutrition.test.mjs`）。

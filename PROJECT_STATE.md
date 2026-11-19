@@ -1,5 +1,21 @@
 # Daily Ten — Project State
 
+2026-11-19 營養工具卡（分支 feat/nutrition-plan，尚未 merge）：Cross「把這個營養指引做進去 daily ten介面」。今日頁新增營養入口卡（每天 3,400 kcal、蛋白質 175 g、脂肪 90 g、碳水 470 g、已打勾 kcal）→ 畫面 `s-nutrition`：5 餐逐餐打勾（1 次點擊、再點取消、以遊戲日為 key 所以 04:00 換日後自然重置）、早上體重 1 欄、7 天平均、每週調整建議。CACHE v37 → v38。踩坑：畫面開著跨過 04:00 時，不能用畫出來當下的日期寫入——體重用點記錄當下的遊戲日存，打勾若發現日期已換、第一次點擊只重畫（獨立把關者第 1 輪抓到，已有 2 條 e2e）。
+
+| 決策／假設 | 內容 |
+|---|---|
+| 定位 | 營養是工具卡，不是第四個習慣：不改三環、XP、連續天數、成就（單元測試比對 summarize 結果完全相同）。分頁仍是五顆，營養從今日頁進入。 |
+| 資料 | 數字只在 `data/nutrition.json`；計算在 `js/game/nutrition.js`（純函式）；紀錄在 `state.v4.nutrition = { meals: { 遊戲日: [餐 id] }, weights: [{ date, kg, at }] }`。舊資料沒有這欄 → `fillMissing` 補空值（只改記憶體，開 App 不寫入）；容器仍是 v3，備份／匯入原樣帶著走。 |
+| 每週變化 | 最近 7 天平均 − 前 7 天平均（滾動區間，四捨五入到 0.01 kg 再比較）。 |
+| ⚠️ +0.4 到 +0.5 kg | 原文沒寫，視為「不動」；剛好 +0.5 也不動（原文是「高於」）。 |
+| ⚠️ 資料不足 | 第一筆到今天未滿 14 天，或任一個 7 天區間少於 4 筆 → 只顯示「再記幾天」，不給加減建議。 |
+| ⚠️ 連續 2 週 | 需要 3 個 7 天區間（21 天）才判得出；只看得到 1 週偏低時顯示「先不動，再觀察 1 週」。 |
+| ⚠️ 建議只顯示 | 不會自動把每日目標改成 3,550 或 3,250；要改就改 `data/nutrition.json`。 |
+| 不放進 App | 醫療相關內容、訓練頻率與睡眠建議、90 kg 目標日期（契約「不做」；App 有公開網址）。 |
+| 文案 | 範例餐照契約逐字用「牛乳」（台灣口語多說「牛奶」，未改）。Jev 未執行；`tools/jev/rules-fallback.json` 不存在，改用 `tests/nutrition.test.mjs` 的禁用字測試＋`check:glossary`。 |
+
+踩坑：① 本機 Playwright 1.56.1 要 Chromium 1194，環境只有 1243 → 用 `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome` 跑。② CLAUDE.md 的 D22「低輸入模式」是開發流程（QA PASS＋CI 綠燈即 merge），不是 App 內的模式；契約 STOP 5 的「低輸入模式下可用」以原則 3（每個打卡 1 次點擊、不用選）驗證。③ e2e 的 `page.addInitScript` 在 about:blank 讀 sessionStorage 會丟例外並被守門抓到；多個 fixture 輪流測要各開一個 context。④ 舊欄位 `body.weight`（v3 容器）與新的 `v4.nutrition.weights` 並存不合併，舊欄位目前沒有畫面。
+
 2026-11-04 redo-v1（分支 redo/v1-habits）：依 Cross 2026-11-03 指示全面重做——三個習慣改為健身房 4 次／週、晨間伸展 15 分／天、每週 1 件新事物；UI 照主流習慣養成／健身 App 版型重寫（今日主行動卡＋三個習慣列＋本週三環＋週條；健身房 Hevy 式組數表＋休息計時；伸展引導倒數；探索任務卡；進度 KPI／熱力圖／PR／成就；設定）。示範影片改用 YouTube Shorts（22 支，搜尋頁觀看數最高且相關，/shorts/ 皆實測 200）；舊 AI 影格 media/exercises（76MB）與舊訓練／睡眠／Boss／AFT 畫面全部移除。資料：localStorage key 與 v3 容器不變，新資料在 state.v4；Phase 0／1 的健身房組數、伸展、探索自動搬入。快取 v35。測試：node 單元 16、Playwright 353 全綠（本機），check-repo／glossary 通過。踩坑：Node 測試要 TZ=Asia/Tokyo；Playwright 假時鐘下 setTimeout(0) 不會跑（toast 收起後的慶祝要 runFor）；慶祝卡要等復原 toast 收起（先 showToast 再 goTo）。
 
 2026-10-27 v30開發：使用者需要隨時加練HRP、Plank與2英里跑。分支codex/extra-practice-entry基於已發布4852b2d/v29；新增訓練頁三個直接入口，沿用計時／求助／重載恢復。加練只追加成績PR，不標記今日課表完成、不發課表XP、不改週日輪替。實作與獨立QA19項通過、程式審查PASS；Jev判met／supported／ship_after_gates。PR27待完整CI及正式站驗證後合併；v29交付後live報告已納入本分支。

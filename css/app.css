@@ -260,3 +260,26 @@ a{color:inherit}
   *{animation:none!important;transition:none!important}
 }
 @media (min-width:600px){ .badges{grid-template-columns:repeat(4,1fr)} }
+
+/* ===== 營養（工具卡，2026-11-19）：入口卡 .tool、逐餐打勾 .meal、體重 .nut-* ===== */
+.tool{display:flex;align-items:center;gap:var(--sp-3);background:var(--card);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);box-shadow:var(--shadow);border:0;text-align:left;width:100%;min-height:72px;margin:var(--sp-2) 0 var(--sp-3)}
+.tool .body,.meal .body{flex:1;min-width:0}
+.tool .name,.meal .name{font-weight:800;font-size:var(--fs-base);margin:0}
+.tool .meta,.meal .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0}
+.tool .chev{color:var(--ink-3);flex:none}
+.nut-kcal{margin:0 0 4px;font-size:var(--fs-2xl);font-weight:900;line-height:1.1}
+.nut-kcal small{font-size:var(--fs-md);font-weight:700;color:var(--ink-3)}
+.meals{display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-3)}
+.meal{display:flex;align-items:center;gap:var(--sp-3);width:100%;min-height:60px;padding:var(--sp-2) var(--sp-3);border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);text-align:left}
+.meal .circle{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--ink-3);display:flex;align-items:center;justify-content:center;color:#fff}
+.meal.done{background:var(--ok-soft);border-color:var(--ok-soft)}
+.meal.done .circle{background:var(--ok);border-color:var(--ok)}
+.meal .name .num{font-weight:600;color:var(--ink-2);margin-left:6px}
+.meal.done .meta{color:var(--ok-ink)}
+.nut-weight{display:flex;align-items:flex-end;gap:var(--sp-2)}
+.nut-weight .field{flex:1;margin:0 0 var(--sp-2)}
+.nut-weight .field input{font-size:var(--fs-md);font-weight:700}
+.nut-weight .btn{margin-bottom:var(--sp-2);background:var(--ink);color:var(--on-ink)}
+.nut-stats{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2)}
+.nut-stats > div{background:var(--fill);border-radius:var(--r-md);padding:var(--sp-3)}
+.nut-stats b{display:block;font-size:var(--fs-lg);margin-top:2px}

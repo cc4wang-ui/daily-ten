@@ -4,7 +4,7 @@ import { getState, saveState } from '../state/store.js';
 import { ensureV4, parseV4 } from '../state/v4.js';
 import { summarize, pickCoachLine, gameDay } from '../game/core.js';
 
-const files = ['game', 'gym', 'stretch', 'explore', 'achievements', 'coach', 'videos', 'swaps'];
+const files = ['game', 'gym', 'stretch', 'explore', 'achievements', 'coach', 'videos', 'swaps', 'nutrition'];
 const data = {};
 let sum = null;
 let nowFn = () => new Date();
@@ -29,6 +29,7 @@ export const achievementsData = () => (data.achievements && Array.isArray(data.a
 export const coachData = () => data.coach;
 export const videosData = () => data.videos;
 export const swapsData = () => data.swaps;
+export const nutritionData = () => data.nutrition;
 
 export function v4() { return ensureV4(getState()).v4; }
 export function refresh() {
