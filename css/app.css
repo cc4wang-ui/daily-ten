@@ -261,25 +261,97 @@ a{color:inherit}
 }
 @media (min-width:600px){ .badges{grid-template-columns:repeat(4,1fr)} }
 
-/* ===== 營養（工具卡，2026-11-19）：入口卡 .tool、逐餐打勾 .meal、體重 .nut-* ===== */
-.tool{display:flex;align-items:center;gap:var(--sp-3);background:var(--card);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);box-shadow:var(--shadow);border:0;text-align:left;width:100%;min-height:72px;margin:var(--sp-2) 0 var(--sp-3)}
-.tool .body,.meal .body{flex:1;min-width:0}
-.tool .name,.meal .name{font-weight:800;font-size:var(--fs-base);margin:0}
-.tool .meta,.meal .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0}
+/* ===== 營養（工具卡，2026-11-19；同日外觀改版）=====
+   入口卡 .tool.nutri 與習慣列同款，但不是 .habit（不算習慣）。主色 --nutri。圖表都是靜態 SVG／CSS，不加動畫。 */
+.tool{display:flex;align-items:center;gap:var(--sp-3);background:var(--card);border-radius:var(--r-lg);padding:var(--sp-3);box-shadow:var(--shadow);border:0;text-align:left;width:100%;min-height:72px;margin:var(--sp-2) 0 var(--sp-3)}
+.tool .body{flex:1;min-width:0}
+.tool .name{font-weight:800;font-size:var(--fs-md);margin:0}
+.tool .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tool .chev{color:var(--ink-3);flex:none}
-.nut-kcal{margin:0 0 4px;font-size:var(--fs-2xl);font-weight:900;line-height:1.1}
+/* 圓形圖示＋外圈進度（conic-gradient；--p 0–1） */
+.nut-dial{flex:none;width:48px;height:48px;border-radius:50%;padding:4px;background:conic-gradient(var(--nutri) calc(var(--p,0) * 1turn),var(--nutri-track) 0)}
+.nut-dial .circle{width:100%;height:100%;border-radius:50%;background:var(--nutri-soft);color:var(--nutri-ink);display:flex;align-items:center;justify-content:center}
+.nut-dial .circle .ic{width:22px;height:22px}
+.tool.nutri.done .nut-dial .circle{background:var(--nutri);color:#fff}
+
+/* 每日目標：熱量環＋三大營養素比例 */
+.nut-top{display:flex;align-items:center;gap:var(--sp-4);margin-bottom:var(--sp-4)}
+.nut-ring{position:relative;flex:none;width:128px;height:128px}
+.nut-ring svg{width:128px;height:128px;transform:rotate(-90deg)}
+.nut-ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.nut-ring .track{stroke:var(--nutri-track)}
+.nut-ring .bar{stroke:var(--nutri)}
+.nut-ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1}
+.nut-ring #nut-sum{display:flex;flex-direction:column;align-items:center}
+.nut-ring #nut-sum b{font-size:var(--fs-lg);font-weight:900}
+.nut-ring #nut-sum small{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:2px}
+.nut-ring .left{font-size:11px;font-weight:800;color:var(--nutri-ink);margin-top:4px}
+.nut-goal{flex:1;min-width:0}
+.nut-goal .small{margin:0}
+.nut-kcal{margin:2px 0 0;font-size:var(--fs-2xl);font-weight:900;line-height:1.05;letter-spacing:-.01em}
 .nut-kcal small{font-size:var(--fs-md);font-weight:700;color:var(--ink-3)}
-.meals{display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-3)}
-.meal{display:flex;align-items:center;gap:var(--sp-3);width:100%;min-height:60px;padding:var(--sp-2) var(--sp-3);border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);text-align:left}
-.meal .circle{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--ink-3);display:flex;align-items:center;justify-content:center;color:#fff}
-.meal.done{background:var(--ok-soft);border-color:var(--ok-soft)}
-.meal.done .circle{background:var(--ok);border-color:var(--ok)}
-.meal .name .num{font-weight:600;color:var(--ink-2);margin-left:6px}
-.meal.done .meta{color:var(--ok-ink)}
+.nut-split{display:flex;gap:3px;height:10px;border-radius:var(--r-pill);overflow:hidden;margin-bottom:var(--sp-3)}
+.nut-split i{display:block;height:100%}
+.nut-split .protein,.nut-macros .dot.protein{background:var(--protein)}
+.nut-split .fat,.nut-macros .dot.fat{background:var(--fat)}
+.nut-split .carb,.nut-macros .dot.carb{background:var(--carb)}
+.nut-macros{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2)}
+.nut-macros li{background:var(--fill);border-radius:var(--r-md);padding:10px 10px 8px;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:6px}
+.nut-macros .dot{width:8px;height:8px;border-radius:50%}
+.nut-macros .k{font-size:var(--fs-xs);font-weight:700;color:var(--ink-2)}
+.nut-macros b{grid-column:1 / -1;font-size:var(--fs-md);font-weight:900;margin-top:2px}
+.nut-macros .pct{grid-column:1 / -1;font-size:11px;color:var(--ink-2);font-weight:700}
+
+/* 5 餐：清單列，左圓圈打勾 */
+.tag.nutri{background:var(--nutri-soft);color:var(--nutri-ink)}
+.meals{display:flex;flex-direction:column}
+.meal{display:flex;align-items:center;gap:var(--sp-3);width:100%;min-height:64px;padding:10px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left}
+.meal:first-child{border-top:0;padding-top:0}
+.meal .circle{flex:none;width:36px;height:36px;border-radius:50%;border:2.5px solid var(--nutri);background:var(--card);display:flex;align-items:center;justify-content:center;color:transparent;transition:transform .12s ease}
+.meal:active .circle{transform:scale(.92)}
+.meal.done .circle{background:var(--nutri);color:#fff}
+.meal .body{flex:1;min-width:0}
+.meal .name{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-2);margin:0;font-weight:800;font-size:var(--fs-base)}
+.meal .name .num{flex:none;font-weight:700;font-size:var(--fs-sm);color:var(--ink-2)}
+.meal .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0}
+.meal.done .name .num{color:var(--nutri-ink)}
+.nut-hint{margin:var(--sp-3) 0 var(--sp-2)}
+.nut-tip{display:flex;gap:var(--sp-2);align-items:flex-start;margin:0;padding:10px 12px;border-radius:var(--r-md);background:var(--nutri-soft);color:var(--nutri-ink);font-size:var(--fs-sm);font-weight:600}
+.nut-tip .ic-wrap{flex:none;margin-top:1px}
+
+/* 體重 */
 .nut-weight{display:flex;align-items:flex-end;gap:var(--sp-2)}
-.nut-weight .field{flex:1;margin:0 0 var(--sp-2)}
-.nut-weight .field input{font-size:var(--fs-md);font-weight:700}
-.nut-weight .btn{margin-bottom:var(--sp-2);background:var(--ink);color:var(--on-ink)}
+.nut-weight .field{flex:1;margin:0}
+.kg-input{position:relative}
+.kg-input input[type=number]{width:100%;min-height:52px;padding:0 44px 0 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--fill);font-family:var(--font-num);font-size:var(--fs-lg);font-weight:800;-moz-appearance:textfield}
+.kg-input input::-webkit-outer-spin-button,.kg-input input::-webkit-inner-spin-button{-webkit-appearance:none}
+.kg-input input::placeholder{font-family:var(--font);font-size:var(--fs-base);font-weight:600;color:var(--ink-2);opacity:1}
+.kg-input input:focus{outline:2px solid var(--nutri);outline-offset:1px;background:var(--card)}
+.kg-input .suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--ink-2);pointer-events:none}
+.nut-weight .btn{min-height:52px;border-radius:var(--r-md);background:var(--ink);color:var(--on-ink);padding:0 var(--sp-5)}
+.nut-msg{min-height:1.4em;margin:6px 0 var(--sp-2)}
+.nut-trend{margin:0 0 var(--sp-3)}
+.nut-trend-head{display:flex;justify-content:space-between;gap:var(--sp-2);font-size:var(--fs-xs);color:var(--ink-3);font-weight:700;margin-bottom:4px}
+.nut-trend svg{display:block;width:100%;height:72px;overflow:visible}
+.nut-trend .area{fill:var(--nutri-track);stroke:none}
+.nut-trend .line{fill:none;stroke:var(--nutri);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.nut-trend .last{fill:var(--card);stroke:var(--nutri);stroke-width:2.5;vector-effect:non-scaling-stroke}
 .nut-stats{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2)}
 .nut-stats > div{background:var(--fill);border-radius:var(--r-md);padding:var(--sp-3)}
-.nut-stats b{display:block;font-size:var(--fs-lg);margin-top:2px}
+.nut-stats .small{font-weight:700;color:var(--ink-2)}
+.nut-stats b{display:block;font-size:var(--fs-xl);font-weight:900;margin-top:2px;line-height:1.1}
+.nut-stats > div.ok b{color:var(--ok-ink)} .nut-stats > div.up b,.nut-stats > div.watch b{color:var(--nutri-ink)} .nut-stats > div.down b{color:var(--warn-ink)}
+.tag.advice.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.tag.advice.up,.tag.advice.watch{background:var(--nutri-soft);color:var(--nutri-ink)}
+.tag.advice.down{background:var(--warn-soft);color:var(--warn-ink)}
+.nut-advice{margin:var(--sp-3) 0 0;padding:var(--sp-3);border-radius:var(--r-md);background:var(--fill);font-weight:600;font-size:var(--fs-base)}
+.nut-advice.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.nut-advice.up,.nut-advice.watch{background:var(--nutri-soft);color:var(--nutri-ink)}
+.nut-advice.down{background:var(--warn-soft);color:var(--warn-ink)}
+.nut-rules{margin-top:var(--sp-2);border-top:1px solid var(--line)}
+.nut-rules summary{list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:var(--touch);font-size:var(--fs-sm);font-weight:700;color:var(--ink-2);cursor:pointer}
+.nut-rules summary::-webkit-details-marker{display:none}
+.nut-rules summary .chev{flex:none;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .15s ease}
+.nut-rules[open] summary .chev{transform:rotate(90deg)}
+.nut-rules p{margin:0 0 var(--sp-2)}
+#nut-disclaimer{color:var(--ink-2)}

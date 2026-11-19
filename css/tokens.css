@@ -1,7 +1,8 @@
 /* Daily Ten — 設計 token（redo-v1）。app.css 只引用這裡的變數。
    版型參考主流習慣養成／健身 App：淺灰底、白卡片、每個習慣一個主色、深墨主按鈕、底部分頁列。
    對比（白底）：主文字 #0F172A 17.9:1；次要 #475569 7.5:1；提示 #64748B 5.4:1；
-   習慣加深色用在文字：健身房 #C2410C 5.1:1、伸展 #0F766E 5.6:1、探索 #6D28D9 6.9:1。 */
+   習慣加深色用在文字：健身房 #C2410C 5.1:1、伸展 #0F766E 5.6:1、探索 #6D28D9 6.9:1；營養 #3F6212 7.1:1（淺綠底 6.4:1）。
+   營養（工具卡，不是習慣）主色 --nutri；三大營養素比例條用 --protein／--fat／--carb（只當色塊，旁邊一定有文字標籤）。 */
 :root{
   color-scheme:light;
   --bg:#F3F4F6; --card:#FFFFFF; --ink:#0F172A; --ink-2:#475569; --ink-3:#64748B;
@@ -9,6 +10,8 @@
   --gym:#F97316; --gym-ink:#C2410C; --gym-soft:#FFF1E7; --gym-track:rgba(249,115,22,.18);
   --stretch:#14B8A6; --stretch-ink:#0F766E; --stretch-soft:#E3F8F5; --stretch-track:rgba(20,184,166,.18);
   --explore:#8B5CF6; --explore-ink:#6D28D9; --explore-soft:#F1ECFF; --explore-track:rgba(139,92,246,.18);
+  --nutri:#65A30D; --nutri-ink:#3F6212; --nutri-soft:#F0F7E1; --nutri-track:rgba(101,163,13,.18);
+  --protein:#E11D48; --fat:#F59E0B; --carb:#0EA5E9;
   --flame:#F59E0B; --flame-soft:#FEF3C7; --flame-ink:#92400E;
   --ok:#16A34A; --ok-soft:#DCFCE7; --ok-ink:#166534;
   --warn-soft:#FEF3C7; --warn-ink:#92400E;
