@@ -94,10 +94,10 @@ try {
 
 /* ===== 開機 ===== */
 async function boot() {
-  const [store, dom, nav, model, icons, home, gym, stretch, explore, progress, settings, backupUi, celebrate, update] = await Promise.all([
+  const [store, dom, nav, model, icons, home, gym, stretch, explore, progress, settings, backupUi, celebrate, update, nutrition] = await Promise.all([
     import('./state/store.js'), import('./ui/dom.js'), import('./ui/nav.js'), import('./ui/model.js'), import('./ui/icons.js'),
     import('./ui/home.js'), import('./ui/gym.js'), import('./ui/stretch.js'), import('./ui/explore.js'), import('./ui/progress.js'),
-    import('./ui/settings.js'), import('./ui/backup.js'), import('./ui/celebrate.js'), import('./ui/update.js')]);
+    import('./ui/settings.js'), import('./ui/backup.js'), import('./ui/celebrate.js'), import('./ui/update.js'), import('./ui/nutrition.js')]);
   const { goTo, onScreen, setNavGuard } = nav;
   busyNow = () => gym.sessionOpen() || stretch.guideOpen() || celebrate.celebrationOpen();
   setNavGuard(() => false);
@@ -107,6 +107,7 @@ async function boot() {
   onScreen('s-explore', explore.renderExplore);
   onScreen('s-progress', progress.renderProgress);
   onScreen('s-settings', settings.renderSettings);
+  onScreen('s-nutrition', nutrition.renderNutrition);
   document.querySelectorAll('#tabs button').forEach((b) => { b.querySelector('.ic').innerHTML = icons.icon(b.querySelector('.ic').dataset.ic); b.onclick = () => goTo(b.dataset.s); });
   dom.$('h-settings').onclick = () => goTo('s-settings');
   /* 時鐘注入（測試用）：window.__dtNow = () => Date */

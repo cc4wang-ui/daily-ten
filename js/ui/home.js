@@ -1,4 +1,4 @@
-/* Daily Ten — 今日（redo-v1）。版型：主行動卡（一顆按鈕）→ 三個習慣列（左圓打勾）→ 本週三環＋XP → 週條 → 教練一句。
+/* Daily Ten — 今日（redo-v1）。版型：主行動卡（一顆按鈕）→ 三個習慣列（左圓打勾）→ 營養入口卡（工具，不是習慣）→ 本週三環＋XP → 週條 → 教練一句。
    全部由 model.summary() 推導，不自己算；點擊只負責切畫面或開始流程。 */
 import { $, esc } from './dom.js';
 import { icon } from './icons.js';
@@ -6,6 +6,7 @@ import { goTo } from './nav.js';
 import { summary, rules, coachLine, now, v4 } from './model.js';
 import { renderMoveCard } from './relocate.js';
 import { queueCelebrations } from './celebrate.js';
+import { nutritionCard } from './nutrition.js';
 
 const WD = ['日', '一', '二', '三', '四', '五', '六'];
 const num = (n) => Number(n || 0).toLocaleString('zh-Hant-TW');
@@ -78,7 +79,7 @@ export function renderHome() {
 
   const coach = `<p class="small" style="text-align:center;margin:4px 8px 0">${esc(coachLine())}</p><p class="small" style="text-align:center;margin:4px 8px 0;color:var(--ink-2);font-weight:600">${esc(v4().settings.identity)}</p>`;
 
-  $('home-body').innerHTML = hero + habits + ringsCard + week + coach;
+  $('home-body').innerHTML = hero + habits + nutritionCard() + ringsCard + week + coach;
   $('home-body').querySelectorAll('[data-s]').forEach((b) => { b.onclick = () => goTo(b.dataset.s); });
   /* 主行動卡的「開始」直接進流程：伸展開引導、健身房開課；探索只切畫面 */
   if ($('hero-go') && next) $('hero-go').onclick = () => { goTo(next.screen); const btn = next.habit === 'stretch' ? $('st-start-full') : next.habit === 'gym' ? ($('gym-start') || $('gym-resume')) : null; if (btn) btn.click(); };

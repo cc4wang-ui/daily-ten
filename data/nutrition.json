@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "_notes": {
+    "about": "Cross 的營養指引（2026-11-19）。所有數字只放這裡；js/game/nutrition.js 只做決定性計算，js/ui/nutrition.js 只顯示。營養是工具卡，不計 XP、不算連續天數、不進成就。",
+    "source": "runs/daily-ten-nutrition/contract.md 的「營養指引」表（唯一數字來源）。熱量是估算：維持量約 3,000 加約 400。",
+    "formula": "175×4 + 90×9 + 470×4 = 3,390 kcal，約 3,400",
+    "assumptions": {
+      "a1_gap": "每週 +0.4 到 +0.5 kg 之間原文沒寫，視為「不動」（holdMaxKg 0.5 含）。",
+      "a2_minData": "體重紀錄不足 14 天（第一筆到今天未滿 minSpanDays，或任一個 7 天區間少於 minEntriesPerWindow 筆）時，不給加減建議。",
+      "a3_twoWeeks": "「連續 2 週低於 +0.2 kg」需要 3 個 7 天區間（21 天）才能判斷；只有 1 週偏低時顯示「再觀察 1 週」。",
+      "a4_displayOnly": "建議只顯示，不會自動改每日目標。"
+    }
+  },
+  "target": { "kcal": 3400, "proteinG": 175, "fatG": 90, "carbG": 470 },
+  "meals": [
+    { "id": "breakfast", "label": "早餐", "kcal": 700, "example": "燕麥或飯、3 顆蛋、牛乳" },
+    { "id": "lunch", "label": "午餐", "kcal": 800, "example": "飯、肉或魚、納豆、湯" },
+    { "id": "snack", "label": "16:30 點心", "kcal": 500, "example": "飯糰 2 個加牛乳" },
+    { "id": "dinner", "label": "晚餐", "kcal": 900, "example": "飯、肉或魚、蔬菜、橄欖油" },
+    { "id": "bedtime", "label": "睡前", "kcal": 500, "example": "牛乳、優格、香蕉、堅果" }
+  ],
+  "weight": {
+    "minKg": 30,
+    "maxKg": 250,
+    "windowDays": 7,
+    "minSpanDays": 14,
+    "minEntriesPerWindow": 4,
+    "holdMinKg": 0.2,
+    "holdMaxKg": 0.5,
+    "lowWeeksNeeded": 2,
+    "stepKcal": 150,
+    "stepCarbG": 40
+  },
+  "copy": {
+    "pace": "參考速度：每週 0.22–0.43 kg。",
+    "rule": "7 天平均每週 +0.2 到 +0.4 kg：不動。連續 2 週低於 +0.2 kg：每天加 150 kcal（碳水約 +40 g）。每週高於 +0.5 kg：每天減 150 kcal。",
+    "tip": "吃不完時先加液體熱量（牛乳、燕麥、橄欖油）。",
+    "weighIn": "每天早上量一次，看 7 天平均就好。",
+    "disclaimer": "熱量是估算，內容是一般性參考，不是醫療建議。"
+  }
+}

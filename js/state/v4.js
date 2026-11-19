@@ -10,6 +10,8 @@
                 swaps: { 原項目 id: 備用 id }（換動作，2026-11-08；備用沿用原項目的秒數） },
      explore: { current: null | { taskId, weekStart, pickedAt }, log: [ { date, taskId, title, category, interest: 1–5|null, note, at } ], skipped: [taskId] },
      pauses: [ { from, to, kind } ],
+     nutrition: { meals: { 'YYYY-MM-DD'（遊戲日）: [餐 id] }（營養工具卡，2026-11-19；別天的打勾不算＝隔天自動重置）,
+                  weights: [ { date（遊戲日）, kg, at: ISO } ]（一天一筆，重記覆蓋） }（舊資料沒有這欄 → fillMissing 補空值）,
      seen: { level, perfectDay, perfectWeek, achievements: [ids] }
    }
    第一次載入（state.v4 不存在）時由 ensureV4 建立，並把舊 Phase 0／1 的紀錄搬進來（冪等：只在 v4 不存在時做）：
@@ -32,6 +34,7 @@ export function defaultV4() {
     stretch: { log: [], swaps: {} },
     explore: { current: null, log: [], skipped: [] },
     pauses: [],
+    nutrition: { meals: {}, weights: [] },
     seen: { level: null, perfectDay: null, perfectWeek: null, achievements: [] }
   };
 }
@@ -98,6 +101,9 @@ function fillMissing(v4) {
   if (!Array.isArray(v4.explore.skipped)) v4.explore.skipped = [];
   if (!('current' in v4.explore)) v4.explore.current = null;
   if (!Array.isArray(v4.pauses)) v4.pauses = [];
+  if (!isObj(v4.nutrition)) v4.nutrition = d.nutrition;
+  if (!isObj(v4.nutrition.meals)) v4.nutrition.meals = {};
+  if (!Array.isArray(v4.nutrition.weights)) v4.nutrition.weights = [];
   if (!isObj(v4.seen)) v4.seen = d.seen;
   if (!Array.isArray(v4.seen.achievements)) v4.seen.achievements = [];
 }
@@ -133,11 +139,46 @@ export function parseV4(state) {
     stretch: { log: stretchLog },
     explore: { current, log: exploreLog, skipped: Array.isArray(raw.explore?.skipped) ? raw.explore.skipped.filter((x) => typeof x === 'string') : [] },
     pauses,
+    nutrition: parseNutrition(raw.nutrition),
     seen: { level: Number.isInteger(seen.level) ? seen.level : null, perfectDay: isValidDateStr(seen.perfectDay) ? seen.perfectDay : null, perfectWeek: isValidDateStr(seen.perfectWeek) ? seen.perfectWeek : null, achievements: Array.isArray(seen.achievements) ? seen.achievements.filter((x) => typeof x === 'string') : [] }
   };
 }
 
+/* 營養：壞資料過濾、不丟例外。體重只收 20–400 kg 的有限數字（畫面再依 data/nutrition.json 的範圍把關）；同一天取最後一筆；依日期排序。 */
+export function parseNutrition(raw) {
+  const meals = {};
+  if (isObj(raw?.meals)) {
+    for (const [d, ids] of Object.entries(raw.meals)) {
+      if (!isValidDateStr(d) || !Array.isArray(ids)) continue;
+      const clean = [...new Set(ids.filter((x) => typeof x === 'string' && x.length > 0 && x.length <= 40))].slice(0, 20);
+      if (clean.length) meals[d] = clean;
+    }
+  }
+  const byDate = new Map();
+  for (const w of Array.isArray(raw?.weights) ? raw.weights : []) {
+    if (!isObj(w) || !isValidDateStr(w.date) || !fin(w.kg) || w.kg < 20 || w.kg > 400) continue;
+    byDate.set(w.date, { date: w.date, kg: w.kg, at: typeof w.at === 'string' ? w.at : null });
+  }
+  const weights = [...byDate.values()].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-5000);
+  return { meals, weights };
+}
+
 /* ---------- 寫入（只改記憶體中的 state.v4；呼叫端 saveState） ---------- */
+/* 營養打勾：1 次點擊切換；回傳切換後是否已打勾 */
+export function toggleMeal(v4, date, mealId) {
+  fillMissing(v4);
+  const list = Array.isArray(v4.nutrition.meals[date]) ? v4.nutrition.meals[date] : [];
+  const on = !list.includes(mealId);
+  const next = on ? [...list, mealId] : list.filter((x) => x !== mealId);
+  if (next.length) v4.nutrition.meals[date] = next; else delete v4.nutrition.meals[date];
+  return on;
+}
+/* 體重：一天一筆，重記覆蓋；kg 為 null 時刪掉當天那筆 */
+export function setWeight(v4, { date, kg, now = new Date() }) {
+  fillMissing(v4);
+  v4.nutrition.weights = v4.nutrition.weights.filter((w) => !(isObj(w) && w.date === date));
+  if (fin(kg)) { v4.nutrition.weights.push({ date, kg, at: isoLocal(now) }); v4.nutrition.weights.sort((a, b) => (String(a?.date) < String(b?.date) ? -1 : 1)); }
+}
 export function logStretch(v4, { date, variant, now = new Date(), seconds = 0 }) {
   const idx = v4.stretch.log.findIndex((e) => e && e.date === date);
   const entry = { date, variant, at: isoLocal(now), seconds };

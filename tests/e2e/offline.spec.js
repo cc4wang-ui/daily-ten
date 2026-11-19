@@ -11,6 +11,9 @@ test('預快取清單：每個 App 檔都在、都存在（與 check-repo 同一
   expect(assets).toContain('./data/game.json');
   expect(assets).toContain('./data/videos.json');
   expect(assets).toContain('./data/explore.json');
+  expect(assets).toContain('./data/nutrition.json');
+  expect(assets).toContain('./js/game/nutrition.js');
+  expect(assets).toContain('./js/ui/nutrition.js');
   for (const a of assets) if (a !== './') expect(() => readRepo(a.replace(/^\.\//, '')), a).not.toThrow();
   expect(swCacheOf(readRepo('sw.js'))).toMatch(/^daily-ten-v\d+$/);
 });
@@ -40,6 +43,11 @@ test('離線：SW 安裝後斷網重新整理，今日頁照常、紀錄還在',
   await dismissCelebrations(page);
   await expect(page.locator('.habit.stretch')).toHaveClass(/done/);
   await expect(page.locator('#hero-go')).toBeVisible();
+  /* 營養工具卡離線也能用（data/nutrition.json、js/ui/nutrition.js 在預快取內） */
+  await page.click('#nut-open');
+  await page.click('.meal[data-meal="breakfast"]');
+  await expect(page.locator('#nut-sum')).toHaveText('700 / 3,400 kcal');
+  await page.click('#nutrition-back');
   await page.click('#tabs button[data-s="s-gym"]');
   await expect(page.locator('#gym-body')).toContainText('下一次：Upper A');
   await context.setOffline(false);
