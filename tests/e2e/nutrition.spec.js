@@ -20,11 +20,11 @@ const stateWithWeights = (days, kgOf) => {
   return seedState(JSON.stringify(st));
 };
 
-test('今日頁有營養入口：3,400 kcal、三大營養素、已打勾 kcal；三個習慣列不變', async ({ page }) => {
+test('今日頁有營養入口：已打勾 kcal／3,400 kcal 與餐數單行顯示；三個習慣列不變', async ({ page }) => {
   await openApp(page, { now: NOW });
   await expect(page.locator('#nut-open')).toBeVisible();
   await expect(page.locator('#nut-open .name')).toHaveText('營養');
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   await expect(page.locator('.habit')).toHaveCount(3);
   await expect(page.locator('#tabs button')).toHaveCount(5);
   await expectTouchTargets(page, '#s-home');
@@ -75,7 +75,7 @@ test('逐餐打勾 1 次點擊：合計即時更新、可取消、重開還在�
   expect((await storedState(page)).v4.nutrition.meals).toEqual({ '2026-11-19': ['dinner'] });
   await page.reload();
   await page.waitForFunction(() => document.documentElement.dataset.ready === '1');
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 900 / 3,400 kcal（1/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('900 / 3,400 kcal · 1/5 餐');
   await expect(page.locator('.xp-line .num').first()).toHaveText(xpBefore);
   await expect(page.locator('#h-streak')).toHaveText('0');
   await expect(page.locator('#cele')).toBeHidden();
@@ -96,11 +96,11 @@ test('隔天自動重置：03:59 還算當天，04:00 之後是新的一天；�
   await expect(page.locator('#nut-sum')).toHaveText('1,500 / 3,400 kcal');
   await page.clock.pauseAt(new Date('2026-11-20T03:59:00+09:00'));
   await page.click('#nutrition-back');
-  await expect(page.locator('#nut-home-sum')).toContainText('今天已打勾 1,500 / 3,400 kcal');
+  await expect(page.locator('#nut-home-sum')).toContainText('1,500 / 3,400 kcal');
   await page.clock.pauseAt(new Date('2026-11-20T04:00:30+09:00'));
   await page.click('#tabs button[data-s="s-gym"]');
   await page.click('#tabs button[data-s="s-home"]');
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   await page.click('#nut-open');
   await expect(page.locator('.meal.done')).toHaveCount(0);
   await expect(page.locator('#nut-sum')).toHaveText('0 / 3,400 kcal');
@@ -192,7 +192,7 @@ test('舊資料（v4 沒有營養欄、以及更舊的 v3）：開啟正常、�
   const rest = { ...v4 };
   delete rest.nutrition;
   expect(rest).toEqual(before);
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   /* 只開 App 不寫入（沿用既有慣例）；第一次打勾後才存，原有欄位照舊 */
   expect(await page.evaluate((k) => localStorage.getItem(k), MAIN_KEY)).toBe(raw);
   await openNutrition(page);
@@ -237,7 +237,7 @@ test('備份往返：下載的備份含營養欄；刪除全部資料後匯入�
   await page.click('#cfg-wipe');
   await expect(page.locator('#s-home')).toHaveClass(/active/);
   expect((await liveV4(page)).nutrition).toEqual({ meals: {}, weights: [] });
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   await page.click('#h-settings');
   await page.fill('#exp-area', dl.text);
   await page.click('#imp-btn');
@@ -246,7 +246,7 @@ test('備份往返：下載的備份含營養欄；刪除全部資料後匯入�
   await expect(page.locator('#s-home')).toHaveClass(/active/);
   expect((await liveV4(page)).nutrition).toEqual(expected);
   expect((await storedState(page)).v4.nutrition).toEqual(expected);
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 1,200 / 3,400 kcal（2/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('1,200 / 3,400 kcal · 2/5 餐');
   await page.click('#nut-open');
   await expect(page.locator('#nut-weight')).toHaveValue('86.7');
   await expect(page.locator('.meal.done')).toHaveCount(2);
@@ -256,7 +256,7 @@ test('匯入的營養欄是壞資料：不白屏、畫面當成空的', async ({
   const st = JSON.parse(readFixture('v4-no-nutrition.json'));
   st.v4.nutrition = { meals: 'x', weights: [{ date: 'bad', kg: 'heavy' }, null, { date: '2026-11-19', kg: 9999 }] };
   await openApp(page, { now: NOW, seed: seedState(JSON.stringify(st)) });
-  await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
+  await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   await openNutrition(page);
   await expect(page.locator('#nut-avg')).toHaveText('—');
   await page.click('.meal[data-meal="breakfast"]');

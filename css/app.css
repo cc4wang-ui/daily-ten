@@ -266,8 +266,7 @@ a{color:inherit}
 .tool{display:flex;align-items:center;gap:var(--sp-3);background:var(--card);border-radius:var(--r-lg);padding:var(--sp-3);box-shadow:var(--shadow);border:0;text-align:left;width:100%;min-height:72px;margin:var(--sp-2) 0 var(--sp-3)}
 .tool .body{flex:1;min-width:0}
 .tool .name{font-weight:800;font-size:var(--fs-md);margin:0}
-.tool .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0}
-.tool .meta .nw{white-space:nowrap}
+.tool .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tool .chev{color:var(--ink-3);flex:none}
 /* 圓形圖示＋外圈進度（conic-gradient；--p 0–1） */
 .nut-dial{flex:none;width:48px;height:48px;border-radius:50%;padding:4px;background:conic-gradient(var(--nutri) calc(var(--p,0) * 1turn),var(--nutri-track) 0)}
@@ -355,3 +354,4 @@ a{color:inherit}
 .nut-rules summary .chev{flex:none;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);transition:transform .15s ease}
 .nut-rules[open] summary .chev{transform:rotate(90deg)}
 .nut-rules p{margin:0 0 var(--sp-2)}
+#nut-disclaimer{color:var(--ink-2)}

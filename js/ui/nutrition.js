@@ -29,7 +29,7 @@ export function nutritionCard() {
   const all = day.meals.length > 0 && day.count === day.meals.length;
   return `<button type="button" class="tool nutri${all ? ' done' : ''}" id="nut-open" data-s="s-nutrition">`
     + `<span class="nut-dial" style="--p:${ratio(day.kcal, day.targetKcal).toFixed(3)}"><span class="circle">${icon(all ? 'check' : 'bowl')}</span></span>`
-    + `<span class="body"><p class="name">營養</p><p class="meta" id="nut-home-sum"><span class="nw">今天已打勾 ${num(day.kcal)} / ${num(day.targetKcal)} kcal</span><span class="nw">（${day.count}/${day.meals.length} 餐）</span></p></span>`
+    + `<span class="body"><p class="name">營養</p><p class="meta" id="nut-home-sum" aria-label="今天已打勾 ${num(day.kcal)} / ${num(day.targetKcal)} kcal，${day.count}/${day.meals.length} 餐">${num(day.kcal)} / ${num(day.targetKcal)} kcal · ${day.count}/${day.meals.length} 餐</p></span>`
     + `<span class="chev">${icon('chevron', { size: 18 })}</span></button>`;
 }
 
