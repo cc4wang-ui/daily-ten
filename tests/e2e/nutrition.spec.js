@@ -23,8 +23,7 @@ const stateWithWeights = (days, kgOf) => {
 test('今日頁有營養入口：3,400 kcal、三大營養素、已打勾 kcal；三個習慣列不變', async ({ page }) => {
   await openApp(page, { now: NOW });
   await expect(page.locator('#nut-open')).toBeVisible();
-  await expect(page.locator('#nut-open .name')).toHaveText('營養 · 每天 3,400 kcal');
-  await expect(page.locator('#nut-open')).toContainText('蛋白質 175 g · 脂肪 90 g · 碳水 470 g');
+  await expect(page.locator('#nut-open .name')).toHaveText('營養');
   await expect(page.locator('#nut-home-sum')).toHaveText('今天已打勾 0 / 3,400 kcal（0/5 餐）');
   await expect(page.locator('.habit')).toHaveCount(3);
   await expect(page.locator('#tabs button')).toHaveCount(5);
@@ -36,7 +35,8 @@ test('營養畫面：每日目標、5 餐的 kcal 與範例餐逐字正確，附
   await openApp(page, { now: NOW });
   await openNutrition(page);
   await expect(page.locator('#nut-target')).toHaveText('3,400 kcal');
-  await expect(page.locator('#nut-macros')).toHaveText('蛋白質 175 g · 脂肪 90 g · 碳水 470 g');
+  const macros = await page.locator('#nut-macros li').evaluateAll((els) => els.map((e) => [e.querySelector('.k').textContent, e.querySelector('b').textContent, e.querySelector('.pct').textContent]));
+  expect(macros).toEqual([['蛋白質', '175 g', '21%'], ['脂肪', '90 g', '24%'], ['碳水', '470 g', '55%']]);
   await expect(page.locator('.meal')).toHaveCount(5);
   const rows = await page.locator('.meal').evaluateAll((els) => els.map((e) => [e.querySelector('.name').innerText.replace(/\s+/g, ' ').trim(), e.querySelector('.meta').innerText.trim()]));
   expect(rows).toEqual([
