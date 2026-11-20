@@ -188,7 +188,7 @@ test('舊資料（v4 沒有營養欄、以及更舊的 v3）：開啟正常、�
   await expect(page.locator('#boot-error')).toHaveCount(0);
   const before = JSON.parse(raw).v4;
   const v4 = await liveV4(page);
-  expect(v4.nutrition).toEqual({ meals: {}, weights: [] });
+  expect(v4.nutrition).toEqual({ meals: {}, weights: [], entries: {} });
   const rest = { ...v4 };
   delete rest.nutrition;
   expect(rest).toEqual(before);
@@ -198,7 +198,7 @@ test('舊資料（v4 沒有營養欄、以及更舊的 v3）：開啟正常、�
   await openNutrition(page);
   await page.click('.meal[data-meal="lunch"]');
   const st = await storedState(page);
-  expect(st.v4.nutrition).toEqual({ meals: { '2026-11-19': ['lunch'] }, weights: [] });
+  expect(st.v4.nutrition).toEqual({ meals: { '2026-11-19': ['lunch'] }, weights: [], entries: {} });
   expect(st.v4.stretch).toEqual(before.stretch);
   expect(st.v4.settings).toEqual(before.settings);
   expect(st.sessions).toEqual(JSON.parse(raw).sessions);
@@ -212,7 +212,7 @@ test('v3、V2a、Phase 1 舊 fixture：營養卡照常顯示、沒有錯誤卡',
     await openApp(page, { now: NOW, seed: seedState(readFixture(name)), url: `${baseURL}/index.html` });
     await dismissCelebrations(page);
     await expect(page.locator('#err-card'), name).not.toHaveClass(/danger/);
-    expect((await liveV4(page)).nutrition, name).toEqual({ meals: {}, weights: [] });
+    expect((await liveV4(page)).nutrition, name).toEqual({ meals: {}, weights: [], entries: {} });
     await expect(page.locator('#nut-open'), name).toBeVisible();
     assertWatchClean(w, name);
     await context.close();
@@ -226,7 +226,7 @@ test('備份往返：下載的備份含營養欄；刪除全部資料後匯入�
   await page.click('.meal[data-meal="snack"]');
   await page.fill('#nut-weight', '86.7');
   await page.click('#nut-weight-save');
-  const expected = { meals: { '2026-11-19': ['breakfast', 'snack'] }, weights: [{ date: '2026-11-19', kg: 86.7, at: '2026-11-19T08:30:00+09:00' }] };
+  const expected = { meals: { '2026-11-19': ['breakfast', 'snack'] }, weights: [{ date: '2026-11-19', kg: 86.7, at: '2026-11-19T08:30:00+09:00' }], entries: {} };
   await page.click('#nutrition-back');
   await page.click('#h-settings');
   const dl = await clickAndDownload(page, '#bk-download');
@@ -236,7 +236,7 @@ test('備份往返：下載的備份含營養欄；刪除全部資料後匯入�
   await page.clock.runFor(1500);
   await page.click('#cfg-wipe');
   await expect(page.locator('#s-home')).toHaveClass(/active/);
-  expect((await liveV4(page)).nutrition).toEqual({ meals: {}, weights: [] });
+  expect((await liveV4(page)).nutrition).toEqual({ meals: {}, weights: [], entries: {} });
   await expect(page.locator('#nut-home-sum')).toHaveText('0 / 3,400 kcal · 0/5 餐');
   await page.click('#h-settings');
   await page.fill('#exp-area', dl.text);

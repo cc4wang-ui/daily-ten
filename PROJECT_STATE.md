@@ -1,5 +1,7 @@
 # Daily Ten — Project State
 
+2026-11-20 記實際吃的＋照片估熱量（D30，分支 claude/jolly-darwin-gt2nhc，契約 runs/photo-kcal/contract.md）：Cross「營養部份要支援照片算熱量。我不一定照建議吃」。每餐三種記法：照建議打勾（照舊 1 次點擊）、拍照估算、手動輸入；另有「其他」。熱量環與今日入口卡改顯示實際攝取，並寫出還差多少 kcal、蛋白質還差幾 g。資料：`state.v4.nutrition.entries = { 遊戲日: [{ id, at, slot, name, kcal, proteinG, fatG, carbG, source }] }`，每天最多 20 筆；一餐有實際紀錄就忽略該餐打勾。照片在 App 內縮到長邊 1024 的 JPEG，送同網域 `/api/meal`，照片不存任何地方。離線、逾時、額度用完、不是餐點都退回手動輸入。CACHE v39 → v40。踩坑：① Vercel AI Gateway（Claude）要先綁信用卡才回應（403 customer_verification_required），所以改用 Cloudflare Workers AI 免費額度；備援函式留在 `tools/deploy/api/meal.js`，沒有上線。② Workers AI 的 llama-4-scout 會回壞掉的 JSON 與亂碼品名、gemma-4 要 45 秒；mistral-small-3.1 約 7–10 秒且穩定，設為第一順位，並強制 JSON schema。③ 相機 input 不要加 `capture`，否則 iPhone 不能從相簿選。④ 429／502 時瀏覽器自己會印一行 console error，e2e 要設 `guard.allowConsoleErrors`。
+
 2026-11-19 營養外觀改版（分支 feat/nutrition-ui）：Cross「UI不夠美觀」。營養有專屬主色 `--nutri`（萊姆綠，文字用 #3F6212，白底 7.1:1）；今日入口卡改成與習慣列同款（圓形碗圖示＋外圈顯示今天已打勾比例，但不是 `.habit`，不算習慣）；營養頁頂部改成熱量環＋三大營養素熱量比例條（由目標克數換算 21%／24%／55%）；5 餐改成清單列、左圓圈打勾；體重加最近 28 天內的趨勢線（原生 SVG，從第一筆畫到今天，少於 2 筆不畫）與依建議著色的提示框；調整規則收進可展開的「每週怎麼調整」。邏輯、資料、ID 都沒變。CACHE v38 → v39。踩坑：淺灰底（--fill）上的 --ink-3 只有 4.28:1，小字要用 --ink-2。
 
 2026-11-19 營養工具卡（PR #35，已 merge）：Cross「把這個營養指引做進去 daily ten介面」。今日頁新增營養入口卡（每天 3,400 kcal、蛋白質 175 g、脂肪 90 g、碳水 470 g、已打勾 kcal）→ 畫面 `s-nutrition`：5 餐逐餐打勾（1 次點擊、再點取消、以遊戲日為 key 所以 04:00 換日後自然重置）、早上體重 1 欄、7 天平均、每週調整建議。CACHE v37 → v38。踩坑：畫面開著跨過 04:00 時，不能用畫出來當下的日期寫入——體重用點記錄當下的遊戲日存，打勾若發現日期已換、第一次點擊只重畫（獨立把關者第 1 輪抓到，已有 2 條 e2e）。
