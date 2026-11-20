@@ -1,5 +1,7 @@
 # Daily Ten — 下一個對話接手
 
+2026-11-20 營養可記實際吃的＋照片估熱量（D30）。先讀 PROJECT_STATE.md 第一段、runs/photo-kcal/contract.md、docs/DEPLOY.md〈照片估熱量〉。留給 Cross 真機確認：iPhone 拍照與相簿選圖、直拍照片方向、估算等待時間。可選升級：Cross 在 Vercel 綁卡後，可改走 Claude 估算（`tools/deploy/api/meal.js`）。
+
 2026-11-04 redo-v1 已交付（見 PROJECT_STATE.md 第一段、runs/redo-v1/contract.md）。接手先讀 README 與 CLAUDE.md D29。未在機器上驗證、留給 Cross 真機確認：iPhone 主畫面 App 自動換到 v35、YouTube Short 連結在 iOS 跳 YouTube App、提示音在 iOS 需先點過畫面、離線冷啟動。下一輪可做：伸展每項的語音口令（TTS）、探索任務池擴充、暗色模式、週日週回顧卡。以下為歷史。
 
 2026-10-27 v30開發：使用者需要隨時加練HRP、Plank與2英里跑。分支codex/extra-practice-entry基於已發布4852b2d/v29；新增訓練頁三個直接入口，沿用計時／求助／重載恢復。加練只追加成績PR，不標記今日課表完成、不發課表XP、不改週日輪替。實作與獨立QA19項通過、程式審查PASS；Jev判met／supported／ship_after_gates。PR27待完整CI及正式站驗證後合併；v29交付後live報告已納入本分支。
