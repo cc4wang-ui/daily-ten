@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "_notes": {
     "about": "Cross 的營養指引（2026-11-19）。所有數字只放這裡；js/game/nutrition.js 只做決定性計算，js/ui/nutrition.js 只顯示。營養是工具卡，不計 XP、不算連續天數、不進成就。",
     "source": "runs/daily-ten-nutrition/contract.md 的「營養指引」表（唯一數字來源）。熱量是估算：維持量約 3,000 加約 400。",
@@ -9,6 +9,15 @@
       "a2_minData": "體重紀錄不足 14 天（第一筆到今天未滿 minSpanDays，或任一個 7 天區間少於 minEntriesPerWindow 筆）時，不給加減建議。",
       "a3_twoWeeks": "「連續 2 週低於 +0.2 kg」需要 3 個 7 天區間（21 天）才能判斷；只有 1 週偏低時顯示「再觀察 1 週」。",
       "a4_displayOnly": "建議只顯示，不會自動改每日目標。"
+    },
+    "actual": {
+      "source": "runs/photo-kcal/contract.md（D30，2026-11-20）。今日攝取＝打勾的建議餐＋所有實際紀錄（拍照估算、手動輸入、不屬於 5 餐的「其他」）。",
+      "b1_override": "一餐有實際紀錄時，用實際紀錄合計，該餐的打勾不算（不重複計算）；沒有實際紀錄且打勾，才用建議 kcal。",
+      "b2_planMacros": "建議餐沒有逐餐的營養素。打勾的建議餐，三大營養素＝每日目標 ×（該餐 kcal ÷ 5 餐 kcal 合計），四捨五入，是估算。",
+      "b3_nullMacros": "實際紀錄沒填的營養素當 0，並標記 macrosPartial，畫面顯示 copy.macrosPartial。",
+      "b4_left": "還差多少＝每日目標 − 實際攝取，最小為 0。",
+      "b5_portions": "photo.portions 的 factor 乘在伺服器回傳的每個品項上再四捨五入成整數，合計＝各品項相加。",
+      "b6_toolCard": "仍然是工具卡：實際紀錄不計 XP、不算連續天數、不進成就。"
     }
   },
   "target": { "kcal": 3400, "proteinG": 175, "fatG": 90, "carbG": 470 },
@@ -31,11 +40,30 @@
     "stepKcal": 150,
     "stepCarbG": 40
   },
+  "photo": {
+    "endpoint": "/api/meal",
+    "maxEdgePx": 1024,
+    "jpegQuality": 0.8,
+    "timeoutMs": 60000,
+    "portions": [
+      { "id": "less", "label": "少一點", "factor": 0.75 },
+      { "id": "same", "label": "剛好", "factor": 1 },
+      { "id": "more", "label": "多一點", "factor": 1.25 }
+    ]
+  },
   "copy": {
     "pace": "參考速度：每週 0.22–0.43 kg。",
     "rule": "7 天平均每週 +0.2 到 +0.4 kg：不動。連續 2 週低於 +0.2 kg：每天加 150 kcal（碳水約 +40 g）。每週高於 +0.5 kg：每天減 150 kcal。",
     "tip": "吃不完時先加液體熱量（牛乳、燕麥、橄欖油）。",
     "weighIn": "每天早上量一次，看 7 天平均就好。",
-    "disclaimer": "熱量是估算，內容是一般性參考，不是醫療建議。"
+    "disclaimer": "熱量是估算，內容是一般性參考，不是醫療建議。",
+    "photoPrivacy": "照片只用來估算，不會保存。",
+    "photoAccuracy": "照片估算的誤差可能有兩三成，看 7 天平均體重校正就好。",
+    "offline": "現在連不上，先手動記。",
+    "cap": "今天的估算次數用完了，先手動記。",
+    "notFood": "看不出是餐點，換一張或手動記。",
+    "failed": "這次沒估出來，再試一次或手動記。",
+    "macrosPartial": "有些紀錄沒填營養素，蛋白質可能少算。",
+    "planMacros": "照建議吃的餐，營養素按熱量比例估算。"
   }
 }
