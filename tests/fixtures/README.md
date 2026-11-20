@@ -98,4 +98,23 @@ e2e 時間點：2026-10-05T20:00+09:00（已恢復、已慶祝、無升級卡）
 
 ## 4. 其他檔案
 - `harness.html`：`tests/state.browser.spec.js` 用的同源空白頁（在頁面內 `import('/js/state/*.js')`），不是 App 畫面，也不是 fixture。
-- `v4-no-nutrition.json`：`v3.json` 加上營養工具卡（2026-11-19）之前的 `state.v4`（沒有 `nutrition` 欄；伸展 2 筆、健身房日 一三五六、提示音關）。預期：開啟正常、沒有錯誤卡、`v4.nutrition = { meals: {}, weights: [] }`、原有 v4 欄位不變（`tests/e2e/nutrition.spec.js`、`tests/nutrition.test.mjs`）。
+- `v4-no-nutrition.json`：`v3.json` 加上營養工具卡（2026-11-19）之前的 `state.v4`（沒有 `nutrition` 欄；伸展 2 筆、健身房日 一三五六、提示音關）。預期：開啟正常、沒有錯誤卡、`v4.nutrition = { meals: {}, weights: [], entries: {} }`（2026-11-20 起多 `entries`，只補在記憶體、不寫入）、原有 v4 欄位不變（`tests/e2e/nutrition.spec.js`、`tests/nutrition.test.mjs`、`tests/state.v4.spec.js`）。
+
+## 5. 實際吃的（`v4.nutrition.entries`，D30，2026-11-20）
+
+契約：`runs/photo-kcal/contract.md`〈State〉。容器版本不升（仍是 v3，`v4.version` 仍是 1）；容器的載入、備份、匯入都不認得 `state.v4`，原樣保留，清理在讀取時由 `parseNutrition` 做。三個檔案都是 `v4-no-nutrition.json` 加上 `v4.nutrition`，內容全是假資料；預期值由 `tests/state.v4.spec.js` 驗證。
+
+`Entry = { id, at（含 offset 的 ISO｜null）, slot（餐 id｜null）, name（1–40 字）, kcal（整數 1–5000）, proteinG／fatG（整數 0–500｜null）, carbG（整數 0–1000｜null）, source（'photo'｜'manual'） }`，每天最多 20 筆。state 只存文字與數字，不存照片。
+
+| Fixture | 內容 | 預期 |
+|---|---|---|
+| `v4-entries.json` | 好資料。打勾：11-19 早餐＋晚餐、11-20 早餐；體重 2 筆；entries：11-19 午餐「雞肉沙拉碗」405（photo）；11-20 午餐「牛肉麵」650（photo）、其他「拿鐵」180（manual，三大營養素 null）、晚餐「便當（排骨）」820（manual） | 載入 `ok`、不寫入；`parseV4(state).nutrition` 與檔案內容完全相同；備份 → 匯入 → 套用後 entries 原樣 |
+| `v4-entries-bad.json` | 壞資料。11-20 有 13 個項目（字串、null、沒有 id、名稱全空白、kcal 0／5001／`"500"`／缺少、小數、營養素超出範圍、`at: "yesterday"`、`slot: 7`、`source: "camera"`、多出的 `image`／`photo` 欄、id 重複、名稱 50 字）；11-21 空陣列；11-22 不是陣列；`2026-02-30`、`20261120` 不是日期；11-23 有 25 筆；11-24 kcal 5000 | 載入 `ok`（不出錯卡）、不寫入；讀取後剩三天：11-20 留 4 筆（`g1` kcal 499.6 → 500、蛋白質 30.4 → 30、脂肪 501 與碳水 −1 → null；`g2` `at`／`slot` → null、蛋白質 `"20"` → null、source → manual、沒有圖片欄；`g3` 名稱截到 40 字；`g4` 只有必要欄位）、11-23 留前 20 筆、11-24 留 1 筆；打勾（早餐、午餐）不被 parse 改動 |
+| `v4-entries-wrong-type.json` | `entries` 是陣列（型別錯）；打勾 1 筆、體重 1 筆 | 載入 `ok`；`entries` 讀成 `{}`，打勾與體重照常；`addEntry` 會在記憶體把它換成物件後寫入 |
+
+寫入規則（`js/state/v4.js`，只改記憶體，呼叫端 `saveState`）：
+- `addEntry(v4, { date, slot, name, kcal, proteinG, fatG, carbG, source, now })` → 回傳 id（`e-{時間 base36}-{序號}`，同一天不重複）。日期不對、名稱去空白後是空的、kcal 四捨五入後不在 1–5000、當天已有 20 筆 → 回 `null`，什麼都不寫。數字四捨五入；營養素不是數字或超出範圍 → `null`；名稱超過 40 字截斷。`slot` 有值時把該餐在 `meals[date]` 的打勾拿掉。
+- `removeEntry(v4, date, id)` → 回傳是否刪到；當天刪光就拿掉日期；不會把打勾加回去。
+- 舊資料（沒有 `nutrition` 或沒有 `entries`）：`ensureV4` 只在記憶體補 `entries: {}`，`created` 是 `false`，開 App 不寫入。
+- 匯入：這三個檔案 `parseImport` 都回 `ok: true`（容器不驗 `v4`）；差異摘要目前沒有營養的列。
+

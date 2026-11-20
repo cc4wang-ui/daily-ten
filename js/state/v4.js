@@ -11,7 +11,11 @@
      explore: { current: null | { taskId, weekStart, pickedAt }, log: [ { date, taskId, title, category, interest: 1–5|null, note, at } ], skipped: [taskId] },
      pauses: [ { from, to, kind } ],
      nutrition: { meals: { 'YYYY-MM-DD'（遊戲日）: [餐 id] }（營養工具卡，2026-11-19；別天的打勾不算＝隔天自動重置）,
-                  weights: [ { date（遊戲日）, kg, at: ISO } ]（一天一筆，重記覆蓋） }（舊資料沒有這欄 → fillMissing 補空值）,
+                  weights: [ { date（遊戲日）, kg, at: ISO } ]（一天一筆，重記覆蓋）,
+                  entries: { 'YYYY-MM-DD'（遊戲日）: [ { id, at: ISO, slot: 餐 id|null, name(1–40), kcal: 整數 1–5000,
+                             proteinG|fatG: 整數 0–500|null, carbG: 整數 0–1000|null, source: 'photo'|'manual' } ] }
+                           （實際吃的，2026-11-20 D30；每天最多 20 筆；只存文字與數字，照片不進 state） }
+                 （舊資料沒有 nutrition 或 entries → fillMissing 補空值，只改記憶體；容器版本不升）,
      seen: { level, perfectDay, perfectWeek, achievements: [ids] }
    }
    第一次載入（state.v4 不存在）時由 ensureV4 建立，並把舊 Phase 0／1 的紀錄搬進來（冪等：只在 v4 不存在時做）：
@@ -34,7 +38,7 @@ export function defaultV4() {
     stretch: { log: [], swaps: {} },
     explore: { current: null, log: [], skipped: [] },
     pauses: [],
-    nutrition: { meals: {}, weights: [] },
+    nutrition: { meals: {}, weights: [], entries: {} },
     seen: { level: null, perfectDay: null, perfectWeek: null, achievements: [] }
   };
 }
@@ -104,6 +108,7 @@ function fillMissing(v4) {
   if (!isObj(v4.nutrition)) v4.nutrition = d.nutrition;
   if (!isObj(v4.nutrition.meals)) v4.nutrition.meals = {};
   if (!Array.isArray(v4.nutrition.weights)) v4.nutrition.weights = [];
+  if (!isObj(v4.nutrition.entries)) v4.nutrition.entries = {};
   if (!isObj(v4.seen)) v4.seen = d.seen;
   if (!Array.isArray(v4.seen.achievements)) v4.seen.achievements = [];
 }
@@ -144,7 +149,22 @@ export function parseV4(state) {
   };
 }
 
-/* 營養：壞資料過濾、不丟例外。體重只收 20–400 kg 的有限數字（畫面再依 data/nutrition.json 的範圍把關）；同一天取最後一筆；依日期排序。 */
+/* 營養：壞資料過濾、不丟例外。體重只收 20–400 kg 的有限數字（畫面再依 data/nutrition.json 的範圍把關）；同一天取最後一筆；依日期排序。
+   entries（實際吃的）：日期不是真實的 YYYY-MM-DD → 整天丟掉；每筆要有 id、名稱（去空白後 1–40 字，太長截斷）、kcal（四捨五入後 1–5000）才留；
+   三大營養素不是數字或超出範圍 → null（不猜）；slot 不是字串 → null；source 不是 'photo' 就當 'manual'；at 不是含 offset 的 ISO → null；
+   同一天 id 重複只留第一筆；每天最多留前 20 筆；不認得的欄位（例如圖片）一律不帶出。 */
+export const ENTRY_LIMITS = Object.freeze({ perDay: 20, nameMax: 40, kcal: [1, 5000], proteinG: [0, 500], fatG: [0, 500], carbG: [0, 1000] });
+const entryName = (v) => (typeof v === 'string' ? [...v.trim()].slice(0, ENTRY_LIMITS.nameMax).join('').trim() : '');
+const entryKcal = (v) => { const n = fin(v) ? Math.round(v) : NaN; return n >= ENTRY_LIMITS.kcal[0] && n <= ENTRY_LIMITS.kcal[1] ? n : null; };
+const entryMacro = (v, [min, max]) => { const n = fin(v) ? Math.round(v) : NaN; return n >= min && n <= max ? n : null; };
+const entrySlot = (v) => (typeof v === 'string' && v.length > 0 && v.length <= 40 ? v : null);
+function cleanEntry(e) {
+  if (!isObj(e) || typeof e.id !== 'string' || !e.id || e.id.length > 40) return null;
+  const name = entryName(e.name);
+  const kcal = entryKcal(e.kcal);
+  if (!name || kcal === null) return null;
+  return { id: e.id, at: isIsoWithOffset(e.at) ? e.at : null, slot: entrySlot(e.slot), name, kcal, proteinG: entryMacro(e.proteinG, ENTRY_LIMITS.proteinG), fatG: entryMacro(e.fatG, ENTRY_LIMITS.fatG), carbG: entryMacro(e.carbG, ENTRY_LIMITS.carbG), source: e.source === 'photo' ? 'photo' : 'manual' };
+}
 export function parseNutrition(raw) {
   const meals = {};
   if (isObj(raw?.meals)) {
@@ -160,7 +180,23 @@ export function parseNutrition(raw) {
     byDate.set(w.date, { date: w.date, kg: w.kg, at: typeof w.at === 'string' ? w.at : null });
   }
   const weights = [...byDate.values()].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-5000);
-  return { meals, weights };
+  const entries = {};
+  if (isObj(raw?.entries)) {
+    for (const [d, list] of Object.entries(raw.entries)) {
+      if (!isValidDateStr(d) || !Array.isArray(list)) continue;
+      const seen = new Set();
+      const clean = [];
+      for (const e of list) {
+        if (clean.length >= ENTRY_LIMITS.perDay) break;
+        const c = cleanEntry(e);
+        if (!c || seen.has(c.id)) continue;
+        seen.add(c.id);
+        clean.push(c);
+      }
+      if (clean.length) entries[d] = clean;
+    }
+  }
+  return { meals, weights, entries };
 }
 
 /* ---------- 寫入（只改記憶體中的 state.v4；呼叫端 saveState） ---------- */
@@ -172,6 +208,40 @@ export function toggleMeal(v4, date, mealId) {
   const next = on ? [...list, mealId] : list.filter((x) => x !== mealId);
   if (next.length) v4.nutrition.meals[date] = next; else delete v4.nutrition.meals[date];
   return on;
+}
+/* 實際吃的：加一筆，回傳 id；不合格（日期不對、名稱去空白後是空的、kcal 四捨五入後不在 1–5000、當天已滿 20 筆）→ 回 null，什麼都不寫。
+   數字四捨五入成整數；三大營養素不是數字或超出範圍 → null。slot 有值時，同時把該餐在 meals[date] 的打勾拿掉（避免重複計算）。
+   當天原本的清單若有壞項目（不是物件、沒有 id）會順手清掉；合格與否仍由 parseNutrition 把關。 */
+export function addEntry(v4, { date, slot = null, name, kcal, proteinG = null, fatG = null, carbG = null, source = 'manual', now = new Date() } = {}) {
+  fillMissing(v4);
+  const cleanName = entryName(name);
+  const cleanKcal = entryKcal(kcal);
+  if (!isValidDateStr(date) || !cleanName || cleanKcal === null) return null;
+  const day = (Array.isArray(v4.nutrition.entries[date]) ? v4.nutrition.entries[date] : []).filter((e) => isObj(e) && typeof e.id === 'string');
+  if (day.length >= ENTRY_LIMITS.perDay) return null;
+  const ids = new Set(day.map((e) => e.id));
+  const base = `e-${now.getTime().toString(36)}`;
+  let n = day.length;
+  let id = `${base}-${n}`;
+  while (ids.has(id)) { n += 1; id = `${base}-${n}`; }
+  const cleanSlot = entrySlot(slot);
+  day.push({ id, at: isoLocal(now), slot: cleanSlot, name: cleanName, kcal: cleanKcal, proteinG: entryMacro(proteinG, ENTRY_LIMITS.proteinG), fatG: entryMacro(fatG, ENTRY_LIMITS.fatG), carbG: entryMacro(carbG, ENTRY_LIMITS.carbG), source: source === 'photo' ? 'photo' : 'manual' });
+  v4.nutrition.entries[date] = day;
+  if (cleanSlot !== null && Array.isArray(v4.nutrition.meals[date])) {
+    const rest = v4.nutrition.meals[date].filter((x) => x !== cleanSlot);
+    if (rest.length) v4.nutrition.meals[date] = rest; else delete v4.nutrition.meals[date];
+  }
+  return id;
+}
+/* 實際吃的：刪一筆，回傳是否刪到（不會把打勾加回去；當天刪光就拿掉那個日期） */
+export function removeEntry(v4, date, id) {
+  fillMissing(v4);
+  const day = v4.nutrition.entries[date];
+  if (!Array.isArray(day) || typeof id !== 'string') return false;
+  const rest = day.filter((e) => !(isObj(e) && e.id === id));
+  if (rest.length === day.length) return false;
+  if (rest.length) v4.nutrition.entries[date] = rest; else delete v4.nutrition.entries[date];
+  return true;
 }
 /* 體重：一天一筆，重記覆蓋；kg 為 null 時刪掉當天那筆 */
 export function setWeight(v4, { date, kg, now = new Date() }) {
