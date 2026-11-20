@@ -305,8 +305,12 @@ a{color:inherit}
 /* 5 餐：清單列，左圓圈打勾 */
 .tag.nutri{background:var(--nutri-soft);color:var(--nutri-ink)}
 .meals{display:flex;flex-direction:column}
-.meal{display:flex;align-items:center;gap:var(--sp-3);width:100%;min-height:64px;padding:10px 0;border:0;border-top:1px solid var(--line);background:none;text-align:left}
-.meal:first-child{border-top:0;padding-top:0}
+/* 一餐一列：左邊打勾鈕 .meal（1 次點擊）＋右邊「記實際吃的」鈕 .meal-log；實際紀錄 .entries 列在下面（D30） */
+.meal-row{border-top:1px solid var(--line)}
+.meal-row:first-child{border-top:0}
+.meal-line{display:flex;align-items:center;gap:var(--sp-2)}
+.meal{display:flex;align-items:center;gap:var(--sp-3);flex:1;min-width:0;min-height:64px;padding:10px 0;border:0;background:none;text-align:left}
+.meal-row:first-child .meal{padding-top:0}
 .meal .circle{flex:none;width:36px;height:36px;border-radius:50%;border:2.5px solid var(--nutri);background:var(--card);display:flex;align-items:center;justify-content:center;color:transparent;transition:transform .12s ease}
 .meal:active .circle{transform:scale(.92)}
 .meal.done .circle{background:var(--nutri);color:#fff}
@@ -315,7 +319,62 @@ a{color:inherit}
 .meal .name .num{flex:none;font-weight:700;font-size:var(--fs-sm);color:var(--ink-2)}
 .meal .meta{font-size:var(--fs-sm);color:var(--ink-3);margin:2px 0 0}
 .meal.done .name .num{color:var(--nutri-ink)}
+.meal.logged{cursor:default}
+.meal.logged .circle{background:var(--nutri-soft);border-color:var(--nutri-soft);color:var(--nutri-ink)}
+.meal.logged:active .circle{transform:none}
+.meal.logged .name .num{color:var(--nutri-ink)}
+.meal.logged .meta{color:var(--ink-2)}
+.meal-log{flex:none;width:var(--touch);height:var(--touch);border:0;border-radius:50%;background:var(--nutri-soft);color:var(--nutri-ink);display:flex;align-items:center;justify-content:center;transition:transform .12s ease}
+.meal-log:active{transform:scale(.92)}
+.entries{list-style:none;margin:0 0 var(--sp-3);padding:0;display:flex;flex-direction:column;gap:6px}
+.meal-row .entries{padding-left:calc(36px + var(--sp-3))}
+.entry{display:flex;align-items:center;gap:var(--sp-2);min-height:var(--touch);padding-left:var(--sp-3);border-radius:var(--r-md);background:var(--fill)}
+.entry .n{flex:1;min-width:0;font-size:var(--fs-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry .num{flex:none;font-size:var(--fs-sm);font-weight:700;color:var(--ink-2)}
+.entry .tag{flex:none}
+.entry-x{flex:none;width:var(--touch);height:var(--touch);border:0;border-radius:50%;background:none;color:var(--ink-2);display:flex;align-items:center;justify-content:center}
+.nut-extras{border-top:1px solid var(--line);padding-top:var(--sp-3)}
+.nut-sub{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 var(--sp-2);font-weight:800;font-size:var(--fs-base)}
+.nut-sub .num{font-weight:700;font-size:var(--fs-sm);color:var(--nutri-ink)}
+.nut-add{margin-top:var(--sp-1);color:var(--ink)}
+.nut-left{margin:var(--sp-3) 0 0;padding:10px 12px;border-radius:var(--r-md);background:var(--nutri-soft);color:var(--nutri-ink);font-size:var(--fs-sm);font-weight:800}
+.nut-note{margin:var(--sp-2) 0 0;color:var(--ink-2)}
+.nut-macros b small{font-size:11px;font-weight:700;color:var(--ink-2);white-space:nowrap}
 .nut-hint{margin:var(--sp-3) 0 var(--sp-2)}
+/* 「記實際吃的」面板（#sheet 內）。估算中只換文字與透明度，不加動畫。 */
+.nut-sheet:focus,.nut-est:focus{outline:none}
+.nut-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);margin-bottom:var(--sp-3)}
+.nut-sheet-head .card-title{margin:0;min-width:0}
+.icon-btn.flat{flex:none;box-shadow:none;background:var(--fill);color:var(--ink-2)}
+.nut-modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:var(--r-md);background:var(--fill);margin-bottom:var(--sp-3)}
+.nut-modes button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:var(--touch);border:0;border-radius:var(--r-sm);background:none;font-weight:700;font-size:var(--fs-base);color:var(--ink-2)}
+.nut-modes button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.nut-photo-btn{width:100%;min-height:54px;font-size:var(--fs-md);background:var(--ink);color:var(--on-ink)}
+.nut-photo-btn.again{background:var(--fill);color:var(--ink);min-height:var(--touch);font-size:var(--fs-base)}
+.nut-photo-btn:disabled{opacity:.6}
+.nut-privacy{margin:var(--sp-2) 0 0;color:var(--ink-2);text-align:center}
+.nut-sheet-msg{margin:var(--sp-3) 0 0;padding:10px 12px;border-radius:var(--r-md);background:var(--nutri-soft);color:var(--nutri-ink);font-size:var(--fs-sm);font-weight:700}
+.nut-sheet-msg:empty{display:none}
+.nut-sheet-msg.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.nut-est{margin-top:var(--sp-3);padding:var(--sp-3);border:1px solid var(--line);border-radius:var(--r-md)}
+.nut-est-t{margin:0;font-size:var(--fs-base);font-weight:800}
+.est-items{list-style:none;margin:0;padding:0}
+.est-items li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:var(--sp-3);align-items:baseline;padding:6px 0;border-top:1px solid var(--line);font-size:var(--fs-sm)}
+.est-items li:first-child{border-top:0}
+.est-items .n{font-weight:700;overflow-wrap:anywhere}
+.est-items .g{color:var(--ink-2)}
+.est-items .k{font-weight:700}
+.est-total{display:flex;flex-direction:column;gap:2px;margin:var(--sp-2) 0 var(--sp-3);padding:10px 12px;border-radius:var(--r-md);background:var(--nutri-soft);color:var(--nutri-ink);font-size:var(--fs-sm);font-weight:700}
+.est-total b{font-size:var(--fs-md);font-weight:900}
+.portions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.portions button{min-height:var(--touch);border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);font-weight:700;font-size:var(--fs-sm);color:var(--ink)}
+.portions button[aria-pressed=true]{background:var(--nutri-ink);border-color:var(--nutri-ink);color:#fff}
+.nut-accuracy{margin:var(--sp-2) 0 0;color:var(--ink-2)}
+.nut-entry-form{margin-top:var(--sp-3)}
+.nut-entry-form input,.nut-sheet #nut-photo-note{font-size:var(--fs-md)}
+.nut-macro-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-2)}
+.nut-entry-form .nut-msg{margin:0 0 var(--sp-2);color:var(--warn-ink);font-weight:700}
+.nut-entry-form .nut-msg:empty{min-height:0}
 .nut-tip{display:flex;gap:var(--sp-2);align-items:flex-start;margin:0;padding:10px 12px;border-radius:var(--r-md);background:var(--nutri-soft);color:var(--nutri-ink);font-size:var(--fs-sm);font-weight:600}
 .nut-tip .ic-wrap{flex:none;margin-top:1px}
 

@@ -10,13 +10,13 @@
 
 | 項目 | 數量 |
 |---|---:|
-| 掃描檔數 | 39 |
-| UI 字串數（含中文字的字串） | 1424 |
+| 掃描檔數 | 40 |
+| UI 字串數（含中文字的字串） | 1478 |
 | 新增違規（不在 baseline，CI 會擋） | 0 |
 | 既有違規（baseline 內，M3 修正） | 0 |
 | baseline 條目本次未出現 | 2 |
 
-掃描檔案：`data/achievements.json`、`data/coach.json`、`data/explore.json`、`data/game.json`、`data/gym.json`、`data/nutrition.json`、`data/stretch.json`、`data/swaps.json`、`data/videos.json`、`index.html`、`js/app.js`、`js/game/core.js`、`js/game/explore.js`、`js/game/gym.js`、`js/game/nutrition.js`、`js/game/swap.js`、`js/state/backup.js`、`js/state/migrate.js`、`js/state/schema.js`、`js/state/store.js`、`js/state/time.js`、`js/state/v4.js`、`js/ui/backup.js`、`js/ui/celebrate.js`、`js/ui/dom.js`、`js/ui/explore.js`、`js/ui/gym.js`、`js/ui/home.js`、`js/ui/icons.js`、`js/ui/model.js`、`js/ui/nav.js`、`js/ui/nutrition.js`、`js/ui/progress.js`、`js/ui/relocate.js`、`js/ui/settings.js`、`js/ui/stretch.js`、`js/ui/toast.js`、`js/ui/update.js`、`js/ui/videos.js`
+掃描檔案：`data/achievements.json`、`data/coach.json`、`data/explore.json`、`data/game.json`、`data/gym.json`、`data/nutrition.json`、`data/stretch.json`、`data/swaps.json`、`data/videos.json`、`index.html`、`js/app.js`、`js/game/core.js`、`js/game/explore.js`、`js/game/gym.js`、`js/game/nutrition.js`、`js/game/swap.js`、`js/state/backup.js`、`js/state/migrate.js`、`js/state/schema.js`、`js/state/store.js`、`js/state/time.js`、`js/state/v4.js`、`js/ui/backup.js`、`js/ui/celebrate.js`、`js/ui/dom.js`、`js/ui/explore.js`、`js/ui/gym.js`、`js/ui/home.js`、`js/ui/icons.js`、`js/ui/meal-photo.js`、`js/ui/model.js`、`js/ui/nav.js`、`js/ui/nutrition.js`、`js/ui/progress.js`、`js/ui/relocate.js`、`js/ui/settings.js`、`js/ui/stretch.js`、`js/ui/toast.js`、`js/ui/update.js`、`js/ui/videos.js`
 
 ## 新增違規
 
