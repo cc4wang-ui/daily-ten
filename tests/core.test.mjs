@@ -351,3 +351,24 @@ test('換動作：換過的課照常計分（sessionResult 不認動作 id）', 
   assert.equal(cleaned.gym.sessions[0].exercises[1].id, 'dumbbell-bench-press');
   assert.equal(sum({ ...defaultV4(), gym: { sessions: [d], draft: null } }).xp.by.gym, 100);
 });
+
+test('上半身／腿日切換：使用者選的優先；完成後依上一次的類型換另一類，A／B 各自輪流', async () => {
+  const { nextGymLabel, gymLabelFor } = await import('../js/game/core.js');
+  const seq = ['Upper A', 'Lower A', 'Upper B', 'Lower B'];
+  const done = (label) => ({ label, result: 'complete' });
+  assert.equal(nextGymLabel(seq, [], null), 'Upper A');
+  assert.equal(nextGymLabel(seq, [], 'Lower A'), 'Lower A', '還沒練過就能直接選腿日');
+  assert.equal(nextGymLabel(seq, [], 'nope'), 'Upper A', '不認得的標籤當成沒選');
+  assert.equal(gymLabelFor(seq, [], 'lower'), 'Lower A');
+  // 該練上半身時改練了腿日：下一次回到上半身，不會再排一次腿日
+  assert.equal(nextGymLabel(seq, [done('Lower A')], null), 'Upper A');
+  assert.equal(gymLabelFor(seq, [done('Lower A')], 'lower'), 'Lower B', '腿日練過一次，下一個腿日是 B');
+  // 連練兩次上半身後換腿日
+  assert.equal(nextGymLabel(seq, [done('Upper A'), done('Upper B')], null), 'Lower A');
+  // 部分完成不算
+  assert.equal(nextGymLabel(seq, [{ label: 'Upper A', result: 'partial' }], null), 'Upper A');
+  // 照順序做與舊規則一致
+  const order = []; const ss = [];
+  for (let i = 0; i < 5; i++) { const l = nextGymLabel(seq, ss, null); order.push(l); ss.push(done(l)); }
+  assert.deepEqual(order, ['Upper A', 'Lower A', 'Upper B', 'Lower B', 'Upper A']);
+});
