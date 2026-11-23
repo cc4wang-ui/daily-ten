@@ -265,7 +265,7 @@ export function removeStretch(v4, date) {
   const idx = v4.stretch.log.findIndex((e) => e && e.date === date);
   if (idx >= 0) v4.stretch.log.splice(idx, 1);
 }
-export function addGymSession(v4, session) { v4.gym.sessions.push(session); v4.gym.draft = null; delete v4.gym.pick; }
+export function addGymSession(v4, session) { v4.gym.sessions.push(session); v4.gym.draft = null; }
 export function removeGymSession(v4, id) { v4.gym.sessions = v4.gym.sessions.filter((s) => s && s.id !== id); }
 export function logExplore(v4, entry) { v4.explore.log.push(entry); v4.explore.current = null; }
 export function removeExplore(v4, at) { v4.explore.log = v4.explore.log.filter((e) => e && e.at !== at); }

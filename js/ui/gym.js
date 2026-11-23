@@ -75,8 +75,7 @@ async function pickType(type, currentType) {
   v4().gym.pick = gymLabelFor(gymData().sequence, summary().sessions, type);
   listSwapOpen = null;
   await commit();
-  renderGym();
-  showToast(type === 'upper' ? '下一次改練上半身' : '下一次改練腿日');
+  renderGym(); // 不跳 toast：畫面本身就換了，而且 toast 會蓋掉剛完成那一課的「復原」
 }
 
 async function start(label) {
@@ -291,6 +290,7 @@ async function finish() {
   delete session.type;
   delete session.rest; // 休息是進行中的草稿狀態，完成的課不帶它
   addGymSession(v4(), session);
+  if (r.result === 'complete') delete v4().gym.pick; // 手動選的課完整練完才清掉；只做一部分就保留，下一次還是這一課
   await commit();
   const after = summary();
   const newPrs = after.prs.filter((p) => p.sessionId === session.id);

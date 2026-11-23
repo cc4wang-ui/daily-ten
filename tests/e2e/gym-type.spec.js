@@ -16,7 +16,6 @@ test('健身房：切到腿日 → 課表換成腿日 6 個動作 → 重開還�
   await expectTouchTargets(page, '#gym-body .gym-type');
 
   await lowerBtn(page).click();
-  await expect(page.locator('#toast')).toContainText('下一次改練腿日');
   await expect(page.locator('#gym-body')).toContainText('下一次：Lower A');
   await expect(page.locator('#gym-body')).toContainText('Lower A 課表');
   await expect(page.locator('#gym-body .row')).toHaveCount(6);
