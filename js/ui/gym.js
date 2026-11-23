@@ -6,7 +6,7 @@ import { goTo } from './nav.js';
 import { summary, rules, gymData, videosData, swapsData, v4, commit, now } from './model.js';
 import { buildDraft, buildExercise, restSeconds, fmtDuration, templateFor } from '../game/gym.js';
 import { gymAlternatives, resolveGymTemplate } from '../game/swap.js';
-import { sessionResult, gameDay } from '../game/core.js';
+import { sessionResult, gameDay, gymLabelFor } from '../game/core.js';
 import { addGymSession, removeGymSession, newId } from '../state/v4.js';
 import { isoLocal } from '../state/time.js';
 import { showToast, undoMs } from './toast.js';
@@ -41,8 +41,10 @@ export function renderGym() {
     ? `<section class="card" style="border-top:4px solid var(--gym)"><div class="card-head"><h3 class="card-title">進行中：${esc(draft.label)}</h3><span class="tag gym">未完成</span></div><p class="small">${esc(draft.date)} 開始的課還沒結束。</p><button type="button" class="btn btn-primary gym" id="gym-resume">${icon('play', { size: 20 })}繼續訓練</button><div class="btn-row"><button type="button" class="btn btn-ghost" id="gym-discard">放棄這次</button></div></section>`
     : t.done
       ? `<section class="card" style="background:var(--gym-soft)"><div class="card-head"><h3 class="card-title" style="color:var(--gym-ink)">今天完成了：${esc(t.session.label)}</h3><span class="tag gym">+${R.habits.gym.xp.complete} XP</span></div><p class="small" style="margin:0">${num(t.session.volume)} kg · ${t.session.done} 組 · 本週 ${w.count}/${w.target}</p></section>`
-      : `<section class="card"><div class="card-head"><div><h3 class="card-title">下一次：${esc(tpl.label)}</h3><p class="card-sub">${tpl.type === 'upper' ? '上肢' : '下肢'} · ${tpl.exercises.length} 個動作 · 本週 ${w.count}/${w.target}</p></div><span class="tag gym">+${R.habits.gym.xp.complete} XP</span></div>
+      : `<section class="card"><div class="card-head"><div><h3 class="card-title">下一次：${esc(tpl.label)}</h3><p class="card-sub">${tpl.type === 'upper' ? '上半身' : '腿日'} · ${tpl.exercises.length} 個動作 · 本週 ${w.count}/${w.target}</p></div><span class="tag gym">+${R.habits.gym.xp.complete} XP</span></div>
         <button type="button" class="btn btn-primary gym" id="gym-start">${icon('play', { size: 20 })}開始訓練</button></section>`;
+  /* 上半身／腿日切換（2026-11-23 修）：沒有進行中的課時都看得到；選了就寫 gym.pick，完成一次課後清掉。 */
+  const typeSwitch = draft ? '' : `<div class="days gym-type" role="group" aria-label="下一次練哪裡" style="margin:0 0 12px">${[['upper', '上半身'], ['lower', '腿日']].map(([ty, name]) => `<button type="button" data-gym-type="${ty}" aria-pressed="${tpl.type === ty}">${name}</button>`).join('')}</div>`;
   const swapsMap = v4().gym.swaps || {};
   const list = `<h3 class="section-title">${esc(tpl.label)} 課表</h3><section class="card"><div class="list">${tpl.exercises.map((e, i) => {
     const eff = resolveGymTemplate(e, swapsMap, swapsData());
@@ -53,17 +55,27 @@ export function renderGym() {
   const days = v4().settings.gymDays || [];
   const swapCount = Object.keys(v4().gym.swaps || {}).length + Object.keys(v4().stretch.swaps || {}).length;
   const resetAll = swapCount > 0 ? `<p style="text-align:center;margin:12px 0 0"><button type="button" class="btn btn-secondary" id="gym-reset-swaps">全部換回原動作（${swapCount} 項已換）</button></p>` : '';
-  const plan = `<h3 class="section-title">我的健身房日（選 ${R.habits.gym.weeklyTarget} 天）</h3><section class="card"><div class="days" role="group" aria-label="健身房日">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-d="${d}" aria-pressed="${days.includes(d)}">${WD[d]}</button>`).join('')}</div><p class="small" style="margin:10px 0 0">只是提醒自己排哪幾天；哪天去都算，順序 Upper A → Lower A → Upper B → Lower B 只在完成一次課後往前。</p></section>`;
+  const plan = `<h3 class="section-title">我的健身房日（選 ${R.habits.gym.weeklyTarget} 天）</h3><section class="card"><div class="days" role="group" aria-label="健身房日">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-d="${d}" aria-pressed="${days.includes(d)}">${WD[d]}</button>`).join('')}</div><p class="small" style="margin:10px 0 0">只是提醒自己排哪幾天；哪天去都算。上半身、腿日預設輪流，想換就按最上面的切換。</p></section>`;
   const hist = sum.sessions.length ? `<h3 class="section-title">紀錄</h3><section class="card"><div class="list">${[...sum.sessions].reverse().slice(0, 12).map((s) => `<div class="row"><div class="body"><p class="t">${esc(s.label)}${s.result === 'partial' ? ' <span class="tag">部分</span>' : ''}</p><p class="s">${esc(s.date)} · ${s.done} 組 · ${num(s.volume)} kg${s.startedAt && s.finishedAt ? ` · ${fmtDuration(s.startedAt, s.finishedAt)}` : ''}</p></div><div class="r" style="color:var(--gym-ink)">+${s.result === 'complete' ? R.habits.gym.xp.complete : R.habits.gym.xp.partial}</div></div>`).join('')}</div></section>` : '';
-  $('gym-body').innerHTML = top + list + resetAll + plan + hist;
+  $('gym-body').innerHTML = typeSwitch + top + list + resetAll + plan + hist;
+  $('gym-body').querySelectorAll('[data-gym-type]').forEach((b) => { b.onclick = () => pickType(b.dataset.gymType, tpl.type); });
   if ($('gym-start')) $('gym-start').onclick = () => start(tpl.label);
   if ($('gym-resume')) $('gym-resume').onclick = () => openSession();
   if ($('gym-discard')) $('gym-discard').onclick = async () => { if (!confirm('放棄這次訓練？已填的數字會清掉。')) return; stopRest(); v4().gym.draft = null; await commit(); renderGym(); };
   $('gym-body').querySelectorAll('[data-list-swap]').forEach((b) => { b.onclick = () => { listSwapOpen = listSwapOpen === b.dataset.listSwap ? null : b.dataset.listSwap; renderGym(); }; });
   const lp = $('gym-body').querySelector('.swap-panel');
   if (lp && listSwapOpen) wireSwapPanel(lp, (altId) => swapTemplate(listSwapOpen, altId));
-  $('gym-body').querySelectorAll('.days button').forEach((b) => { b.onclick = async () => { const d = Number(b.dataset.d); const set = new Set(v4().settings.gymDays || []); if (set.has(d)) set.delete(d); else set.add(d); v4().settings.gymDays = [...set].sort(); await commit(); renderGym(); }; });
+  $('gym-body').querySelectorAll('.days button[data-d]').forEach((b) => { b.onclick = async () => { const d = Number(b.dataset.d); const set = new Set(v4().settings.gymDays || []); if (set.has(d)) set.delete(d); else set.add(d); v4().settings.gymDays = [...set].sort(); await commit(); renderGym(); }; });
   if ($('gym-reset-swaps')) $('gym-reset-swaps').onclick = () => resetAllSwaps();
+}
+
+/* 切換下一次練上半身或腿日：A／B 依該類型已完成幾次輪流。換動作清單一併收起。 */
+async function pickType(type, currentType) {
+  if (type === currentType || v4().gym.draft) return;
+  v4().gym.pick = gymLabelFor(gymData().sequence, summary().sessions, type);
+  listSwapOpen = null;
+  await commit();
+  renderGym(); // 不跳 toast：畫面本身就換了，而且 toast 會蓋掉剛完成那一課的「復原」
 }
 
 async function start(label) {
@@ -278,6 +290,7 @@ async function finish() {
   delete session.type;
   delete session.rest; // 休息是進行中的草稿狀態，完成的課不帶它
   addGymSession(v4(), session);
+  if (r.result === 'complete') delete v4().gym.pick; // 手動選的課完整練完才清掉；只做一部分就保留，下一次還是這一課
   await commit();
   const after = summary();
   const newPrs = after.prs.filter((p) => p.sessionId === session.id);

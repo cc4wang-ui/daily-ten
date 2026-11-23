@@ -5,7 +5,8 @@
      settings: { identity, gymDays: [1,2,4,5]（0=日…6=六，Cross 自選一週 4 天）, sound: true },
      gym: { sessions: [ { id, date, label, startedAt, finishedAt, exercises: [ { id, name, kind, sets: [ { weight, reps, done } ] } ] } ],
             draft: null | 進行中的課（同 session 形狀，finishedAt null）,
-            swaps: { 原動作 id: 備用 id }（換動作，2026-11-08；刪掉一項＝換回原動作） },
+            swaps: { 原動作 id: 備用 id }（換動作，2026-11-08；刪掉一項＝換回原動作）,
+            pick: 選填｜使用者指定的下一課標籤（上半身／腿日切換，2026-11-23；沒選就沒有這個欄位，完成一次課後刪掉） },
      stretch: { log: [ { date, variant: 'full'|'short', at: ISO, seconds } ],
                 swaps: { 原項目 id: 備用 id }（換動作，2026-11-08；備用沿用原項目的秒數） },
      explore: { current: null | { taskId, weekStart, pickedAt }, log: [ { date, taskId, title, category, interest: 1–5|null, note, at } ], skipped: [taskId] },
@@ -127,6 +128,7 @@ export function cleanSession(s) {
   const rest = !finishedAt && isObj(s.rest) && Number.isFinite(s.rest.deadline) && Number.isInteger(s.rest.total) && s.rest.total > 0 ? { deadline: s.rest.deadline, total: s.rest.total } : null;
   return { id: str(s.id, 80) || `${s.date}-${str(s.label, 20)}`, date: s.date, label: str(s.label, 20) || 'Upper A', startedAt: isIsoWithOffset(s.startedAt) ? s.startedAt : null, finishedAt, exercises, ...(rest ? { rest } : {}) };
 }
+const GYM_SEQUENCE = ['Upper A', 'Lower A', 'Upper B', 'Lower B'];
 export function parseV4(state) {
   const raw = isObj(state?.v4) ? state.v4 : defaultV4();
   const d = defaultV4();
@@ -140,7 +142,7 @@ export function parseV4(state) {
   const seen = isObj(raw.seen) ? raw.seen : d.seen;
   return {
     settings: { identity: str(settings.identity, 80) || d.settings.identity, gymDays, sound: settings.sound !== false },
-    gym: { sessions, draft: isObj(raw.gym?.draft) ? cleanSession(raw.gym.draft) : null, sequence: ['Upper A', 'Lower A', 'Upper B', 'Lower B'] },
+    gym: { sessions, draft: isObj(raw.gym?.draft) ? cleanSession(raw.gym.draft) : null, sequence: GYM_SEQUENCE, pick: GYM_SEQUENCE.includes(raw.gym?.pick) ? raw.gym.pick : null },
     stretch: { log: stretchLog },
     explore: { current, log: exploreLog, skipped: Array.isArray(raw.explore?.skipped) ? raw.explore.skipped.filter((x) => typeof x === 'string') : [] },
     pauses,

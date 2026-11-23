@@ -67,6 +67,26 @@ export function sessionResult(session, rules) {
 }
 
 /* ---------- 主推導 ---------- */
+/* 下一次練哪一課（2026-11-23 修：原本只照「完成次數 % 4」排，使用者沒辦法換上半身／腿日）。
+   seq 偶數位＝上半身、奇數位＝腿日。
+   - gymLabelFor：指定類型時該用哪個標籤（A／B 依這個類型已完成幾次輪流）。
+   - nextGymLabel：使用者有選（pick 是 seq 裡的標籤）就用他選的；沒選就接在上一次完成的課後面換另一類。
+     照順序做時結果與舊規則相同（Upper A → Lower A → Upper B → Lower B）。 */
+const gymTypeOf = (seq, label) => { const i = seq.indexOf(label); return i >= 0 && i % 2 === 1 ? 'lower' : 'upper'; };
+export function gymLabelFor(seq, sessions, type) {
+  const labels = seq.filter((_, i) => (i % 2 === 1) === (type === 'lower'));
+  if (!labels.length) return seq[0];
+  const n = sessions.filter((s) => s && s.result === 'complete' && gymTypeOf(seq, s.label) === type).length;
+  return labels[n % labels.length];
+}
+export function nextGymLabel(seq, sessions, pick) {
+  if (typeof pick === 'string' && seq.includes(pick)) return pick;
+  const done = sessions.filter((s) => s && s.result === 'complete');
+  const last = done[done.length - 1];
+  const type = last && gymTypeOf(seq, last.label) === 'upper' ? 'lower' : 'upper';
+  return gymLabelFor(seq, sessions, type);
+}
+
 export function summarize(v4, { rules, achievements = [], now = new Date() }) {
   const today = gameDay(now, rules);
   const todayN = dayNumber(today);
@@ -188,7 +208,7 @@ export function summarize(v4, { rules, achievements = [], now = new Date() }) {
   const tw = weeks.get(thisWeekStart) || { start: thisWeekStart, gymDays: new Set(), gymCount: 0, stretchDays: new Set(), exploreCount: 0, goalHit: {}, perfect: null, days: {} };
   const completedGym = sessions.filter((s) => s.result === 'complete').length;
   const seq = Array.isArray(v4.gym?.sequence) && v4.gym.sequence.length ? v4.gym.sequence : ['Upper A', 'Lower A', 'Upper B', 'Lower B'];
-  const nextLabel = seq[completedGym % seq.length];
+  const nextLabel = nextGymLabel(seq, sessions, v4.gym?.pick);
   const gymToday = td.gym.find((s) => s.result === 'complete') || td.gym[0] || null;
   const dots = weekDays(thisWeekStart).map((date) => {
     const dd = days.get(date);
